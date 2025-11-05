@@ -17,7 +17,6 @@
   "sideEffects": false,
   "scripts": {
     "typecheck": "bun tsc --noEmit",
-    
     "build": "bun build src/index.ts --outdir dist --target node --minify --sourcemap && bun build src/index.ts --outdir dist --target node --minify --sourcemap --format cjs --outfile dist/index.cjs",
     "validate": "bun run check-format && bun run lint && bun run typecheck && bun run test"
   },

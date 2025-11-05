@@ -15,7 +15,6 @@
   },
   "files": ["dist"],
   "scripts": {
-    
     "build": "bun build src/index.ts --outdir dist --target node --minify --sourcemap && bun build src/index.ts --outdir dist --target node --minify --sourcemap --format cjs --outfile dist/index.cjs",
     "size": "bun size-limit",
     "lint": "echo 'Lint script not implemented yet'"

@@ -9,7 +9,7 @@ pre-commit:
       # --no-errors-on-unmatched: Prevents errors if glob doesn't match any files (e.g., only non-code files staged)
       # --files-ignore-unknown=true: Prevents errors for file types Biome doesn't know (though the glob limits this)
       glob: '*.{ts,tsx,js,jsx,mjs,cjs,json,md,css,graphql}' # Match relevant file types
-      run: pnpm exec biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      run: bun biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
 
 # Optional: Add other hooks like pre-push if needed later
 # pre-push:
