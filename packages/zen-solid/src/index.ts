@@ -1,5 +1,5 @@
 import { type Zen, get, subscribe } from '@sylphx/zen';
-import { createSignal, onMount, onCleanup, createMemo } from 'solid-js';
+import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 
 /**
  * Subscribes to a Zen store and returns a reactive Solid.js signal accessor.

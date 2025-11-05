@@ -40,7 +40,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "keywords": ["zen", "state management", "immer", "produce", "craft", "patch", "immutable", "time-travel"],
+  "keywords": [
+    "zen",
+    "state management",
+    "immer",
+    "produce",
+    "craft",
+    "patch",
+    "immutable",
+    "time-travel"
+  ],
   "author": "Sylph",
   "license": "MIT"
 }

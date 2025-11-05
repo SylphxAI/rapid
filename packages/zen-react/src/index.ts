@@ -28,7 +28,7 @@ export function useStore<Value>(store: Zen<Value>): Value {
     return useSyncExternalStore(
       (onStoreChange) => subscribe(store, onStoreChange),
       () => get(store),
-      () => get(store) // Server snapshot (SSR)
+      () => get(store), // Server snapshot (SSR)
     );
   }
 

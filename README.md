@@ -8,6 +8,8 @@
 
 Zen delivers **extreme speed** *because* of its minimalist core, consistently outperforming popular alternatives like Zustand, Jotai, Nanostores, Valtio, and Effector in crucial benchmarks. All this, while maintaining a **tiny footprint (1.45 kB full library)** and providing essential features through a clean, intuitive API.
 
+**Multi-framework support:** Use Zen with React, Vue, Preact, Solid.js, and Svelte through official framework integrations – each under 250 bytes. Share state logic across your entire stack.
+
 ---
 
 ## Why Zen? 🤔
@@ -34,6 +36,8 @@ By focusing relentlessly on a highly optimized, simple core and only the essenti
 *   ⚛️ **Core Primitives:** `atom` for basic state, `computed` for derived values.
 *   🗺️ **Object Helpers:** `map` for shallow object state, `deepMap` for nested objects/arrays with efficient path updates/listeners.
 *   ⚡ **Async Handling:** `task` atom for managing async operation states (loading, error, data).
+*   ✂️ **Immutable Updates:** `@sylphx/zen-craft` provides Immer-like `produce()` with JSON Patch generation for time-travel and undo/redo.
+*   🌐 **Multi-Framework:** Official integrations for React, Vue, Preact, Solid.js, and Svelte – each <250 bytes.
 *   👂 **Lifecycle Events:** Optional hooks (`onMount`, `onStart`, `onStop`, `onSet`, `onNotify`) for fine-grained control when needed.
 *   🎯 **Granular Subscriptions:** Efficiently listen to specific `keys` in `map` or deep `paths` in `deepMap`.
 *   📏 **Tiny Size:** Just **1.45 kB** (brotli + gzip) for the full library.
@@ -49,6 +53,105 @@ yarn add @sylphx/zen
 # or
 pnpm add @sylphx/zen
 ```
+
+---
+
+## Ecosystem & Framework Integrations 🌐
+
+Zen provides a complete ecosystem of packages for different use cases and frameworks:
+
+### Core Packages
+
+| Package | Description | Size |
+|---------|-------------|------|
+| **[@sylphx/zen](https://www.npmjs.com/package/@sylphx/zen)** | Core state management library | 1.45 kB |
+| **[@sylphx/zen-craft](https://www.npmjs.com/package/@sylphx/zen-craft)** | Immer-like immutable updates with JSON Patches | ~4 kB |
+| **[@sylphx/zen-persistent](https://www.npmjs.com/package/@sylphx/zen-persistent)** | localStorage/sessionStorage sync | ~1 kB |
+
+### Framework Integrations
+
+All framework integrations are **under 250 bytes** – lighter than most competing solutions:
+
+| Package | Framework | Size | Features |
+|---------|-----------|------|----------|
+| **[@sylphx/zen-react](https://www.npmjs.com/package/@sylphx/zen-react)** | React 16.8+ | 216 B | `useStore` hook with concurrent mode support |
+| **[@sylphx/zen-preact](https://www.npmjs.com/package/@sylphx/zen-preact)** | Preact 10+ | 177 B | `useStore` hook |
+| **[@sylphx/zen-vue](https://www.npmjs.com/package/@sylphx/zen-vue)** | Vue 3+ | ~200 B | `useStore` composition API |
+| **[@sylphx/zen-solid](https://www.npmjs.com/package/@sylphx/zen-solid)** | Solid.js | 234 B | `useStore` + `fromStore` with signals |
+| **[@sylphx/zen-svelte](https://www.npmjs.com/package/@sylphx/zen-svelte)** | Svelte 3-5 | 167 B | Native store contract compatibility |
+
+### Router Packages
+
+| Package | Description |
+|---------|-------------|
+| **[@sylphx/zen-router](https://www.npmjs.com/package/@sylphx/zen-router)** | Core framework-agnostic router |
+| **[@sylphx/zen-router-react](https://www.npmjs.com/package/@sylphx/zen-router-react)** | React router integration |
+| **[@sylphx/zen-router-preact](https://www.npmjs.com/package/@sylphx/zen-router-preact)** | Preact router integration |
+| **[@sylphx/zen-router-vue](https://www.npmjs.com/package/@sylphx/zen-router-vue)** | Vue router integration |
+
+### Quick Framework Examples
+
+**React:**
+```tsx
+import { zen, set } from '@sylphx/zen';
+import { useStore } from '@sylphx/zen-react';
+
+const count = zen(0);
+
+function Counter() {
+  const value = useStore(count);
+  return <button onClick={() => set(count, value + 1)}>{value}</button>;
+}
+```
+
+**Vue:**
+```vue
+<script setup>
+import { zen, set } from '@sylphx/zen';
+import { useStore } from '@sylphx/zen-vue';
+
+const count = zen(0);
+const value = useStore(count);
+</script>
+
+<template>
+  <button @click="set(count, value + 1)">{{ value }}</button>
+</template>
+```
+
+**Svelte:**
+```svelte
+<script>
+  import { zen, set } from '@sylphx/zen';
+  import { fromZen } from '@sylphx/zen-svelte';
+
+  const count = zen(0);
+  const value = fromZen(count);
+</script>
+
+<button on:click={() => set(count, $value + 1)}>{$value}</button>
+```
+
+**Solid.js:**
+```tsx
+import { zen, set } from '@sylphx/zen';
+import { useStore } from '@sylphx/zen-solid';
+
+const count = zen(0);
+
+function Counter() {
+  const value = useStore(count);
+  return <button onClick={() => set(count, value() + 1)}>{value()}</button>;
+}
+```
+
+### Why Zen for Multi-Framework Projects?
+
+- **🎯 Single Source of Truth:** Define state logic once, use everywhere
+- **🪶 Minimal Overhead:** Framework integrations add <250 bytes each
+- **⚡ Challenge to Signals:** Competitive with Solid Signals while supporting all major frameworks
+- **🔒 Type-Safe:** Full TypeScript support across all packages
+- **📦 No Lock-In:** Start with one framework, expand to others seamlessly
 
 ---
 
@@ -247,6 +350,71 @@ runTask(userTask, 0)
 console.log(getTaskState(userTask)); // Output: { loading: false, error: Error: Invalid ID, data: undefined }
 ```
 
+### `craft` (Immutable Updates)
+
+**Package:** `@sylphx/zen-craft`
+
+Craft immutable state updates using an Immer-like `produce()` function with JSON Patch generation for time-travel and undo/redo.
+
+```bash
+npm install @sylphx/zen-craft
+```
+
+```typescript
+import { zen, get } from '@sylphx/zen';
+import { produce, patch, enablePatches } from '@sylphx/zen-craft';
+
+// Enable patch generation (optional, for undo/redo)
+enablePatches();
+
+interface Todo {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+const todos = zen<Todo[]>([
+  { id: 1, text: 'Learn Zen', completed: false },
+  { id: 2, text: 'Build app', completed: false }
+]);
+
+// Use produce to update immutably
+produce(todos, (draft) => {
+  draft[0].completed = true;
+  draft.push({ id: 3, text: 'Ship it!', completed: false });
+});
+
+console.log(get(todos));
+// Output: [
+//   { id: 1, text: 'Learn Zen', completed: true },
+//   { id: 2, text: 'Build app', completed: false },
+//   { id: 3, text: 'Ship it!', completed: false }
+// ]
+
+// With patches enabled, you get JSON Patches
+const [newState, patches, inversePatches] = produce(
+  todos,
+  (draft) => { draft[1].completed = true; },
+  { returnPatches: true }
+);
+
+console.log(patches);
+// Output: [{ op: 'replace', path: ['1', 'completed'], value: true }]
+
+console.log(inversePatches);
+// Output: [{ op: 'replace', path: ['1', 'completed'], value: false }]
+
+// Apply patches manually for undo/redo
+patch(todos, inversePatches); // Undo
+patch(todos, patches);        // Redo
+```
+
+**Features:**
+- 🎨 Draft-based mutations (write mutable code, get immutable updates)
+- 📝 JSON Patch generation for time-travel debugging
+- ↩️ Undo/redo with inverse patches
+- 🔧 Compatible with all Zen stores (atom, map, deepMap, etc.)
+
 ---
 
 ## Advanced Usage 🧐
@@ -346,6 +514,76 @@ Zen's minimalist philosophy results in an incredibly small bundle size.
 | **Zen (full)**    | **1.45 kB**          | <!-- Placeholder: Re-run size-limit if needed -->
 | Effector          | 5.27 kB              |
 | Redux Toolkit     | 6.99 kB              |
+
+---
+
+## Framework Integration Comparison: Challenging Signals 🎯
+
+Zen provides a **unique advantage**: write state logic once, use it across **all major frameworks**. Here's how Zen's framework integrations compare to framework-specific solutions:
+
+| Framework | Zen Integration | Framework-Specific Solution | Zen Advantage |
+|-----------|----------------|----------------------------|---------------|
+| **React** | `@sylphx/zen-react` (216 B) | Zustand (461 B), Jotai (170 B) | Multi-framework, comparable size |
+| **Solid.js** | `@sylphx/zen-solid` (234 B) | Solid Signals (built-in, ~7 kB for @solidjs/store) | Smaller + multi-framework |
+| **Vue** | `@sylphx/zen-vue` (~200 B) | Vue Reactivity (built-in) | Multi-framework portability |
+| **Svelte** | `@sylphx/zen-svelte` (167 B) | Svelte Stores (built-in) | Multi-framework portability |
+| **Preact** | `@sylphx/zen-preact` (177 B) | Preact Signals (~4 kB) | Smaller + multi-framework |
+
+### Why This Matters
+
+**Framework Lock-In Problem:** Traditional solutions tie your state logic to a specific framework:
+- Solid Signals: Solid.js only
+- Vue Reactivity: Vue only
+- Svelte Stores: Svelte only
+- Preact Signals: Preact only
+
+**Zen Solution:** Write your state logic once in framework-agnostic Zen stores, then use the appropriate integration:
+
+```typescript
+// state/counter.ts - Framework agnostic!
+import { zen } from '@sylphx/zen';
+
+export const counter = zen(0);
+export const doubled = computed([counter], (n) => n * 2);
+```
+
+```tsx
+// React component
+import { useStore } from '@sylphx/zen-react';
+import { counter } from './state/counter';
+
+function ReactCounter() {
+  const count = useStore(counter);
+  return <div>{count}</div>;
+}
+```
+
+```vue
+<!-- Vue component -->
+<script setup>
+import { useStore } from '@sylphx/zen-vue';
+import { counter } from './state/counter';
+
+const count = useStore(counter);
+</script>
+```
+
+```tsx
+// Solid.js component
+import { useStore } from '@sylphx/zen-solid';
+import { counter } from './state/counter';
+
+function SolidCounter() {
+  const count = useStore(counter);
+  return <div>{count()}</div>;
+}
+```
+
+**Same state logic. Different frameworks. Zero rewrites.**
+
+### Performance Comparison
+
+Zen matches or exceeds the performance of framework-specific solutions while providing multi-framework portability. See the [Performance](#performance-extreme-speed-via-minimalism-) section for detailed benchmarks.
 
 ---
 
