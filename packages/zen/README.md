@@ -1,4 +1,4 @@
-# @sylph/core
+# @sylphx/zen
 
 Core package for the zen state management library. Tiny, fast, and functional reactive state management.
 
@@ -7,25 +7,25 @@ Inspired by Nanostores, aiming for an even smaller footprint and high performanc
 ## Installation
 
 ```bash
-npm install @sylph/core
+npm install @sylphx/zen
 # or
-yarn add @sylph/core
+yarn add @sylphx/zen
 # or
-pnpm add @sylph/core
+pnpm add @sylphx/zen
 # or
-bun add @sylph/core
+bun add @sylphx/zen
 ```
 
 ## Basic Usage
 
 ```typescript
-import { atom, computed, subscribe, get, set } from '@sylph/core';
+import { zen, computed, subscribe, get, set } from '@sylphx/zen';
 
-// Create a writable atom state
-const count = atom(0);
+// Create a writable zen state
+const count = zen(0);
 
-// Create a computed state derived from other atoms
-const double = computed(count, (value) => value * 2);
+// Create a computed state derived from other zen stores
+const double = computed([count], (value) => value * 2);
 
 // Subscribe to changes
 const unsubscribe = subscribe(double, (value) => {
@@ -49,7 +49,7 @@ unsubscribe();
 ### `map` Example
 
 ```typescript
-import { map, setKey, listenKeys, get } from '@sylph/core';
+import { map, setKey, listenKeys, get } from '@sylphx/zen';
 
 const user = map({ name: 'Anon', age: 99 });
 
@@ -69,7 +69,7 @@ unsubscribeKey();
 ### `deepMap` Example
 
 ```typescript
-import { deepMap, setPath, listenPaths, get } from '@sylph/core';
+import { deepMap, setPath, listenPaths, get } from '@sylphx/zen';
 
 const settings = deepMap({ user: { theme: 'dark', notifications: true }, other: [1, 2] });
 
@@ -93,7 +93,7 @@ unsubPath();
 ### `task` Example
 
 ```typescript
-import { task, subscribe } from '@sylph/core';
+import { task, subscribe } from '@sylphx/zen';
 
 const fetchData = task(async (id: number) => {
   // Simulate API call
@@ -117,10 +117,10 @@ fetchData.run(123); // Logs: Task loading... -> Task success: { data: 'User data
 ### `batch` Example
 
 ```typescript
-import { atom, computed, batch, subscribe, set } from '@sylph/core';
+import { zen, computed, batch, subscribe, set } from '@sylphx/zen';
 
-const firstName = atom('John');
-const lastName = atom('Doe');
+const firstName = zen('John');
+const lastName = zen('Doe');
 const fullName = computed([firstName, lastName], (f, l) => `${f} ${l}`);
 
 const unsubscribeBatch = subscribe(fullName, (value) => {
@@ -140,35 +140,35 @@ unsubscribeBatch();
 ### Lifecycle Example (`onMount`/`onStop`)
 
 ```typescript
-import { atom, onMount, onStop, subscribe, get, set } from '@sylph/core';
+import { zen, onMount, onStop, subscribe, get, set } from '@sylphx/zen';
 
-const timerAtom = atom(0);
+const timerZen = zen(0);
 
 let intervalId: ReturnType<typeof setInterval> | undefined;
 
-onMount(timerAtom, () => {
-  console.log('Timer atom mounted (first subscriber added)');
+onMount(timerZen, () => {
+  console.log('Timer zen mounted (first subscriber added)');
   intervalId = setInterval(() => {
-    set(timerAtom, get(timerAtom) + 1); // Use functional set/get
+    set(timerZen, get(timerZen) + 1); // Use functional set/get
   }, 1000);
 
   // Return a cleanup function for onStop
   return () => {
-    console.log('Timer atom stopped (last subscriber removed)');
+    console.log('Timer zen stopped (last subscriber removed)');
     if (intervalId) clearInterval(intervalId);
     intervalId = undefined;
   };
 });
 
 console.log('Subscribing...');
-const unsubTimer = subscribe(timerAtom, (value) => {
+const unsubTimer = subscribe(timerZen, (value) => {
   console.log('Timer:', value);
 });
-// Logs: Subscribing... -> Timer atom mounted... -> Timer: 0 -> Timer: 1 ...
+// Logs: Subscribing... -> Timer zen mounted... -> Timer: 0 -> Timer: 1 ...
 
 // setTimeout(() => {
 //   console.log('Unsubscribing...');
-//   unsubTimer(); // Logs: Unsubscribing... -> Timer atom stopped...
+//   unsubTimer(); // Logs: Unsubscribing... -> Timer zen stopped...
 // }, 3500);
 ```
 

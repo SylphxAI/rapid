@@ -33,7 +33,7 @@ By focusing relentlessly on a highly optimized, simple core and only the essenti
 
 *   🤏 **Extreme Minimalism:** Simple, intuitive API focused on the fundamentals.
 *   🚀 **Extreme Performance:** Hyper-optimized core delivers benchmark-leading speed (see below).
-*   ⚛️ **Core Primitives:** `atom` for basic state, `computed` for derived values.
+*   ⚛️ **Core Primitives:** `zen` for basic state, `computed` for derived values.
 *   🗺️ **Object Helpers:** `map` for shallow object state, `deepMap` for nested objects/arrays with efficient path updates/listeners.
 *   ⚡ **Async Handling:** `task` atom for managing async operation states (loading, error, data).
 *   ✂️ **Immutable Updates:** `@sylphx/zen-craft` provides Immer-like `produce()` with JSON Patch generation for time-travel and undo/redo.
@@ -157,14 +157,14 @@ function Counter() {
 
 ## Core Usage 🧑‍💻
 
-### `atom`
+### `zen`
 
 The fundamental building block for reactive state.
 
 ```typescript
-import { atom, get, set, subscribe } from '@sylphx/zen';
+import { zen, get, set, subscribe } from '@sylphx/zen';
 
-const counter = atom(0);
+const counter = zen(0);
 
 const unsubscribe = subscribe(counter, (value, oldValue) => {
   console.log(`Counter changed from ${oldValue} to ${value}`);
@@ -185,13 +185,13 @@ set(counter, 2); // No output, unsubscribed
 
 ### `computed`
 
-Create derived state based on one or more atoms.
+Create derived state based on one or more zen stores.
 
 ```typescript
-import { atom, computed, get, set, subscribe } from '@sylphx/zen';
+import { zen, computed, get, set, subscribe } from '@sylphx/zen';
 
-const count = atom(10);
-const message = atom(' apples');
+const count = zen(10);
+const message = zen(' apples');
 
 // Computed value based on count
 const double = computed([count], (value) => value * 2);
@@ -413,7 +413,7 @@ patch(todos, patches);        // Redo
 - 🎨 Draft-based mutations (write mutable code, get immutable updates)
 - 📝 JSON Patch generation for time-travel debugging
 - ↩️ Undo/redo with inverse patches
-- 🔧 Compatible with all Zen stores (atom, map, deepMap, etc.)
+- 🔧 Compatible with all Zen stores (zen, map, deepMap, etc.)
 
 ---
 
@@ -421,23 +421,23 @@ patch(todos, patches);        // Redo
 
 ### Lifecycle Events
 
-Listen to internal atom events using `onStart`, `onStop`, `onSet`, `onNotify`, `onMount`.
+Listen to internal store events using `onStart`, `onStop`, `onSet`, `onNotify`, `onMount`.
 
 ```typescript
-import { atom, set, subscribe, onStart, onStop, onSet, onNotify } from '@sylphx/zen';
+import { zen, set, subscribe, onStart, onStop, onSet, onNotify } from '@sylphx/zen';
 
-const myAtom = atom(0);
+const myZen = zen(0);
 
-const unsubStart = onStart(myAtom, () => console.log('First listener subscribed!'));
-const unsubStop = onStop(myAtom, () => console.log('Last listener unsubscribed!'));
-const unsubSet = onSet(myAtom, (newValue) => console.log(`Setting value to ${newValue}...`)); // Only called outside batch
-const unsubNotify = onNotify(myAtom, (newValue) => console.log(`Notified with value ${newValue}!`));
+const unsubStart = onStart(myZen, () => console.log('First listener subscribed!'));
+const unsubStop = onStop(myZen, () => console.log('Last listener unsubscribed!'));
+const unsubSet = onSet(myZen, (newValue) => console.log(`Setting value to ${newValue}...`)); // Only called outside batch
+const unsubNotify = onNotify(myZen, (newValue) => console.log(`Notified with value ${newValue}!`));
 
-const sub1 = subscribe(myAtom, () => {});
+const sub1 = subscribe(myZen, () => {});
 // Output: First listener subscribed!
 // Output: Notified with value 0! (Initial subscribe calls listener, which triggers notify)
 
-set(myAtom, 1);
+set(myZen, 1);
 // Output: Setting value to 1...
 // Output: Notified with value 1!
 

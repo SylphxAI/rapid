@@ -1,24 +1,24 @@
-# @sylph/router
+# @sylphx/zen-router
 
-Tiny URL router integration for `@sylph/core` state management. Uses browser History API.
+Tiny URL router integration for `@sylphx/zen` state management. Uses browser History API.
 
 ## Installation
 
 ```bash
-npm install @sylph/router @sylph/core
+npm install @sylphx/zen-router @sylphx/zen
 # or
-yarn add @sylph/router @sylph/core
+yarn add @sylphx/zen-router @sylphx/zen
 # or
-pnpm add @sylph/router @sylph/core
+pnpm add @sylphx/zen-router @sylphx/zen
 # or
-bun add @sylph/router @sylph/core
+bun add @sylphx/zen-router @sylphx/zen
 ```
 
 ## Basic Usage
 
 ```typescript
-import { $router, defineRoutes, startHistoryListener, open, matchRoutes, RouteConfig } from '@sylph/router';
-import { subscribe, get } from '@sylph/core';
+import { $router, defineRoutes, startHistoryListener, open, matchRoutes, RouteConfig } from '@sylphx/zen-router';
+import { subscribe, get } from '@sylphx/zen';
 
 // 1. Define your routes
 // RouteConfig allows arbitrary data associated with a path
@@ -71,7 +71,7 @@ console.log('Initial State:', initialState);
 
 ## Features
 
-*   Integrates seamlessly with `@sylph/core` map atoms.
+*   Integrates seamlessly with `@sylphx/zen` map stores.
 *   Minimal API surface (`$router`, `defineRoutes`, `matchRoutes`, `open`, `redirect`, `startHistoryListener`, `stopHistoryListener`).
 *   Tiny size.
 *   Supports dynamic segments (`:param`) and optional segments (`:param?`).

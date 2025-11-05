@@ -10,13 +10,13 @@ This package allows you to work with immutable state in a more convenient way by
 
 ```bash
 # Using pnpm (recommended for this workspace)
-pnpm add @sylphx/zen-craft @sylphlab/zen-core
+pnpm add @sylphx/zen-craft @sylphx/zen
 
 # Using npm
-npm install @sylphx/zen-craft @sylphlab/zen-core
+npm install @sylphx/zen-craft @sylphx/zen
 
 # Using yarn
-yarn add @sylphx/zen-craft @sylphlab/zen-core
+yarn add @sylphx/zen-craft @sylphx/zen
 ```
 
 ## Usage
@@ -27,15 +27,15 @@ The `produce` function takes a base state and a "recipe" function. The recipe fu
 
 ```typescript
 import { produce } from '@sylphx/zen-craft';
-import { atom } from '@sylphlab/zen-core';
+import { zen, get } from '@sylphx/zen';
 
-const myAtom = atom({
+const myStore = zen({
   user: { name: 'Alice', age: 30 },
   tags: ['a', 'b']
 });
 
 // Get current state
-const currentState = myAtom.get();
+const currentState = get(myStore);
 
 // Produce the next state using a recipe
 const [nextState, patches, inversePatches] = produce(
