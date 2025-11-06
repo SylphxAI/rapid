@@ -94,9 +94,8 @@ export function effect<Stores extends AnyZen[]>(
     }
 
     // ✅ PHASE 5: Fast path for single store dependency check
-    const dependenciesReady = len === 1
-      ? currentValues[0] !== null
-      : !currentValues.some((v) => v === null);
+    const dependenciesReady =
+      len === 1 ? currentValues[0] !== null : !currentValues.some((v) => v === null);
 
     if (dependenciesReady) {
       // All values are non-null, proceed.

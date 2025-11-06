@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/zen",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Zen state management library - extreme minimalism, extreme speed.",
   "type": "module",
   "main": "./dist/index.cjs",
