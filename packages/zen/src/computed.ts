@@ -124,7 +124,7 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
   const calc = zen._calculation;
   const old = zen._value; // Capture value BEFORE recalculation (could be null)
 
-  // ✅ PHASE 2 OPTIMIZATION: Check if sources have changed using version tracking
+  // ✅ PHASE 4 OPTIMIZATION: Fast path for single source (most common case)
   // Initialize source versions array if needed
   zen._sourceVersions ??= new Array(srcs.length);
   const versions = zen._sourceVersions;
@@ -133,21 +133,37 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
   let anySourceChanged = false;
   if (old !== null) {
     // Skip on first calculation
-    for (let i = 0; i < srcs.length; i++) {
-      const source = srcs[i];
+    const srcLen = srcs.length;
+
+    // ✅ PHASE 4: Special case for single source (most common)
+    if (srcLen === 1) {
+      const source = srcs[0];
       if (source) {
         const currentVersion = source._version ?? 0;
-        if (currentVersion !== versions[i]) {
-          anySourceChanged = true;
-          break;
+        if (currentVersion === versions[0]) {
+          zen._dirty = false;
+          return false; // No change - skip recalculation
+        }
+        anySourceChanged = true;
+      }
+    } else {
+      // Multiple sources - check all
+      for (let i = 0; i < srcLen; i++) {
+        const source = srcs[i];
+        if (source) {
+          const currentVersion = source._version ?? 0;
+          if (currentVersion !== versions[i]) {
+            anySourceChanged = true;
+            break;
+          }
         }
       }
-    }
 
-    // If no source version changed, we can skip recalculation
-    if (!anySourceChanged) {
-      zen._dirty = false;
-      return false; // No change
+      // If no source version changed, we can skip recalculation
+      if (!anySourceChanged) {
+        zen._dirty = false;
+        return false; // No change
+      }
     }
   }
 
@@ -163,12 +179,19 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
   // Note: We proceed even if some vals are null, assuming null is a valid state.
   // The calculation function itself should handle null inputs if necessary.
 
-  // *** ADDED CHECK: Ensure all collected values are not undefined before calculating ***
-  if (vals.some((v) => v === undefined)) {
-    zen._dirty = true; // Remain dirty if any source value is still undefined
-    return false;
+  // ✅ PHASE 4 OPTIMIZATION: Fast path for single source undefined check
+  if (srcs.length === 1) {
+    if (vals[0] === undefined) {
+      zen._dirty = true;
+      return false;
+    }
+  } else {
+    // Multiple sources - check all
+    if (vals.some((v) => v === undefined)) {
+      zen._dirty = true;
+      return false;
+    }
   }
-  // *** END ADDED CHECK ***
 
   // 2. Dependencies are ready, proceed with calculation
   const newValue = calc(...vals); // vals are now guaranteed non-null AND non-undefined

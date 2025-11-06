@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { zen, set, subscribe, computed } from './zen';
+import { computed, set, subscribe, zen } from './zen';
 
 describe('Hot Path Analysis - Notification Loop', () => {
   bench('baseline: set without listeners (measures pure set overhead)', () => {
@@ -29,9 +29,11 @@ describe('Hot Path Analysis - Notification Loop', () => {
 
   bench('set + 10 listeners (with simple work: counter++)', () => {
     const atom = zen(0);
-    let counter = 0;
+    let _counter = 0;
     for (let i = 0; i < 10; i++) {
-      subscribe(atom, () => { counter++; });
+      subscribe(atom, () => {
+        _counter++;
+      });
     }
     for (let i = 0; i < 100; i++) {
       set(atom, i);
