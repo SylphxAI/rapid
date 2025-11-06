@@ -26,7 +26,7 @@ yarn add @sylphx/zen-craft @sylphx/zen
 
 ### `craftZen()`
 
-The main API for Zen integration. Updates a Zen atom immutably using a recipe function. Returns patches and inverse patches for undo/redo support.
+The main API for Zen integration. Updates a Zen atom immutably using a recipe function.
 
 ```typescript
 import { craftZen } from '@sylphx/zen-craft';
@@ -37,24 +37,26 @@ const myStore = zen({
   tags: ['a', 'b']
 });
 
-// Update atom with draft mutations
-const [patches, inversePatches] = craftZen(
-  myStore,
-  (draft) => {
-    draft.user.age++;
-    draft.tags.push('c');
-  },
-  { patches: true, inversePatches: true } // Enable patch generation
-);
+// Basic usage - update atom with draft mutations
+craftZen(myStore, (draft) => {
+  draft.user.age++;
+  draft.tags.push('c');
+});
 
 console.log(get(myStore));
 // Output: { user: { name: 'Alice', age: 31 }, tags: ['a', 'b', 'c'] }
 
+// Advanced: Enable patch generation for undo/redo support
+const [patches, inversePatches] = craftZen(
+  myStore,
+  (draft) => {
+    draft.user.age++;
+  },
+  { patches: true, inversePatches: true }
+);
+
 console.log(patches);
-// Output: [
-//   { op: 'replace', path: ['user', 'age'], value: 31 },
-//   { op: 'add', path: ['tags', 2], value: 'c' }
-// ]
+// Output: [{ op: 'replace', path: ['user', 'age'], value: 32 }]
 ```
 
 ### `produce()`
