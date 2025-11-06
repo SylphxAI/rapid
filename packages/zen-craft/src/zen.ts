@@ -1,31 +1,48 @@
+import { craft, craftWithPatches } from '@sylphx/craft';
 import { get, set } from '@sylphx/zen';
 import type { Zen } from '@sylphx/zen';
-import { produce } from './produce';
 import type { CraftOptions, Patch } from './types';
 
 /**
  * Craft-powered immutable updates for Zen atoms.
  * Applies a recipe function to a draft version of the atom's current state,
  * automatically updating the atom with structural sharing.
- * Returns the generated patches and inverse patches.
  *
  * @param targetZen The Zen atom to update.
  * @param recipe A function that receives a draft state and can mutate it.
  * @param options Options to enable patch generation.
- * @returns A tuple containing the generated patches and inverse patches: [Patch[], Patch[]]
+ * @returns When options.patches or options.inversePatches is true, returns [Patch[], Patch[]]. Otherwise returns void.
  */
+export function craftZen<T>(targetZen: Zen<T>, recipe: (draft: T) => undefined): void;
+
+export function craftZen<T>(
+  targetZen: Zen<T>,
+  recipe: (draft: T) => undefined,
+  options: CraftOptions,
+): [Patch[], Patch[]];
+
 export function craftZen<T>(
   targetZen: Zen<T>,
   recipe: (draft: T) => undefined,
   options?: CraftOptions,
-): [Patch[], Patch[]] {
-  const currentState = get(targetZen); // Use get() function
-  const [nextState, patches, inversePatches] = produce(currentState, recipe, options);
+): [Patch[], Patch[]] | undefined {
+  const currentState = get(targetZen);
 
-  // Only set if reference changed (craft guarantees structural sharing)
-  if (nextState !== currentState) {
-    set(targetZen, nextState); // Use set() function
+  // Directly use craftWithPatches or craft to avoid intermediate produce layer
+  if (options?.patches || options?.inversePatches) {
+    const [nextState, patches, inversePatches] = craftWithPatches(
+      currentState,
+      recipe as (draft: T) => T | undefined,
+    );
+    if (nextState !== currentState) {
+      set(targetZen, nextState);
+    }
+    return [patches, inversePatches];
   }
 
-  return [patches, inversePatches];
+  // Fast path: no patches needed
+  const nextState = craft(currentState, recipe as (draft: T) => T | undefined);
+  if (nextState !== currentState) {
+    set(targetZen, nextState);
+  }
 }

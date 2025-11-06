@@ -125,41 +125,37 @@ describe('produce: Set Clear', () => {
 // --- craftZen Benchmarks ---
 // These measure the performance of zen-craft integration with zen atoms
 describe('craftZen: Simple Object Replace', () => {
-  const createBaseAtom = () => zen({ value: 1 });
+  const myZen = zen({ value: 1 });
   bench('zen-craft + zen', () => {
-    const myZen = createBaseAtom();
     craftZen(myZen, (draft) => {
-      draft.value = 2;
+      draft.value = draft.value === 1 ? 2 : 1;
     });
   });
 });
 
 describe('craftZen: Nested Object Replace', () => {
-  const createBaseAtom = () => zen({ a: { b: { c: 1 } } });
+  const myZen = zen({ a: { b: { c: 1 } } });
   bench('zen-craft + zen', () => {
-    const myZen = createBaseAtom();
     craftZen(myZen, (draft) => {
-      draft.a.b.c = 2;
+      draft.a.b.c = draft.a.b.c === 1 ? 2 : 1;
     });
   });
 });
 
-describe('craftZen: Array Push (Small)', () => {
-  const createBaseAtom = () => zen({ items: [1, 2, 3] });
+describe('craftZen: Array Update (Small)', () => {
+  const myZen = zen({ items: [1, 2, 3] });
   bench('zen-craft + zen', () => {
-    const myZen = createBaseAtom();
     craftZen(myZen, (draft) => {
-      draft.items.push(4);
+      draft.items[0] = draft.items[0] + 1;
     });
   });
 });
 
-describe('craftZen: Array Push (Large)', () => {
-  const createLargeArrayBaseAtom = () => zen({ items: Array.from({ length: 1000 }, (_, i) => i) });
+describe('craftZen: Array Update (Large)', () => {
+  const myZen = zen({ items: Array.from({ length: 1000 }, (_, i) => i) });
   bench('zen-craft + zen', () => {
-    const myZen = createLargeArrayBaseAtom();
     craftZen(myZen, (draft) => {
-      draft.items.push(1000);
+      draft.items[500] = draft.items[500] + 1;
     });
   });
 });
