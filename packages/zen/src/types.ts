@@ -14,23 +14,21 @@ export type Unsubscribe = () => void;
 /** Base structure for zens that directly hold value and listeners. */
 export type ZenWithValue<T> = {
   /** Distinguishes zen types for faster checks */
-  _kind: 'zen' | 'computed' | 'select' | 'map' | 'deepMap' | 'karma' | 'batched'; // Add 'select' and 'batched'
+  _kind: 'zen' | 'computed' | 'select' | 'map' | 'deepMap' | 'karma' | 'batched';
   /** Current value */
-  _value: T; // Value type enforced by generic, no null default
-  /** Value listeners (Set for efficient add/delete/has) */
-  _listeners?: Set<Listener<T>>;
-  // Restore lifecycle listener properties using broader types for simplicity
-  // biome-ignore lint/suspicious/noExplicitAny: Listener sets use any for simplicity
-  _startListeners?: Set<any>; // Use Set<any> or Set<Function>
-  // biome-ignore lint/suspicious/noExplicitAny: Listener sets use any for simplicity
-  _stopListeners?: Set<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Listener sets use any for simplicity
-  _setListeners?: Set<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Listener sets use any for simplicity
-  _notifyListeners?: Set<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Listener sets use any for simplicity
-  _mountListeners?: Set<any>;
-  // Add properties for map/deepMap listeners using broader types
+  _value: T;
+  /** ✅ PHASE 1 OPTIMIZATION: Array-based listeners for better performance */
+  _listeners?: Listener<T>[];
+  // biome-ignore lint/suspicious/noExplicitAny: Listener arrays use any for simplicity
+  _startListeners?: any[];
+  // biome-ignore lint/suspicious/noExplicitAny: Listener arrays use any for simplicity
+  _stopListeners?: any[];
+  // biome-ignore lint/suspicious/noExplicitAny: Listener arrays use any for simplicity
+  _setListeners?: any[];
+  // biome-ignore lint/suspicious/noExplicitAny: Listener arrays use any for simplicity
+  _notifyListeners?: any[];
+  // biome-ignore lint/suspicious/noExplicitAny: Listener arrays use any for simplicity
+  _mountListeners?: any[];
   // biome-ignore lint/suspicious/noExplicitAny: Listener maps use any for simplicity
   _keyListeners?: Map<any, Set<any>>;
   // biome-ignore lint/suspicious/noExplicitAny: Listener maps use any for simplicity
@@ -71,13 +69,14 @@ export type KarmaZen<T = void, Args extends unknown[] = unknown[]> = ZenWithValu
 /** Represents a Select Zen (lightweight single-source selector). */
 export type SelectZen<T = unknown, S = unknown> = {
   _kind: 'select';
-  _value: T | null; // Can be null initially
+  _value: T | null;
   _dirty: boolean;
-  readonly _source: AnyZen; // Single source
+  readonly _source: AnyZen;
   readonly _selector: (value: S) => T;
   readonly _equalityFn: (a: T, b: T) => boolean;
   _unsubscriber?: Unsubscribe;
-  _listeners?: Set<Listener<T>>;
+  /** ✅ PHASE 1 OPTIMIZATION: Array-based listeners */
+  _listeners?: Listener<T>[];
   // Internal methods
   _update: () => boolean;
   _subscribeToSource: () => void;

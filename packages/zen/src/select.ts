@@ -75,18 +75,16 @@ function updateSelectValue<T, S>(zen: SelectZen<T, S>): boolean {
  * @internal
  */
 function selectSourceChanged<T, S>(zen: SelectZen<T, S>): void {
-  if (zen._dirty) return; // Already dirty
+  if (zen._dirty) return;
 
   zen._dirty = true;
 
-  // If there are active listeners, trigger an update and notify if the value changed
-  if (zen._listeners?.size) {
+  // ✅ PHASE 1 OPTIMIZATION: Array-based listeners
+  if (zen._listeners && zen._listeners.length) {
     const oldValue = zen._value;
     const changed = updateSelectValue(zen);
     if (changed) {
-      try {
-        notifyListeners(zen as AnyZen, zen._value, oldValue);
-      } catch (_e) {}
+      notifyListeners(zen as AnyZen, zen._value, oldValue);
     }
   }
 }
@@ -96,17 +94,16 @@ function selectSourceChanged<T, S>(zen: SelectZen<T, S>): void {
  * @internal
  */
 function subscribeSelectToSource<T, S>(zen: SelectZen<T, S>): void {
-  if (zen._unsubscriber) return; // Already subscribed
+  if (zen._unsubscriber) return;
 
   const source = zen._source;
   const onChangeHandler = () => selectSourceChanged(zen);
 
   const baseSource = source as ZenWithValue<unknown>;
-  const isFirstSourceListener = !baseSource._listeners?.size;
-  baseSource._listeners ??= new Set();
-  baseSource._listeners.add(onChangeHandler);
+  const isFirstSourceListener = !baseSource._listeners || baseSource._listeners.length === 0;
+  baseSource._listeners ??= [];
+  baseSource._listeners.push(onChangeHandler);
 
-  // If the source is computed or select, trigger its source subscription
   if (isFirstSourceListener) {
     if (source._kind === 'computed') {
       const computedSource = source as { _subscribeToSources?: () => void };
@@ -121,16 +118,22 @@ function subscribeSelectToSource<T, S>(zen: SelectZen<T, S>): void {
     }
   }
 
-  // Store unsubscribe function
   zen._unsubscriber = () => {
     const srcListeners = baseSource._listeners;
-    if (!srcListeners?.has(onChangeHandler)) return;
+    if (!srcListeners || srcListeners.length === 0) return;
 
-    srcListeners.delete(onChangeHandler);
+    const idx = srcListeners.indexOf(onChangeHandler);
+    if (idx === -1) return;
 
-    if (!srcListeners.size) {
+    // Swap-remove
+    const lastIdx = srcListeners.length - 1;
+    if (idx !== lastIdx) {
+      srcListeners[idx] = srcListeners[lastIdx];
+    }
+    srcListeners.pop();
+
+    if (srcListeners.length === 0) {
       baseSource._listeners = undefined;
-      // Trigger source cleanup
       if (source._kind === 'computed') {
         const computedSource = source as { _unsubscribeFromSources?: () => void };
         if (typeof computedSource._unsubscribeFromSources === 'function') {

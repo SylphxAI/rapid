@@ -33,33 +33,20 @@ export function notifyListeners<A extends AnyZen>(
   // Operate directly on the zen, casting to the base structure with the correct value type
   const baseZen = zen as ZenWithValue<ZenValue<A>>;
 
+  // ✅ PHASE 1 OPTIMIZATION: Array + No try-catch
   // Notify regular value listeners
-  const ls = baseZen._listeners; // Type is already Set<Listener<ZenValue<A>>> | undefined
-  if (ls?.size) {
-    // ✅ OPTIMIZATION: Direct Set iteration without array copy
-    // Handles self-unsubscribing listeners by checking size before each iteration
-    const initialSize = ls.size;
-    for (const fn of ls) {
-      // Pass oldValue directly (can be undefined for initial calls)
-      try {
-        fn(value, oldValue);
-      } catch (_e) {}
-      // If listener unsubscribed itself, break to avoid stale iteration
-      if (ls.size !== initialSize) break;
+  const ls = baseZen._listeners;
+  if (ls && ls.length) {
+    for (let i = 0; i < ls.length; i++) {
+      ls[i](value, oldValue);
     }
   }
 
   // Notify onNotify listeners AFTER value listeners
   const notifyLs = baseZen._notifyListeners;
-  if (notifyLs?.size) {
-    // ✅ OPTIMIZATION: Direct Set iteration without array copy
-    const initialSize = notifyLs.size;
-    for (const fn of notifyLs) {
-      try {
-        fn(value);
-      } catch (_e) {} // Pass new value
-      // If listener unsubscribed itself, break to avoid stale iteration
-      if (notifyLs.size !== initialSize) break;
+  if (notifyLs && notifyLs.length) {
+    for (let i = 0; i < notifyLs.length; i++) {
+      notifyLs[i](value);
     }
   }
 }
@@ -135,11 +122,9 @@ export function get<A extends AnyZen>(zen: A): ZenValue<A> | null {
 function _handleZenOnSet<T>(zen: Zen<T>, value: T): void {
   if (batchDepth <= 0) {
     const setLs = zen._setListeners;
-    if (setLs?.size) {
-      for (const fn of setLs) {
-        try {
-          fn(value); // Pass the NEW value
-        } catch (_e) {}
+    if (setLs && setLs.length) {
+      for (let i = 0; i < setLs.length; i++) {
+        setLs[i](value);
       }
     }
   }
@@ -192,29 +177,25 @@ function _handleFirstSubscription<A extends AnyZen>(
 ): void {
   // Trigger onMount listeners
   const mountLs = baseZen._mountListeners;
-  if (mountLs?.size) {
-    baseZen._mountCleanups ??= new Map(); // Initialize cleanup map if needed
-    for (const fn of mountLs) {
-      try {
-        const cleanup = fn(); // Call listener
-        if (typeof cleanup === 'function') {
-          baseZen._mountCleanups.set(fn, cleanup); // Store cleanup fn
-        } else {
-          baseZen._mountCleanups.set(fn, undefined); // Store undefined if no cleanup
-        }
-      } catch (_e) {}
+  if (mountLs && mountLs.length) {
+    baseZen._mountCleanups ??= new Map();
+    for (let i = 0; i < mountLs.length; i++) {
+      const cleanup = mountLs[i]();
+      if (typeof cleanup === 'function') {
+        baseZen._mountCleanups.set(mountLs[i], cleanup);
+      } else {
+        baseZen._mountCleanups.set(mountLs[i], undefined);
+      }
     }
   }
 
   // Trigger onStart listeners
   const startLs = baseZen._startListeners;
-  if (startLs?.size) {
+  if (startLs && startLs.length) {
     // biome-ignore lint/suspicious/noExplicitAny: TS struggles with generic overload resolution here
     const currentValue = get(zen as any);
-    for (const fn of startLs) {
-      try {
-        fn(currentValue);
-      } catch (_e) {}
+    for (let i = 0; i < startLs.length; i++) {
+      startLs[i](currentValue);
     }
   }
 
@@ -242,15 +223,13 @@ function _handleLastUnsubscribe<A extends AnyZen>(
   zen: A,
   baseZen: ZenWithValue<ZenValue<A>>,
 ): void {
-  baseZen._listeners = undefined; // Clean up Set if empty
+  baseZen._listeners = undefined;
 
   // Trigger onStop listeners if this was the last value listener
   const stopLs = baseZen._stopListeners;
-  if (stopLs?.size) {
-    for (const fn of stopLs) {
-      try {
-        fn();
-      } catch (_e) {}
+  if (stopLs && stopLs.length) {
+    for (let i = 0; i < stopLs.length; i++) {
+      stopLs[i]();
     }
   }
 
@@ -259,12 +238,10 @@ function _handleLastUnsubscribe<A extends AnyZen>(
   if (cleanups?.size) {
     for (const cleanupFn of cleanups.values()) {
       if (typeof cleanupFn === 'function') {
-        try {
-          cleanupFn();
-        } catch (_e) {}
+        cleanupFn();
       }
     }
-    baseZen._mountCleanups = undefined; // Clear the map after running cleanups
+    baseZen._mountCleanups = undefined;
   }
 
   // If it's a computed, select, or batched zen, trigger its source unsubscription logic
@@ -288,46 +265,43 @@ function _handleLastUnsubscribe<A extends AnyZen>(
 
 // General implementation signature using ZenValue
 export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<A>>): Unsubscribe {
-  // Cast to base structure with correct value type
+  // ✅ PHASE 1 OPTIMIZATION: Array-based listeners
   const baseZen = zen as ZenWithValue<ZenValue<A>>;
-  const isFirstListener = !baseZen._listeners?.size;
+  const isFirstListener = !baseZen._listeners || baseZen._listeners.length === 0;
 
-  // Initialize listeners Set if needed, using the correct value type
-  baseZen._listeners ??= new Set<Listener<ZenValue<A>>>();
-  baseZen._listeners.add(listener); // Add the correctly typed listener
+  // Initialize listeners Array if needed
+  baseZen._listeners ??= [];
+  baseZen._listeners.push(listener);
 
-  // Trigger onStart/onMount logic removed
   if (isFirstListener) {
-    _handleFirstSubscription(zen, baseZen); // Use helper
+    _handleFirstSubscription(zen, baseZen);
   }
 
-  // Call listener immediately with the current value.
-  // Use get() to ensure computed zens calculate their initial value if needed.
-  try {
-    // Use type assertion `as any` because TS struggles to narrow `A` to match a specific `get` overload here.
-    // The `get` function's internal switch statement handles the different zen kinds correctly.
-    // biome-ignore lint/suspicious/noExplicitAny: TS struggles with generic overload resolution here
-    const initialValue = get(zen as any); // Reverted: Use generic type A, removed 'as any'
-    // Pass undefined as oldValue for the initial call
-    // biome-ignore lint/suspicious/noExplicitAny: Listener type requires any here due to complex generic
-    (listener as Listener<any>)(initialValue, undefined); // Reverted: Removed 'as Listener<any>'
-  } catch (_e) {
-    // Optionally re-throw or handle differently
-  }
+  // Call listener immediately with the current value
+  // biome-ignore lint/suspicious/noExplicitAny: TS struggles with generic overload resolution here
+  const initialValue = get(zen as any);
+  // biome-ignore lint/suspicious/noExplicitAny: Listener type requires any here due to complex generic
+  (listener as Listener<any>)(initialValue, undefined);
 
   return function unsubscribe() {
-    // Cast to base structure with correct value type
     const baseZen = zen as ZenWithValue<ZenValue<A>>;
-    const listeners = baseZen._listeners; // Type is already Set<Listener<ZenValue<A>>> | undefined
+    const listeners = baseZen._listeners;
 
-    // Check if listener exists before deleting
-    if (!listeners?.has(listener)) return;
+    if (!listeners || listeners.length === 0) return;
 
-    listeners.delete(listener);
+    // ✅ OPTIMIZATION: Swap-remove for O(1) unsubscribe
+    const idx = listeners.indexOf(listener);
+    if (idx === -1) return;
 
-    // Trigger onStop logic removed
-    if (!listeners.size) {
-      _handleLastUnsubscribe(zen, baseZen); // Use helper
+    // Swap with last element and pop
+    const lastIdx = listeners.length - 1;
+    if (idx !== lastIdx) {
+      listeners[idx] = listeners[lastIdx];
+    }
+    listeners.pop();
+
+    if (listeners.length === 0) {
+      _handleLastUnsubscribe(zen, baseZen);
     }
   };
 }
@@ -409,10 +383,8 @@ function _processBatchQueue(
 function _notifyBatchedChanges(
   changesToNotify: { zen: Zen<unknown>; value: unknown; oldValue: unknown }[],
 ): void {
-  for (const change of changesToNotify) {
-    try {
-      notifyListeners(change.zen, change.value, change.oldValue);
-    } catch (_err) {}
+  for (let i = 0; i < changesToNotify.length; i++) {
+    notifyListeners(changesToNotify[i].zen, changesToNotify[i].value, changesToNotify[i].oldValue);
   }
 }
 

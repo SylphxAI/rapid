@@ -420,12 +420,10 @@ function _handleDeepMapSetUpdateAndNotify<T extends object>(
 /** @internal Handles onSet calls for deepMap set/setPath */
 function _handleDeepMapOnSet<T extends object>(deepMapZen: DeepMapZen<T>, nextValue: T): void {
   if (batchDepth <= 0) {
-    const setLs = deepMapZen._setListeners as Set<Listener<T>> | undefined;
-    if (setLs?.size) {
-      for (const fn of setLs) {
-        try {
-          fn(nextValue);
-        } catch (_e) {}
+    const setLs = deepMapZen._setListeners;
+    if (setLs && setLs.length) {
+      for (let i = 0; i < setLs.length; i++) {
+        setLs[i](nextValue);
       }
     }
   }

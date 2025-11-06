@@ -35,11 +35,9 @@ export function map<T extends object>(initialValue: T): MapZen<T> {
 function _handleMapOnSet<T extends object>(mapZen: MapZen<T>, nextValue: T): void {
   if (batchDepth <= 0) {
     const setLs = mapZen._setListeners;
-    if (setLs?.size) {
-      for (const fn of setLs) {
-        try {
-          fn(nextValue);
-        } catch (_e) {}
+    if (setLs && setLs.length) {
+      for (let i = 0; i < setLs.length; i++) {
+        setLs[i](nextValue);
       }
     }
   }
@@ -55,12 +53,10 @@ function _handleMapKeyNotification<T extends object, K extends keyof T>(
   if (batchDepth > 0) {
     queueZenForBatch(mapZen as Zen<T>, oldValue);
   } else {
-    // OPTIMIZATION: Only emit key changes if there are listeners
-    // Check is very cheap, avoids WeakMap lookup overhead
-    if (mapZen._listeners?.size || mapZen._notifyListeners?.size) {
+    const hasListeners = (mapZen._listeners && mapZen._listeners.length) || (mapZen._notifyListeners && mapZen._notifyListeners.length);
+    if (hasListeners) {
       notifyListeners(mapZen as AnyZen, nextValue, oldValue);
     }
-    // Always emit key changes (separate from value listeners)
     _emitKeyChanges(mapZen, [key], nextValue);
   }
 }

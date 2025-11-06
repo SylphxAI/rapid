@@ -61,7 +61,7 @@ export type KeyListener<T extends object, K extends keyof T = keyof T> = (
 // Removed isMutableZen type guard as onSet now only accepts Zen<T>
 
 // --- Internal Helper for Removing Listeners ---
-// Update _unsubscribe to use generics properly
+// ✅ PHASE 1 OPTIMIZATION: Array-based listener removal
 function _unsubscribe<A extends AnyZen>(
   a: A,
   listenerSetProp:
@@ -70,14 +70,21 @@ function _unsubscribe<A extends AnyZen>(
     | '_setListeners'
     | '_notifyListeners'
     | '_mountListeners',
-  fn: LifecycleListener<ZenValue<A>>, // Use ZenValue<A>
+  fn: LifecycleListener<ZenValue<A>>,
 ): void {
-  // Operate directly on zen 'a'
-  const baseZen = a as ZenWithValue<ZenValue<A>>; // Cast using ZenValue<A>
-  const ls = baseZen[listenerSetProp]; // Type is Set<LifecycleListener<ZenValue<A>>> | undefined
-  if (ls) {
-    ls.delete(fn); // Use Set delete
-    if (!ls.size) delete baseZen[listenerSetProp]; // Clean up if empty
+  const baseZen = a as ZenWithValue<ZenValue<A>>;
+  const ls = baseZen[listenerSetProp];
+  if (ls && ls.length) {
+    const idx = ls.indexOf(fn);
+    if (idx !== -1) {
+      // Swap-remove for O(1) deletion
+      const lastIdx = ls.length - 1;
+      if (idx !== lastIdx) {
+        ls[idx] = ls[lastIdx];
+      }
+      ls.pop();
+      if (ls.length === 0) delete baseZen[listenerSetProp];
+    }
   }
 }
 
@@ -86,47 +93,52 @@ function _unsubscribe<A extends AnyZen>(
 
 /** Attaches a listener triggered when the first subscriber appears. */
 export function onStart<A extends AnyZen>(a: A, fn: LifecycleListener<ZenValue<A>>): Unsubscribe {
-  const baseZen = a as ZenWithValue<ZenValue<A>>; // Use ZenValue
-  baseZen._startListeners ??= new Set();
-  baseZen._startListeners.add(fn); // Add correctly typed listener
-  return () => _unsubscribe(a, '_startListeners', fn); // Pass correctly typed fn
+  const baseZen = a as ZenWithValue<ZenValue<A>>;
+  baseZen._startListeners ??= [];
+  // Only add if not already present
+  if (baseZen._startListeners.indexOf(fn) === -1) {
+    baseZen._startListeners.push(fn);
+  }
+  return () => _unsubscribe(a, '_startListeners', fn);
 }
 
 /** Attaches a listener triggered when the last subscriber disappears. */
 export function onStop<A extends AnyZen>(a: A, fn: LifecycleListener<ZenValue<A>>): Unsubscribe {
-  const baseZen = a as ZenWithValue<ZenValue<A>>; // Use ZenValue
-  baseZen._stopListeners ??= new Set();
-  baseZen._stopListeners.add(fn); // Add correctly typed listener
-  return () => _unsubscribe(a, '_stopListeners', fn); // Pass correctly typed fn
+  const baseZen = a as ZenWithValue<ZenValue<A>>;
+  baseZen._stopListeners ??= [];
+  if (baseZen._stopListeners.indexOf(fn) === -1) {
+    baseZen._stopListeners.push(fn);
+  }
+  return () => _unsubscribe(a, '_stopListeners', fn);
 }
 
 /** Attaches a listener triggered *before* a mutable zen's value is set (only outside batch). */
-// Keep specific Zen<T> type here for type safety
 export function onSet<T>(a: Zen<T>, fn: LifecycleListener<T>): Unsubscribe {
-  // a is already ZenWithValue<T>
-  a._setListeners ??= new Set();
-  a._setListeners.add(fn);
-  // _unsubscribe expects A extends AnyZen and Listener<ZenValue<A>>.
-  // Cast 'a' to AnyZen, and 'fn' to any to satisfy the generic signature.
+  a._setListeners ??= [];
+  if (a._setListeners.indexOf(fn) === -1) {
+    a._setListeners.push(fn);
+  }
   // biome-ignore lint/suspicious/noExplicitAny: Internal _unsubscribe requires any for listener
   return () => _unsubscribe(a as AnyZen, '_setListeners', fn as any);
 }
 
 /** Attaches a listener triggered *after* an zen's value listeners have been notified. */
 export function onNotify<A extends AnyZen>(a: A, fn: LifecycleListener<ZenValue<A>>): Unsubscribe {
-  const baseZen = a as ZenWithValue<ZenValue<A>>; // Use ZenValue
-  baseZen._notifyListeners ??= new Set();
-  baseZen._notifyListeners.add(fn); // Add correctly typed listener
-  return () => _unsubscribe(a, '_notifyListeners', fn); // Pass correctly typed fn
+  const baseZen = a as ZenWithValue<ZenValue<A>>;
+  baseZen._notifyListeners ??= [];
+  if (baseZen._notifyListeners.indexOf(fn) === -1) {
+    baseZen._notifyListeners.push(fn);
+  }
+  return () => _unsubscribe(a, '_notifyListeners', fn);
 }
 
 /** Attaches a listener triggered immediately and only once upon attachment. */
 export function onMount<A extends AnyZen>(a: A, fn: LifecycleListener<ZenValue<A>>): Unsubscribe {
-  const baseZen = a as ZenWithValue<ZenValue<A>>; // Use ZenValue
-  baseZen._mountListeners ??= new Set();
-  baseZen._mountListeners.add(fn); // Add correctly typed listener
-  // _unsubscribe expects A extends AnyZen and Listener<ZenValue<A>>.
-  // 'a' is A extends AnyZen, 'fn' is Listener<ZenValue<A>>. Should match directly.
+  const baseZen = a as ZenWithValue<ZenValue<A>>;
+  baseZen._mountListeners ??= [];
+  if (baseZen._mountListeners.indexOf(fn) === -1) {
+    baseZen._mountListeners.push(fn);
+  }
   return () => _unsubscribe(a, '_mountListeners', fn);
 }
 
@@ -237,12 +249,10 @@ function _notifyPathListeners(
   listenersSet: Set<PathListener<any, any>>,
   valueAtPath: unknown,
   changedPath: Path,
-  finalValue: object, // Cast from ZenValue<A>
+  finalValue: object,
 ): void {
   for (const listener of listenersSet) {
-    try {
-      listener(valueAtPath, changedPath, finalValue);
-    } catch (_err) {}
+    listener(valueAtPath, changedPath, finalValue);
   }
 }
 
@@ -359,20 +369,9 @@ function _notifyKeyListenersForKey<T extends object, K extends keyof T>(
   k: K,
   finalValue: T,
 ): void {
-  // Optimization for single listener
-  if (listenersForKey.size === 1) {
-    const listener = listenersForKey.values().next().value as KeyListener<T, K>;
-    try {
-      listener?.(valueAtKey, k, finalValue);
-    } catch (_err) {}
-  } else {
-    // Iterate for multiple listeners
-    for (const listener of listenersForKey) {
-      const typedListener = listener as KeyListener<T, K>;
-      try {
-        typedListener?.(valueAtKey, k, finalValue);
-      } catch (_err) {}
-    }
+  for (const listener of listenersForKey) {
+    const typedListener = listener as KeyListener<T, K>;
+    typedListener?.(valueAtKey, k, finalValue);
   }
 }
 

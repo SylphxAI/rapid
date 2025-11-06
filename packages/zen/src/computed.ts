@@ -154,56 +154,44 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
  * @internal
  */
 function computedSourceChanged<T>(zen: ComputedZen<T>): void {
-  if (zen._dirty) return; // Already dirty, no need to do anything further.
+  if (zen._dirty) return;
 
   zen._dirty = true;
 
-  // If there are active listeners, trigger an update and notify *if* the value changed.
-  // This propagates the change down the computed chain.
-  if (zen._listeners?.size) {
-    const oldValue = zen._value; // Store value before potential update
-    // Use the internal _update method which calls updateComputedValue
-    const changed = updateComputedValue(zen); // Directly call update logic
+  // ✅ PHASE 1 OPTIMIZATION: Array-based listeners
+  if (zen._listeners && zen._listeners.length) {
+    const oldValue = zen._value;
+    const changed = updateComputedValue(zen);
     if (changed) {
-      // Use the exported notifyListeners
-      try {
-        // Cast to AnyZen for notifyListeners
-        notifyListeners(zen as AnyZen, zen._value, oldValue); // Notify downstream listeners (removed !)
-      } catch (_e) {}
+      notifyListeners(zen as AnyZen, zen._value, oldValue);
     }
   }
-  // If no listeners, we just stay dirty until the next `getZenValue()`.
 }
 
 /**
  * Subscribes to a single source zen and returns the unsubscribe function.
  * @internal
  */
-function _subscribeToSingleSource( // Remove unused computedZen parameter
+function _subscribeToSingleSource(
   source: AnyZen | undefined,
   onChangeHandler: () => void,
 ): Unsubscribe | undefined {
   if (!source) return undefined;
 
-  const baseSource = source as ZenWithValue<unknown>; // Cast to unknown
-  const isFirstSourceListener = !baseSource._listeners?.size;
-  baseSource._listeners ??= new Set();
-  baseSource._listeners.add(onChangeHandler); // Add the computed's handler
+  const baseSource = source as ZenWithValue<unknown>;
+  const isFirstSourceListener = !baseSource._listeners || baseSource._listeners.length === 0;
+  baseSource._listeners ??= [];
+  baseSource._listeners.push(onChangeHandler);
 
-  // Trigger source's onStart/onMount logic removed
   if (isFirstSourceListener) {
-    // If the source is itself computed, trigger its source subscription
     if (source._kind === 'computed') {
-      // Check kind directly
-      const computedSource = source as ComputedZen<unknown>; // Cast
+      const computedSource = source as ComputedZen<unknown>;
       if (typeof computedSource._subscribeToSources === 'function') {
         computedSource._subscribeToSources();
       }
     }
   }
-  // Don't call the listener immediately here, computed handles initial calc
 
-  // Return the unsubscribe logic for this specific source
   return () => _handleSourceUnsubscribeCleanup(source, onChangeHandler);
 }
 
@@ -212,18 +200,25 @@ function _subscribeToSingleSource( // Remove unused computedZen parameter
  * @internal
  */
 function _handleSourceUnsubscribeCleanup(
-  source: AnyZen, // Source is guaranteed non-null here
+  source: AnyZen,
   onChangeHandler: () => void,
 ): void {
-  const baseSrc = source as ZenWithValue<unknown>; // Cast to unknown
+  const baseSrc = source as ZenWithValue<unknown>;
   const srcListeners = baseSrc._listeners;
-  if (!srcListeners?.has(onChangeHandler)) return;
+  if (!srcListeners || srcListeners.length === 0) return;
 
-  srcListeners.delete(onChangeHandler);
+  const idx = srcListeners.indexOf(onChangeHandler);
+  if (idx === -1) return;
 
-  if (!srcListeners.size) {
+  // Swap-remove for O(1) deletion
+  const lastIdx = srcListeners.length - 1;
+  if (idx !== lastIdx) {
+    srcListeners[idx] = srcListeners[lastIdx];
+  }
+  srcListeners.pop();
+
+  if (srcListeners.length === 0) {
     baseSrc._listeners = undefined;
-    // onStop logic removed
     if (source._kind === 'computed') {
       const computedSource = source as ComputedZen<unknown>;
       if (typeof computedSource._unsubscribeFromSources === 'function') {
