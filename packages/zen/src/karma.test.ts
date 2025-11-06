@@ -314,27 +314,26 @@ describe('task', () => {
         },
       );
 
+      // Insert 1, 2 into cache
       await runKarma(taskAtom, 1);
       await runKarma(taskAtom, 2);
       expect(execCount).toBe(2);
 
-      // Cache should have [1, 2]
+      // Access 1 (should move to end, making it MRU)
       await runKarma(taskAtom, 1);
-      await runKarma(taskAtom, 2);
-      expect(execCount).toBe(2); // Both cached
+      expect(execCount).toBe(2); // Cache hit
 
-      // Add third item - should evict first (1)
+      // Insert 3 (should evict 2, which is LRU after 1 was accessed)
       await runKarma(taskAtom, 3);
       expect(execCount).toBe(3);
 
-      // Cache should now have [2, 3]
-      await runKarma(taskAtom, 2);
-      await runKarma(taskAtom, 3);
-      expect(execCount).toBe(3); // Both still cached
-
-      // Request 1 again - should execute (was evicted)
+      // Access 1 again - should be cached (was MRU, not evicted)
       await runKarma(taskAtom, 1);
-      expect(execCount).toBe(4);
+      expect(execCount).toBe(3); // Still cached
+
+      // Access 2 - should re-fetch (was evicted as LRU)
+      await runKarma(taskAtom, 2);
+      expect(execCount).toBe(4); // Re-fetched
     });
 
     it('should work correctly with effect pattern', async () => {

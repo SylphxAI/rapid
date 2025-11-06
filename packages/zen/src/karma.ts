@@ -96,13 +96,15 @@ export function runKarma<T, Args extends unknown[]>(
     const cache = resultCache.get(karmaZen as KarmaZen<unknown>);
     if (cache) {
       // Generate cache key
-      const cacheKey = karmaZen._cacheKeyFn
-        ? karmaZen._cacheKeyFn(...args)
-        : JSON.stringify(args);
+      const cacheKey = karmaZen._cacheKeyFn ? karmaZen._cacheKeyFn(...args) : JSON.stringify(args);
 
       // Check if cached result exists
       if (cache.has(cacheKey)) {
         const cachedResult = cache.get(cacheKey) as T;
+
+        // LRU: Move accessed entry to end (most recently used)
+        cache.delete(cacheKey);
+        cache.set(cacheKey, cachedResult);
 
         // Update state with cached data (synchronous)
         const oldState = karmaZen._value;
