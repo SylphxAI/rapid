@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { zen, set, computed, subscribe } from './zen';
+import { computed, set, subscribe, zen } from './zen';
 
 describe('Computed Version Tracking - Deep Chains', () => {
   bench('shallow computed chain (2 levels), 100 updates', () => {
@@ -64,7 +64,10 @@ describe('Computed Version Tracking - Multiple Sources', () => {
     const c = zen(20);
     const d = zen(30);
     const e = zen(40);
-    const sum = computed([a, b, c, d, e], ([x, y, z, w, v]: [number, number, number, number, number]) => x + y + z + w + v);
+    const sum = computed(
+      [a, b, c, d, e],
+      ([x, y, z, w, v]: [number, number, number, number, number]) => x + y + z + w + v,
+    );
     subscribe(sum, () => {});
 
     for (let i = 0; i < 100; i++) {

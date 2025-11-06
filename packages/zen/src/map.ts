@@ -5,7 +5,7 @@ import type { AnyZen, MapZen, Unsubscribe } from './types'; // Ensure AnyZen is 
 // Functional Map zen implementation.
 import type { Zen } from './zen';
 // Removed import { STORE_MAP_KEY_SET } from './keys';
-import { _incrementVersion, batchDepth, notifyListeners, queueZenForBatch } from './zen'; // Import version helper and batch helpers
+import { batchDepth, incrementVersion, notifyListeners, queueZenForBatch } from './zen'; // Import version helper and batch helpers
 // Removed import { notifyListeners } from './zen'; // Import notifyListeners from './zen'
 
 // MapZen type is now defined in types.ts
@@ -84,7 +84,7 @@ export function setKey<T extends object, K extends keyof T>(
     // 2. Update value DIRECTLY
     mapZen._value = nextValue;
     // ✅ PHASE 2 OPTIMIZATION: Increment version on map updates
-    mapZen._version = _incrementVersion();
+    mapZen._version = incrementVersion();
 
     // 3. Handle Batching or Immediate Notification
     _handleMapKeyNotification(mapZen, oldValue, nextValue, key);
@@ -131,7 +131,7 @@ function _handleMapSetUpdateAndNotify<T extends object>(
     // Set the mapZen's value (shallow copy)
     mapZen._value = { ...nextValue };
     // ✅ PHASE 2 OPTIMIZATION: Increment version on map updates
-    mapZen._version = _incrementVersion();
+    mapZen._version = incrementVersion();
 
     // Handle batching or immediate notification
     if (batchDepth > 0) {

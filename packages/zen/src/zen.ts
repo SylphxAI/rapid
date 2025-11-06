@@ -23,8 +23,12 @@ const batchQueue = new Map<Zen<unknown>, unknown>();
 /** Global version counter, incremented on every zen update. @internal */
 let globalVersion = 0;
 
-/** Helper function to increment and return the next global version. @internal */
-export function _incrementVersion(): number {
+/**
+ * Increments and returns the next global version.
+ * Kept as simple inline function for optimal JIT performance.
+ * @internal
+ */
+export function incrementVersion(): number {
   return ++globalVersion;
 }
 
@@ -166,7 +170,7 @@ export function set<T>(zen: Zen<T>, value: T, force = false): void {
     // Update value
     zen._value = value;
     // ✅ PHASE 2 OPTIMIZATION: Increment global version on every update
-    zen._version = _incrementVersion();
+    zen._version = incrementVersion();
 
     // Handle batching or immediate notification
     _handleZenNotification(zen, oldValue, value);

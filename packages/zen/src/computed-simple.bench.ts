@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { zen, set, computed, subscribe, get } from './zen';
+import { computed, get, set, subscribe, zen } from './zen';
 
 describe('Computed Performance', () => {
   bench('computed chain depth 2, single update', () => {
@@ -34,7 +34,10 @@ describe('Computed Performance', () => {
     const c = zen(20);
     const d = zen(30);
     const e = zen(40);
-    const sum = computed([a, b, c, d, e], ([x, y, z, w, v]: [number, number, number, number, number]) => x + y + z + w + v);
+    const sum = computed(
+      [a, b, c, d, e],
+      ([x, y, z, w, v]: [number, number, number, number, number]) => x + y + z + w + v,
+    );
     subscribe(sum, () => {});
     set(a, 1);
   });

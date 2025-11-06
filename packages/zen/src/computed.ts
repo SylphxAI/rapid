@@ -1,7 +1,7 @@
 import type { BatchedZen } from './batched'; // Import BatchedZen type
 // Functional computed (derived state) implementation.
 import type { AnyZen, Unsubscribe, ZenWithValue } from './types';
-import { _incrementVersion, notifyListeners } from './zen';
+import { incrementVersion, notifyListeners } from './zen';
 // Removed getZenValue, subscribeToZen imports as logic is inlined
 
 // --- Type Definitions ---
@@ -131,7 +131,8 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
 
   // Fast path: Check if any source version changed
   let anySourceChanged = false;
-  if (old !== null) { // Skip on first calculation
+  if (old !== null) {
+    // Skip on first calculation
     for (let i = 0; i < srcs.length; i++) {
       const source = srcs[i];
       if (source) {
@@ -182,7 +183,7 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
   // 4. Update internal value
   zen._value = newValue;
   // ✅ PHASE 2 OPTIMIZATION: Increment version when computed value changes
-  zen._version = _incrementVersion();
+  zen._version = incrementVersion();
 
   // 5. Value updated. Return true to indicate change.
   // DO NOT notify here. Notification is handled by the caller (e.g., computedSourceChanged or batch end).
