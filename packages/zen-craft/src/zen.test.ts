@@ -1,7 +1,7 @@
 import { zen as atom, get, subscribe } from '@sylphx/zen';
 import { describe, expect, it, vi } from 'vitest';
 import type { Patch } from './types';
-import { produceZen } from './zen';
+import { craftZen } from './zen';
 
 // Define interfaces for test states
 interface SimpleState {
@@ -12,14 +12,14 @@ interface NestedState {
   data: { value: number; items: string[] };
 }
 
-describe('produceAtom', () => {
+describe('craftZen', () => {
   it('should update atom state immutably based on recipe mutations', () => {
     const baseState: SimpleState = { a: 1, b: { c: 2 } };
     const myZen = atom(baseState);
     const listener = vi.fn();
     subscribe(myZen, listener);
 
-    produceZen(
+    craftZen(
       myZen,
       (draft) => {
         draft.a = 10;
@@ -51,7 +51,7 @@ describe('produceAtom', () => {
     const listener = vi.fn();
     subscribe(myZen, listener);
 
-    produceZen(
+    craftZen(
       myZen,
       (_draft) => {
         // No changes made
@@ -72,10 +72,10 @@ describe('produceAtom', () => {
     subscribe(myZen, listener);
     const newState = { b: 2 }; // A completely different object
 
-    // produceZen's recipe *should* ideally return T | undefined.
+    // craftZen's recipe *should* ideally return T | undefined.
     // We test if the underlying produce handles returning a new object,
     // even if the type signature isn't perfect.
-    produceZen(
+    craftZen(
       myZen,
       (_draft) => {
         // Change draft to _draft as it's not used
@@ -102,7 +102,7 @@ describe('produceAtom', () => {
     const listener = vi.fn();
     subscribe(myZen, listener);
 
-    produceZen(
+    craftZen(
       myZen,
       (draft) => {
         draft.data.value = 20;
@@ -129,7 +129,7 @@ describe('produceAtom', () => {
   it('should pass options correctly to the underlying produce function', () => {
     const baseState = { count: 0 };
     const myZen = atom(baseState);
-    produceZen(
+    craftZen(
       myZen,
       (draft) => {
         draft.count++;

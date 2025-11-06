@@ -336,14 +336,14 @@ For complex state updates, use `@sylphx/zen-craft` - a Zen integration powered b
 
 ```typescript
 import { zen } from '@sylphx/zen';
-import { produceZen } from '@sylphx/zen-craft';
+import { craftZen } from '@sylphx/zen-craft';
 
 const todos = zen([
   { id: 1, text: 'Learn Zen', done: false }
 ]);
 
-// Immer-like API with JSON Patches support
-produceZen(todos, (draft) => {
+// Craft-powered immutable updates with JSON Patches support
+craftZen(todos, (draft) => {
   draft[0].done = true;
   draft.push({ id: 2, text: 'Build app', done: false });
 });

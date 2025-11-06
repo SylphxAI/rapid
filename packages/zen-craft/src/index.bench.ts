@@ -1,7 +1,7 @@
 // Import zen atom factory
 import { zen } from '@sylphx/zen';
 import { bench, describe } from 'vitest';
-import { produce, produceZen } from './index';
+import { produce, craftZen } from './index';
 
 // --- produce Benchmarks ---
 // Note: produce() internally uses @sylphx/craft, these benchmarks measure the overhead
@@ -122,43 +122,43 @@ describe('produce: Set Clear', () => {
     });
   });
 });
-// --- produceZen Benchmarks ---
+// --- craftZen Benchmarks ---
 // These measure the performance of zen-craft integration with zen atoms
-describe('produceZen: Simple Object Replace', () => {
+describe('craftZen: Simple Object Replace', () => {
   const createBaseAtom = () => zen({ value: 1 });
   bench('zen-craft + zen', () => {
     const myZen = createBaseAtom();
-    produceZen(myZen, (draft) => {
+    craftZen(myZen, (draft) => {
       draft.value = 2;
     });
   });
 });
 
-describe('produceZen: Nested Object Replace', () => {
+describe('craftZen: Nested Object Replace', () => {
   const createBaseAtom = () => zen({ a: { b: { c: 1 } } });
   bench('zen-craft + zen', () => {
     const myZen = createBaseAtom();
-    produceZen(myZen, (draft) => {
+    craftZen(myZen, (draft) => {
       draft.a.b.c = 2;
     });
   });
 });
 
-describe('produceZen: Array Push (Small)', () => {
+describe('craftZen: Array Push (Small)', () => {
   const createBaseAtom = () => zen({ items: [1, 2, 3] });
   bench('zen-craft + zen', () => {
     const myZen = createBaseAtom();
-    produceZen(myZen, (draft) => {
+    craftZen(myZen, (draft) => {
       draft.items.push(4);
     });
   });
 });
 
-describe('produceZen: Array Push (Large)', () => {
+describe('craftZen: Array Push (Large)', () => {
   const createLargeArrayBaseAtom = () => zen({ items: Array.from({ length: 1000 }, (_, i) => i) });
   bench('zen-craft + zen', () => {
     const myZen = createLargeArrayBaseAtom();
-    produceZen(myZen, (draft) => {
+    craftZen(myZen, (draft) => {
       draft.items.push(1000);
     });
   });

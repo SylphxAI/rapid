@@ -2,18 +2,21 @@
 
 [![npm version](https://img.shields.io/npm/v/@sylphx/zen-craft)](https://www.npmjs.com/package/@sylphx/zen-craft)
 
-Immer-like `produce` function with patch generation, built for the `zen` state management ecosystem.
+**Craft-powered immutable state updates for Zen** - Built with [Craft](https://github.com/sylphxltd/craft), our high-performance immer replacement.
 
-This package allows you to work with immutable state in a more convenient way by allowing "mutations" on a draft state, while automatically producing the next immutable state and optionally generating JSON patches.
+This package allows you to work with immutable state in Zen atoms using a convenient mutation-style API on draft objects, while automatically producing the next immutable state with structural sharing and optional JSON patch generation.
 
 ## Installation
 
 ```bash
-# Using pnpm (recommended for this workspace)
-pnpm add @sylphx/zen-craft @sylphx/zen
+# Using bun (recommended)
+bun add @sylphx/zen-craft @sylphx/zen
 
 # Using npm
 npm install @sylphx/zen-craft @sylphx/zen
+
+# Using pnpm
+pnpm add @sylphx/zen-craft @sylphx/zen
 
 # Using yarn
 yarn add @sylphx/zen-craft @sylphx/zen
@@ -21,12 +24,12 @@ yarn add @sylphx/zen-craft @sylphx/zen
 
 ## Usage
 
-### `produce`
+### `craftZen()`
 
-The `produce` function takes a base state and a "recipe" function. The recipe function receives a `draft` version of the state that you can mutate directly. `produce` returns the next immutable state. Optionally, you can enable patch generation.
+The main API for Zen integration. Updates a Zen atom immutably using a recipe function. Returns patches and inverse patches for undo/redo support.
 
 ```typescript
-import { produce } from '@sylphx/zen-craft';
+import { craftZen } from '@sylphx/zen-craft';
 import { zen, get } from '@sylphx/zen';
 
 const myStore = zen({
@@ -34,47 +37,54 @@ const myStore = zen({
   tags: ['a', 'b']
 });
 
-// Get current state
-const currentState = get(myStore);
+// Update atom with draft mutations
+const [patches, inversePatches] = craftZen(
+  myStore,
+  (draft) => {
+    draft.user.age++;
+    draft.tags.push('c');
+  },
+  { patches: true, inversePatches: true } // Enable patch generation
+);
 
-// Produce the next state using a recipe
+console.log(get(myStore));
+// Output: { user: { name: 'Alice', age: 31 }, tags: ['a', 'b', 'c'] }
+
+console.log(patches);
+// Output: [
+//   { op: 'replace', path: ['user', 'age'], value: 31 },
+//   { op: 'add', path: ['tags', 2], value: 'c' }
+// ]
+```
+
+### `produce()`
+
+Low-level API for non-Zen use cases. Takes a base state and recipe function, returns new state with patches.
+
+```typescript
+import { produce } from '@sylphx/zen-craft';
+
+const currentState = {
+  user: { name: 'Alice', age: 30 },
+  tags: ['a', 'b']
+};
+
 const [nextState, patches, inversePatches] = produce(
   currentState,
   (draft) => {
     draft.user.age++;
     draft.tags.push('c');
-    delete draft.user.name; // Example deletion
   },
-  { patches: true, inversePatches: true } // Enable patch generation
+  { patches: true, inversePatches: true }
 );
 
-// Update the atom with the new state
-myAtom.set(nextState);
-
-console.log(currentState);
-// Output: { user: { name: 'Alice', age: 30 }, tags: ['a', 'b'] }
-
 console.log(nextState);
-// Output: { user: { age: 31 }, tags: ['a', 'b', 'c'] }
-
-console.log(patches);
-// Output: [
-//   { op: 'replace', path: ['user', 'age'], value: 31 },
-//   { op: 'add', path: ['tags', 2], value: 'c' }, // Note: Array index for push
-//   { op: 'remove', path: ['user', 'name'] }
-// ]
-
-console.log(inversePatches);
-// Output: [
-//   { op: 'replace', path: ['user', 'age'], value: 30 },
-//   { op: 'remove', path: ['tags', 2] },
-//   { op: 'add', path: ['user', 'name'], value: 'Alice' }
-// ]
+// Output: { user: { name: 'Alice', age: 31 }, tags: ['a', 'b', 'c'] }
 ```
 
-### `applyPatches`
+### `applyPatches()`
 
-Applies an array of JSON patches to a base state to produce a new state.
+Apply JSON patches to a base state to produce a new state.
 
 ```typescript
 import { applyPatches } from '@sylphx/zen-craft';
@@ -91,14 +101,42 @@ console.log(nextState);
 // Output: { user: { name: 'Bob', age: 40 } }
 ```
 
-## Current Status & TODOs
+### `nothing`
 
-This is an initial implementation. Known areas for improvement:
-*   More robust copy-on-write logic in `produce` for better performance and accuracy.
-*   Intercepting specific array mutation methods (`push`, `pop`, `splice`, etc.) for more precise patch generation.
-*   Handling non-plain objects (like `Date`, `Map`, `Set`).
-*   More comprehensive tests, especially for array mutations and edge cases.
-*   Refining the `applyPatches` implementation for robustness and efficiency.
+Use the `nothing` symbol to delete properties:
+
+```typescript
+import { craftZen, nothing } from '@sylphx/zen-craft';
+import { zen } from '@sylphx/zen';
+
+const store = zen({ name: 'Alice', age: 30 });
+
+craftZen(store, (draft) => {
+  draft.age = nothing; // Delete age property
+});
+
+// Result: { name: 'Alice' }
+```
+
+## Features
+
+- 🚀 **1.4-35x faster than immer** - Powered by [Craft](https://github.com/sylphxltd/craft)
+- 🎯 **Structural sharing** - Unchanged parts maintain references
+- 📝 **JSON Patches (RFC 6902)** - Track changes for undo/redo
+- 🗺️ **Map/Set support** - Full support for ES6 collections
+- ⚡ **Zero dependencies** - Except Craft and Zen
+- 🔒 **Type-safe** - Full TypeScript support
+
+## Why Craft?
+
+zen-craft is powered by **[Craft](https://github.com/sylphxltd/craft)**, our in-house high-performance immer replacement:
+
+- **1.4-35x faster** than immer across all operations
+- **2.9 KB gzipped** - 39% smaller than immer
+- **100% API compatible** - Drop-in replacement
+- **Built by us** - Same team, same performance obsession
+
+[Learn more about Craft →](https://github.com/sylphxltd/craft)
 
 ## License
 

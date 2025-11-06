@@ -1,23 +1,24 @@
 import { get, set } from '@sylphx/zen';
 import type { Zen } from '@sylphx/zen';
 import { produce } from './produce';
-import type { Patch, ProduceOptions } from './types';
+import type { Patch, CraftOptions } from './types';
 import { deepEqual } from './utils';
 
 /**
- * Produces the next state for a writable zen by applying a recipe function
- * to a draft version of the zen's current state. Automatically updates the zen.
+ * Craft-powered immutable updates for Zen atoms.
+ * Applies a recipe function to a draft version of the atom's current state,
+ * automatically updating the atom with structural sharing.
  * Returns the generated patches and inverse patches.
  *
- * @param targetZen The writable zen to update.
+ * @param targetZen The Zen atom to update.
  * @param recipe A function that receives a draft state and can mutate it.
  * @param options Options to enable patch generation.
  * @returns A tuple containing the generated patches and inverse patches: [Patch[], Patch[]]
  */
-export function produceZen<T>(
-  targetZen: Zen<T>, // Use the correct Zen type
-  recipe: (draft: T) => undefined, // Match simplified produce signature
-  options?: ProduceOptions,
+export function craftZen<T>(
+  targetZen: Zen<T>,
+  recipe: (draft: T) => undefined,
+  options?: CraftOptions,
 ): [Patch[], Patch[]] {
   const currentState = get(targetZen); // Use get() function
   const [nextState, patches, inversePatches] = produce(currentState, recipe, options);

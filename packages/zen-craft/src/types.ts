@@ -6,12 +6,12 @@ export interface Patch {
   from?: (string | number)[]; // Source path used for move, copy
 }
 
-// Options for the produce function
-export interface ProduceOptions {
+// Options for the craft function
+export interface CraftOptions {
   patches?: boolean;
   inversePatches?: boolean;
   autoFreeze?: boolean; // Add autoFreeze option
 }
 
 // Result tuple type
-export type ProduceResult<State> = [State, Patch[], Patch[]];
+export type CraftResult<State> = [State, Patch[], Patch[]];

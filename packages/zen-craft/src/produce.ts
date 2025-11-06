@@ -1,12 +1,12 @@
 import { craft, craftWithPatches } from '@sylphx/craft';
-import type { ProduceOptions, ProduceResult } from './types';
+import type { CraftOptions, CraftResult } from './types';
 import { isDraftable } from './utils';
 
 export function produce<T>(
   baseState: T,
   recipe: (draft: T) => undefined | undefined,
-  options?: ProduceOptions,
-): ProduceResult<T> {
+  options?: CraftOptions,
+): CraftResult<T> {
   // Handle non-draftable state directly (no patches)
   if (!isDraftable(baseState)) {
     recipe(baseState as T);
