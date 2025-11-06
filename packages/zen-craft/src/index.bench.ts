@@ -1,7 +1,7 @@
-// Import zen atom factory
-import { zen } from '@sylphx/zen';
 // Import craft for comparison
 import { craft } from '@sylphx/craft';
+// Import zen atom factory
+import { zen } from '@sylphx/zen';
 import { bench, describe, vi } from 'vitest'; // Import vi for potential mocking if needed
 import { produce, produceZen } from './index';
 // --- produce Benchmarks ---
@@ -38,12 +38,12 @@ describe('produce: Array Push (Small)', () => {
       draft.items.push(4);
     });
   });
-  
-    bench('craft', () => {
-      craft(base, (draft) => {
-        draft.items.push(4);
-      });
+
+  bench('craft', () => {
+    craft(base, (draft) => {
+      draft.items.push(4);
     });
+  });
 });
 describe('produce: Array Push (Large)', () => {
   const largeArrayBase = { items: Array.from({ length: 1000 }, (_, i) => i) };
@@ -54,14 +54,14 @@ describe('produce: Array Push (Large)', () => {
       draft.items.push(1000);
     });
   });
-  
-    bench('craft', () => {
-      // Create a fresh copy for each run
-      const currentBase = { items: [...largeArrayBase.items] };
-      craft(currentBase, (draft) => {
-        draft.items.push(1000);
-      });
+
+  bench('craft', () => {
+    // Create a fresh copy for each run
+    const currentBase = { items: [...largeArrayBase.items] };
+    craft(currentBase, (draft) => {
+      draft.items.push(1000);
     });
+  });
 });
 describe('produce: Array Splice (Large)', () => {
   const largeArrayBase = { items: Array.from({ length: 1000 }, (_, i) => i) };
@@ -71,13 +71,13 @@ describe('produce: Array Splice (Large)', () => {
       draft.items.splice(500, 1, -1); // Replace one item in the middle
     });
   });
-  
-    bench('craft', () => {
-      const currentBase = { items: [...largeArrayBase.items] };
-      craft(currentBase, (draft) => {
-        draft.items.splice(500, 1, -1);
-      });
+
+  bench('craft', () => {
+    const currentBase = { items: [...largeArrayBase.items] };
+    craft(currentBase, (draft) => {
+      draft.items.splice(500, 1, -1);
     });
+  });
 });
 describe('produce: Map Set (Add/Replace)', () => {
   const createMapBase = () => ({
@@ -90,14 +90,14 @@ describe('produce: Map Set (Add/Replace)', () => {
       draft.data.set('newKey', 1000); // Add
     });
   });
-  
-    bench('craft', () => {
-      const currentBase = createMapBase();
-      craft(currentBase, (draft) => {
-        draft.data.set('key50', -1);
-        draft.data.set('newKey', 1000);
-      });
+
+  bench('craft', () => {
+    const currentBase = createMapBase();
+    craft(currentBase, (draft) => {
+      draft.data.set('key50', -1);
+      draft.data.set('newKey', 1000);
     });
+  });
 });
 describe('produce: Map Delete', () => {
   const createMapBase = () => ({
@@ -109,13 +109,13 @@ describe('produce: Map Delete', () => {
       draft.data.delete('key50');
     });
   });
-  
-    bench('craft', () => {
-      const currentBase = createMapBase();
-      craft(currentBase, (draft) => {
-        draft.data.delete('key50');
-      });
+
+  bench('craft', () => {
+    const currentBase = createMapBase();
+    craft(currentBase, (draft) => {
+      draft.data.delete('key50');
     });
+  });
 });
 describe('produce: Map Clear', () => {
   const createMapBase = () => ({
@@ -127,13 +127,13 @@ describe('produce: Map Clear', () => {
       draft.data.clear();
     });
   });
-  
-    bench('craft', () => {
-      const currentBase = createMapBase();
-      craft(currentBase, (draft) => {
-        draft.data.clear();
-      });
+
+  bench('craft', () => {
+    const currentBase = createMapBase();
+    craft(currentBase, (draft) => {
+      draft.data.clear();
     });
+  });
 });
 describe('produce: Set Add', () => {
   const createSetBase = () => ({
@@ -145,13 +145,13 @@ describe('produce: Set Add', () => {
       draft.data.add('newItem');
     });
   });
-  
-    bench('craft', () => {
-      const currentBase = createSetBase();
-      craft(currentBase, (draft) => {
-        draft.data.add('newItem');
-      });
+
+  bench('craft', () => {
+    const currentBase = createSetBase();
+    craft(currentBase, (draft) => {
+      draft.data.add('newItem');
     });
+  });
 });
 describe('produce: Set Delete', () => {
   const createSetBase = () => ({
@@ -163,13 +163,13 @@ describe('produce: Set Delete', () => {
       draft.data.delete('item50');
     });
   });
-  
-    bench('craft', () => {
-      const currentBase = createSetBase();
-      craft(currentBase, (draft) => {
-        draft.data.delete('item50');
-      });
+
+  bench('craft', () => {
+    const currentBase = createSetBase();
+    craft(currentBase, (draft) => {
+      draft.data.delete('item50');
     });
+  });
 });
 describe('produce: Set Clear', () => {
   const createSetBase = () => ({
@@ -181,13 +181,13 @@ describe('produce: Set Clear', () => {
       draft.data.clear();
     });
   });
-  
-    bench('craft', () => {
-      const currentBase = createSetBase();
-      craft(currentBase, (draft) => {
-        draft.data.clear();
-      });
+
+  bench('craft', () => {
+    const currentBase = createSetBase();
+    craft(currentBase, (draft) => {
+      draft.data.clear();
     });
+  });
 });
 // --- produceAtom Benchmarks ---
 describe('produceAtom: Simple Object Replace', () => {

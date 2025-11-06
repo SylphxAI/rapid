@@ -8,7 +8,7 @@ import { isDraftable } from './utils';
 
 export function produce<T>(
   baseState: T,
-  recipe: (draft: T) => undefined | void,
+  recipe: (draft: T) => undefined | undefined,
   options?: ProduceOptions,
 ): ProduceResult<T> {
   // Handle non-draftable state directly (no patches)
@@ -18,15 +18,12 @@ export function produce<T>(
   }
 
   // Use craft for the actual immutable update
-  const finalState = craft(baseState, recipe as (draft: T) => T | void);
+  const finalState = craft(baseState, recipe as (draft: T) => T | undefined);
 
   // Note: Patch generation is not supported yet
   // If patches are requested, we return empty arrays
   // Future: Implement patch generation or use a plugin
   if (options?.patches || options?.inversePatches) {
-    console.warn(
-      'Patch generation is not currently supported. Returning empty patch arrays.',
-    );
   }
 
   return [finalState as T, [], []];
