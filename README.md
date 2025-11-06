@@ -332,7 +332,7 @@ onMount(count, () => {
 
 ## 🎨 Immutable Updates with zen-craft
 
-For complex state updates, use `@sylphx/zen-craft` powered by our high-performance [Craft](https://github.com/sylphxltd/craft) library:
+For complex state updates, use `@sylphx/zen-craft` - a Zen integration powered by **[Craft](https://github.com/sylphxltd/craft)**, our in-house high-performance immer replacement:
 
 ```typescript
 import { zen } from '@sylphx/zen';
@@ -349,7 +349,13 @@ produceZen(todos, (draft) => {
 });
 ```
 
-**Craft delivers 1.4-35x faster immutable updates than immer!**
+**Why Craft?**
+- 🚀 **1.4-35x faster** than immer across all operations
+- 📦 **2.9 KB gzipped** - 39% smaller than immer
+- 🎯 **100% API compatible** - Drop-in replacement
+- ⚡ **Built by us** - Same team, same performance obsession
+
+[Learn more about Craft →](https://github.com/sylphxltd/craft)
 
 ## 🏆 Performance
 
