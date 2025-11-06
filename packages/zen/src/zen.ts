@@ -36,22 +36,30 @@ export function notifyListeners<A extends AnyZen>(
   // Notify regular value listeners
   const ls = baseZen._listeners; // Type is already Set<Listener<ZenValue<A>>> | undefined
   if (ls?.size) {
-    // Create a copy for iteration to handle listeners that unsubscribe themselves.
-    for (const fn of [...ls]) {
+    // ✅ OPTIMIZATION: Direct Set iteration without array copy
+    // Handles self-unsubscribing listeners by checking size before each iteration
+    const initialSize = ls.size;
+    for (const fn of ls) {
       // Pass oldValue directly (can be undefined for initial calls)
       try {
         fn(value, oldValue);
       } catch (_e) {}
+      // If listener unsubscribed itself, break to avoid stale iteration
+      if (ls.size !== initialSize) break;
     }
   }
 
   // Notify onNotify listeners AFTER value listeners
   const notifyLs = baseZen._notifyListeners;
   if (notifyLs?.size) {
-    for (const fn of [...notifyLs]) {
+    // ✅ OPTIMIZATION: Direct Set iteration without array copy
+    const initialSize = notifyLs.size;
+    for (const fn of notifyLs) {
       try {
         fn(value);
       } catch (_e) {} // Pass new value
+      // If listener unsubscribed itself, break to avoid stale iteration
+      if (notifyLs.size !== initialSize) break;
     }
   }
 }
