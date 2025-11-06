@@ -50,5 +50,7 @@
     "vitest": "^3.1.2",
     "zustand": "^5.0.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@sylphx/craft": "^1.0.0"
+  }
 }

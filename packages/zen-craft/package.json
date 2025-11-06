@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@sylphx/zen": "workspace:*",
-    "immer": "^10.1.1"
+    "@sylphx/craft": "^1.0.0"
   },
   "devDependencies": {
     "bunup": "^0.15.13",

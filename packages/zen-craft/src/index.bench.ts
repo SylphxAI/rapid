@@ -1,12 +1,10 @@
 // Import zen atom factory
 import { zen } from '@sylphx/zen';
-// Import immer for comparison
-import { produce as immerProduce } from 'immer';
+// Import craft for comparison
+import { craft } from '@sylphx/craft';
 import { bench, describe, vi } from 'vitest'; // Import vi for potential mocking if needed
 import { produce, produceZen } from './index';
-
 // --- produce Benchmarks ---
-
 describe('produce: Simple Object Replace', () => {
   const base = { value: 1 };
   bench('zen-draft', () => {
@@ -14,16 +12,12 @@ describe('produce: Simple Object Replace', () => {
       draft.value = 2;
     });
   });
-
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
-      immerProduce(base, (draft) => {
-        draft.value = 2;
-      });
+  bench('craft', () => {
+    craft(base, (draft) => {
+      draft.value = 2;
     });
-  }
+  });
 });
-
 describe('produce: Nested Object Replace', () => {
   const base = { a: { b: { c: 1 } } };
   bench('zen-draft', () => {
@@ -31,16 +25,12 @@ describe('produce: Nested Object Replace', () => {
       draft.a.b.c = 2;
     });
   });
-
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
-      immerProduce(base, (draft) => {
-        draft.a.b.c = 2;
-      });
+  bench('craft', () => {
+    craft(base, (draft) => {
+      draft.a.b.c = 2;
     });
-  }
+  });
 });
-
 describe('produce: Array Push (Small)', () => {
   const base = { items: [1, 2, 3] };
   bench('zen-draft', () => {
@@ -48,16 +38,13 @@ describe('produce: Array Push (Small)', () => {
       draft.items.push(4);
     });
   });
-
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
-      immerProduce(base, (draft) => {
+  
+    bench('craft', () => {
+      craft(base, (draft) => {
         draft.items.push(4);
       });
     });
-  }
 });
-
 describe('produce: Array Push (Large)', () => {
   const largeArrayBase = { items: Array.from({ length: 1000 }, (_, i) => i) };
   bench('zen-draft', () => {
@@ -67,18 +54,15 @@ describe('produce: Array Push (Large)', () => {
       draft.items.push(1000);
     });
   });
-
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       // Create a fresh copy for each run
       const currentBase = { items: [...largeArrayBase.items] };
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.items.push(1000);
       });
     });
-  }
 });
-
 describe('produce: Array Splice (Large)', () => {
   const largeArrayBase = { items: Array.from({ length: 1000 }, (_, i) => i) };
   bench('zen-draft', () => {
@@ -87,17 +71,14 @@ describe('produce: Array Splice (Large)', () => {
       draft.items.splice(500, 1, -1); // Replace one item in the middle
     });
   });
-
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       const currentBase = { items: [...largeArrayBase.items] };
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.items.splice(500, 1, -1);
       });
     });
-  }
 });
-
 describe('produce: Map Set (Add/Replace)', () => {
   const createMapBase = () => ({
     data: new Map(Array.from({ length: 100 }, (_, i) => [`key${i}`, i])),
@@ -109,18 +90,15 @@ describe('produce: Map Set (Add/Replace)', () => {
       draft.data.set('newKey', 1000); // Add
     });
   });
-
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       const currentBase = createMapBase();
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.data.set('key50', -1);
         draft.data.set('newKey', 1000);
       });
     });
-  }
 });
-
 describe('produce: Map Delete', () => {
   const createMapBase = () => ({
     data: new Map(Array.from({ length: 100 }, (_, i) => [`key${i}`, i])),
@@ -131,16 +109,14 @@ describe('produce: Map Delete', () => {
       draft.data.delete('key50');
     });
   });
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       const currentBase = createMapBase();
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.data.delete('key50');
       });
     });
-  }
 });
-
 describe('produce: Map Clear', () => {
   const createMapBase = () => ({
     data: new Map(Array.from({ length: 100 }, (_, i) => [`key${i}`, i])),
@@ -151,16 +127,14 @@ describe('produce: Map Clear', () => {
       draft.data.clear();
     });
   });
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       const currentBase = createMapBase();
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.data.clear();
       });
     });
-  }
 });
-
 describe('produce: Set Add', () => {
   const createSetBase = () => ({
     data: new Set(Array.from({ length: 100 }, (_, i) => `item${i}`)),
@@ -171,17 +145,14 @@ describe('produce: Set Add', () => {
       draft.data.add('newItem');
     });
   });
-
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       const currentBase = createSetBase();
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.data.add('newItem');
       });
     });
-  }
 });
-
 describe('produce: Set Delete', () => {
   const createSetBase = () => ({
     data: new Set(Array.from({ length: 100 }, (_, i) => `item${i}`)),
@@ -192,16 +163,14 @@ describe('produce: Set Delete', () => {
       draft.data.delete('item50');
     });
   });
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       const currentBase = createSetBase();
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.data.delete('item50');
       });
     });
-  }
 });
-
 describe('produce: Set Clear', () => {
   const createSetBase = () => ({
     data: new Set(Array.from({ length: 100 }, (_, i) => `item${i}`)),
@@ -212,18 +181,15 @@ describe('produce: Set Clear', () => {
       draft.data.clear();
     });
   });
-  if (typeof immerProduce === 'function') {
-    bench('immer', () => {
+  
+    bench('craft', () => {
       const currentBase = createSetBase();
-      immerProduce(currentBase, (draft) => {
+      craft(currentBase, (draft) => {
         draft.data.clear();
       });
     });
-  }
 });
-
 // --- produceAtom Benchmarks ---
-
 describe('produceAtom: Simple Object Replace', () => {
   const createBaseAtom = () => zen({ value: 1 });
   bench('zen-draft + zen', () => {
@@ -233,7 +199,6 @@ describe('produceAtom: Simple Object Replace', () => {
     });
   });
 });
-
 describe('produceAtom: Nested Object Replace', () => {
   const createBaseAtom = () => zen({ a: { b: { c: 1 } } });
   bench('zen-draft + zen', () => {
@@ -243,7 +208,6 @@ describe('produceAtom: Nested Object Replace', () => {
     });
   });
 });
-
 describe('produceAtom: Array Push (Small)', () => {
   const createBaseAtom = () => zen({ items: [1, 2, 3] });
   bench('zen-draft + zen', () => {
@@ -253,7 +217,6 @@ describe('produceAtom: Array Push (Small)', () => {
     });
   });
 });
-
 describe('produceAtom: Array Push (Large)', () => {
   const createLargeArrayBaseAtom = () => zen({ items: Array.from({ length: 1000 }, (_, i) => i) });
   bench('zen-draft + zen', () => {
@@ -264,5 +227,4 @@ describe('produceAtom: Array Push (Large)', () => {
     });
   });
 });
-
 // Add more produceAtom benchmarks for splice, map, set etc. if needed
