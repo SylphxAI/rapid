@@ -1,4 +1,5 @@
 import type { BatchedZen } from './batched'; // Import BatchedZen type
+import { sourceValuesPool } from './pool';
 // Functional computed (derived state) implementation.
 import type { AnyZen, Unsubscribe, ZenWithValue } from './types';
 import { markDirty, notifyListeners, updateIfNecessary } from './zen';
@@ -22,6 +23,7 @@ export type ComputedZen<T = unknown> = ZenWithValue<T | null> & {
   _update: () => boolean;
   _subscribeToSources: () => void;
   _unsubscribeFromSources: () => void;
+  _dispose?: () => void; // Optional disposal for resource cleanup
 };
 
 /** Alias for ComputedZen, representing the read-only nature. */
@@ -255,6 +257,7 @@ function _subscribeToSingleSource(
   // ✅ PHASE 6 OPTIMIZATION: Attach computed zen reference to handler
   // This allows markDirty() to find the computed zen and mark it GREEN
   if (computedZen) {
+    // biome-ignore lint/suspicious/noExplicitAny: Required to attach computed zen reference to handler for graph coloring
     (onChangeHandler as any)._computedZen = computedZen;
   }
 
@@ -369,6 +372,10 @@ export function computed<T, S extends AnyZen | Stores>(
   // Normalize stores input to always be an array
   const storesArray = Array.isArray(stores) ? stores : [stores];
 
+  // ✅ PHASE 1 OPTIMIZATION: Acquire pooled array for source values
+  const sourceValues = sourceValuesPool.acquire();
+  sourceValues.length = storesArray.length;
+
   // Define the structure adhering to ComputedZen<T> type
   // Optimize: Only initialize essential computed properties. Listeners omitted.
   const computedZen: ComputedZen<T> = {
@@ -376,7 +383,7 @@ export function computed<T, S extends AnyZen | Stores>(
     _value: null, // Start as null
     _dirty: true,
     _sources: [...storesArray], // Use spread syntax on the normalized array
-    _sourceValues: new Array(storesArray.length), // Use length of normalized array
+    _sourceValues: sourceValues, // Use pooled array
     // Store the calculation function as provided (expecting spread args)
     _calculation: calculation, // No cast needed now
     _equalityFn: equalityFn,
@@ -386,6 +393,15 @@ export function computed<T, S extends AnyZen | Stores>(
     _subscribeToSources: () => subscribeComputedToSources(computedZen),
     _unsubscribeFromSources: () => unsubscribeComputedFromSources(computedZen),
     _update: () => updateComputedValue(computedZen),
+    // ✅ PHASE 1 OPTIMIZATION: Dispose method to release pooled array
+    _dispose: () => {
+      // Unsubscribe from all sources first
+      if (computedZen._unsubscribers) {
+        unsubscribeComputedFromSources(computedZen);
+      }
+      // Release pooled array back to pool
+      sourceValuesPool.release(sourceValues);
+    },
     // _onChange is not directly called externally, computedSourceChanged handles it
   };
 
@@ -395,6 +411,26 @@ export function computed<T, S extends AnyZen | Stores>(
   // The subscribeToZen in zen.ts now calls subscribeComputedToSources/unsubscribeComputedFromSources.
 
   return computedZen; // Return the computed zen structure
+}
+
+/**
+ * Dispose a computed zen and release pooled resources.
+ * Call this when you're completely done with a computed value to help with memory management.
+ * ✅ PHASE 1 OPTIMIZATION: Releases pooled arrays back to pool
+ *
+ * @example
+ * ```typescript
+ * const doubled = computed([count], (n) => n * 2);
+ * // ... use doubled ...
+ * dispose(doubled); // Release resources when done
+ * ```
+ *
+ * @param zen The computed zen to dispose
+ */
+export function dispose<T>(zen: ComputedZen<T>): void {
+  if (zen._dispose) {
+    zen._dispose();
+  }
 }
 
 // Note: getZenValue and subscribeToZen logic in zen.ts handles computed zen specifics.

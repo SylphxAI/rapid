@@ -45,4 +45,14 @@ export { batched } from './batched';
 export { effect } from './effect';
 
 // Event Functions
-export { onStart, onStop, onSet, onNotify, onMount, listenPaths } from './events';
+export { onSet, onNotify, listenPaths } from './events';
+
+// ✅ PHASE 1 OPTIMIZATION: Enhanced lifecycle functions with cleanup support
+export { onStart, onStop, onMount, cleanup } from './lifecycle';
+export type { CleanupFn, LifecycleCallback } from './lifecycle';
+
+// ✅ PHASE 1 OPTIMIZATION: Untracked execution utilities
+export { untracked, tracked, isTracking } from './untracked';
+
+// ✅ PHASE 1 OPTIMIZATION: Computed disposal for resource cleanup
+export { dispose } from './computed';

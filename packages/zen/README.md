@@ -172,15 +172,63 @@ const unsubTimer = subscribe(timerZen, (value) => {
 // }, 3500);
 ```
 
+### Untracked Execution Example
+
+```typescript
+import { zen, computed, untracked, isTracking } from '@sylphx/zen';
+
+const count = zen(0);
+const debugInfo = zen('');
+
+// Computed that logs without creating dependency
+const doubled = computed([count], (n) => {
+  // Read debugInfo without tracking it as a dependency
+  untracked(() => {
+    const info = debugInfo._value;
+    console.log(`Computing doubled at ${Date.now()}: ${info}`);
+  });
+
+  return n * 2;
+});
+
+console.log('Tracking enabled?', isTracking()); // true
+
+set(count, 5); // Will trigger recomputation
+set(debugInfo, 'debug'); // Won't trigger recomputation (untracked)
+```
+
+### Resource Disposal Example
+
+```typescript
+import { zen, computed, dispose } from '@sylphx/zen';
+
+const data = zen(0);
+const expensive = computed([data], (n) => {
+  // Expensive computation
+  return n * n;
+});
+
+// Use the computed value
+subscribe(expensive, (value) => {
+  console.log('Result:', value);
+});
+
+// When done, release pooled resources
+dispose(expensive);
+```
 
 ## Features
 
 *   **Tiny size:** ~1.33 kB gzipped (full bundle).
 *   **Blazing fast:** 3.2x faster than baseline, competitive with top-tier state libraries.
 *   Functional API (`atom`, `computed`, `map`, `deepMap`, `karma`, `batch`).
-*   Lifecycle events (`onMount`, `onSet`, `onNotify`, `onStop`).
+*   Lifecycle events with cleanup support (`onMount`, `onStart`, `onStop`).
 *   Key/Path listeners for maps (`listenKeys`, `listenPaths`).
 *   Explicit batching for combining updates.
+*   **🆕 Phase 1 Optimizations:**
+  *   Object pooling for reduced GC pressure
+  *   Untracked execution for debugging
+  *   Resource disposal API for memory management
 
 ## Performance
 
