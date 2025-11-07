@@ -376,7 +376,11 @@ function subscribeComputedToSources<T>(zen: ComputedZen<T>): void {
 
   for (let i = 0; i < sources.length; i++) {
     // ✅ PHASE 6: Pass zen reference so handler can be linked to computed
-    const unsub = _subscribeToSingleSource(sources[i], onChangeHandler, zen as ComputedZen<unknown>);
+    const unsub = _subscribeToSingleSource(
+      sources[i],
+      onChangeHandler,
+      zen as ComputedZen<unknown>,
+    );
     if (unsub) {
       newUnsubscribers.push(unsub); // Add only valid unsub functions
     }
