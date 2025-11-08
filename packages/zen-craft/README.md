@@ -24,12 +24,12 @@ yarn add @sylphx/zen-craft @sylphx/zen
 
 ## Usage
 
-### `update()` - Primary API
+### `craft()` - Update Zen Stores
 
 Update Zen stores with draft-style mutations.
 
 ```typescript
-import { update } from '@sylphx/zen-craft';
+import { craft } from '@sylphx/zen-craft';
 import { zen, get } from '@sylphx/zen';
 
 const $store = zen({
@@ -38,7 +38,7 @@ const $store = zen({
 });
 
 // Basic usage - mutate draft, get immutable update
-update($store, (draft) => {
+craft($store, (draft) => {
   draft.user.age++;
   draft.tags.push('c');
 });
@@ -47,7 +47,7 @@ console.log(get($store));
 // Output: { user: { name: 'Alice', age: 31 }, tags: ['a', 'b', 'c'] }
 
 // Advanced: Enable patch generation for undo/redo
-const [patches, inversePatches] = update(
+const [patches, inversePatches] = craft(
   $store,
   (draft) => {
     draft.user.age++;
@@ -59,61 +59,17 @@ console.log(patches);
 // Output: [{ op: 'replace', path: ['user', 'age'], value: 32 }]
 ```
 
-### `craft()` - Low-level API
-
-Transform plain objects immutably (non-Zen use cases).
-
-```typescript
-import { craft } from '@sylphx/zen-craft';
-
-const currentState = {
-  user: { name: 'Alice', age: 30 },
-  tags: ['a', 'b']
-};
-
-const [nextState, patches, inversePatches] = craft(
-  currentState,
-  (draft) => {
-    draft.user.age++;
-    draft.tags.push('c');
-  },
-  { patches: true, inversePatches: true }
-);
-
-console.log(nextState);
-// Output: { user: { name: 'Alice', age: 31 }, tags: ['a', 'b', 'c'] }
-```
-
-### `applyPatches()`
-
-Apply JSON patches to a base state to produce a new state.
-
-```typescript
-import { applyPatches } from '@sylphx/zen-craft';
-
-const baseState = { user: { name: 'Alice' } };
-const patches = [
-  { op: 'replace', path: ['user', 'name'], value: 'Bob' },
-  { op: 'add', path: ['user', 'age'], value: 40 },
-];
-
-const nextState = applyPatches(baseState, patches);
-
-console.log(nextState);
-// Output: { user: { name: 'Bob', age: 40 } }
-```
-
 ### `nothing`
 
 Use the `nothing` symbol to delete properties:
 
 ```typescript
-import { update, nothing } from '@sylphx/zen-craft';
+import { craft, nothing } from '@sylphx/zen-craft';
 import { zen } from '@sylphx/zen';
 
 const $store = zen({ name: 'Alice', age: 30 });
 
-update($store, (draft) => {
+craft($store, (draft) => {
   draft.age = nothing; // Delete age property
 });
 
