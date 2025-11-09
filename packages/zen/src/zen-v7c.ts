@@ -40,14 +40,14 @@ export type Computed<T> = {
 // Signal node - only CLEAN or RED
 type SNode<T> = {
   value: T;
-  color: 0 | 2;  // CLEAN=0, RED=2
+  color: 0 | 2; // CLEAN=0, RED=2
   observers: CNode<any>[] | null;
 };
 
 // Computed node - CLEAN, GREEN, or RED
 type CNode<T> = {
   value: T | null;
-  color: 0 | 1 | 2;  // CLEAN=0, GREEN=1, RED=2
+  color: 0 | 1 | 2; // CLEAN=0, GREEN=1, RED=2
   fn: () => T;
   sources: (SNode<any> | CNode<any>)[] | null;
   observers: CNode<any>[] | null;
@@ -103,13 +103,12 @@ export function signal<T>(initialValue: T): Signal<T> {
     }
   }
 
-  const fn = function(value?: T): T | void {
+  const fn = ((value?: T): T | undefined => {
     if (arguments.length === 0) {
       return getter();
-    } else {
-      setter(value!);
     }
-  } as Signal<T>;
+    setter(value!);
+  }) as Signal<T>;
 
   fn.set = setter;
   fn.subscribe = (callback: (value: T) => void) => {
@@ -132,13 +131,10 @@ export function signal<T>(initialValue: T): Signal<T> {
 // Computed Implementation
 // ============================================================================
 
-export function computed<T>(
-  fn: () => T,
-  equals: (a: T, b: T) => boolean = Object.is
-): Computed<T> {
+export function computed<T>(fn: () => T, equals: (a: T, b: T) => boolean = Object.is): Computed<T> {
   const node: CNode<T> = {
     value: null,
-    color: RED,  // Start dirty
+    color: RED, // Start dirty
     fn,
     sources: null,
     observers: null,
@@ -403,14 +399,14 @@ function createEffect(fn: () => void): Computed<null> {
 // Batch
 // ============================================================================
 
-let batchDepth = 0;
+let _batchDepth = 0;
 
 export function batch<T>(fn: () => T): T {
-  batchDepth++;
+  _batchDepth++;
   try {
     return fn();
   } finally {
-    batchDepth--;
+    _batchDepth--;
   }
 }
 

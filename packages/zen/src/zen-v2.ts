@@ -15,24 +15,24 @@ import type { AnyZen } from './types';
 // ============================================================================
 
 export type Signal<T> = {
-  (): T;                           // Getter (bound)
-  (value: T): void;                // Setter (overload)
-  set: (value: T) => void;         // Explicit setter
+  (): T; // Getter (bound)
+  (value: T): void; // Setter (overload)
+  set: (value: T) => void; // Explicit setter
   subscribe: (fn: (value: T) => void) => () => void;
-  _node: SignalNode<T>;            // Internal node
+  _node: SignalNode<T>; // Internal node
 };
 
 export type Computed<T> = {
-  (): T | null;                    // Getter (bound)
+  (): T | null; // Getter (bound)
   subscribe: (fn: (value: T | null) => void) => () => void;
-  _node: ComputedNode<T>;          // Internal node
+  _node: ComputedNode<T>; // Internal node
 };
 
 type SignalNode<T> = {
   kind: 'signal';
   value: T;
   observers: ComputedNode<any>[] | null;
-  observerSlots: number[] | null;  // Bidirectional slots
+  observerSlots: number[] | null; // Bidirectional slots
 };
 
 type ComputedNode<T> = {
@@ -41,7 +41,7 @@ type ComputedNode<T> = {
   dirty: boolean;
   fn: () => T;
   sources: SignalNode<any>[] | null;
-  sourceSlots: number[] | null;    // Bidirectional slots
+  sourceSlots: number[] | null; // Bidirectional slots
   observers: ComputedNode<any>[] | null;
   observerSlots: number[] | null;
   equalityFn: (a: T, b: T) => boolean;
@@ -83,10 +83,10 @@ export function signal<T>(initialValue: T): Signal<T> {
       const sourceIndex = Listener.sources.length;
 
       node.observers.push(Listener);
-      node.observerSlots!.push(sourceIndex);
+      node.observerSlots?.push(sourceIndex);
 
       Listener.sources.push(node);
-      Listener.sourceSlots!.push(observerIndex);
+      Listener.sourceSlots?.push(observerIndex);
     }
 
     return node.value;
@@ -123,13 +123,12 @@ export function signal<T>(initialValue: T): Signal<T> {
   }
 
   // Create polymorphic function (getter/setter)
-  const fn = function(value?: T): T | void {
+  const fn = ((value?: T): T | undefined => {
     if (arguments.length === 0) {
       return getter();
-    } else {
-      setter(value!);
     }
-  } as Signal<T>;
+    setter(value!);
+  }) as Signal<T>;
 
   fn.set = setter;
   fn.subscribe = (callback: (value: T) => void) => {
@@ -159,7 +158,7 @@ export function signal<T>(initialValue: T): Signal<T> {
 
 export function computed<T>(
   fn: () => T,
-  equalityFn: (a: T, b: T) => boolean = Object.is
+  equalityFn: (a: T, b: T) => boolean = Object.is,
 ): Computed<T> {
   const node: ComputedNode<T> = {
     kind: 'computed',
@@ -194,10 +193,10 @@ export function computed<T>(
       const sourceIndex = Listener.sources.length;
 
       node.observers.push(Listener);
-      node.observerSlots!.push(sourceIndex);
+      node.observerSlots?.push(sourceIndex);
 
       Listener.sources.push(node as any);
-      Listener.sourceSlots!.push(observerIndex);
+      Listener.sourceSlots?.push(observerIndex);
     }
 
     return node.value;
@@ -309,14 +308,14 @@ function unsubscribeComputed(node: ComputedNode<any>): void {
       // Swap with last
       const lastObserver = source.observers[lastIndex];
       source.observers[slotIndex] = lastObserver;
-      source.observerSlots![slotIndex] = source.observerSlots![lastIndex];
+      source.observerSlots![slotIndex] = source.observerSlots?.[lastIndex];
 
       // Update back-reference
-      lastObserver.sourceSlots![source.observerSlots![slotIndex]] = slotIndex;
+      lastObserver.sourceSlots![source.observerSlots?.[slotIndex]] = slotIndex;
     }
 
     source.observers.pop();
-    source.observerSlots!.pop();
+    source.observerSlots?.pop();
   }
 
   node.sources = null;

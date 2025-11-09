@@ -3,13 +3,13 @@
  * Focus on critical tests only
  */
 
+import { createMemo, createSignal } from 'solid-js';
 import { bench, describe } from 'vitest';
-import { createSignal, createMemo } from 'solid-js';
 
-import { zen, get, set } from './zen';
 import { computed } from './computed';
-import { signal as signalV4, computed as computedV4 } from './zen-v4';
-import { signal as signalV5, computed as computedV5 } from './zen-v5';
+import { get, set, zen } from './zen';
+import { computed as computedV4, signal as signalV4 } from './zen-v4';
+import { computed as computedV5, signal as signalV5 } from './zen-v5';
 
 // ============================================================================
 // 🔥 CRITICAL: 3-Level Chain

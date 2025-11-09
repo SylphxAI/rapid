@@ -3,14 +3,14 @@
  * Focus on critical performance tests
  */
 
+import { createMemo, createSignal } from 'solid-js';
 import { bench, describe } from 'vitest';
-import { createSignal, createMemo } from 'solid-js';
 
-import { zen, get, set } from './zen';
 import { computed } from './computed';
-import { signal as signalV2, computed as computedV2 } from './zen-v2';
-import { signal as signalV3, computed as computedV3 } from './zen-v3';
-import { signal as signalV4, computed as computedV4 } from './zen-v4';
+import { get, set, zen } from './zen';
+import { computed as computedV2, signal as signalV2 } from './zen-v2';
+import { computed as computedV3, signal as signalV3 } from './zen-v3';
+import { computed as computedV4, signal as signalV4 } from './zen-v4';
 
 // ============================================================================
 // 🔥 CRITICAL TEST: 3-Level Chained Computed

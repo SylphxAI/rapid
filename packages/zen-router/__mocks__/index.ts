@@ -13,7 +13,9 @@ export const $router = {
   set: (newState: RouterState) => {
     // Add set for test control
     mockRouterState = newState;
-    for (const listener of mockListeners) { listener(newState); }
+    for (const listener of mockListeners) {
+      listener(newState);
+    }
   },
   subscribe: vi.fn((listener: (state: RouterState) => void): Unsubscribe => {
     mockListeners.add(listener);

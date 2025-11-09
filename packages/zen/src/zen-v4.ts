@@ -50,8 +50,8 @@ type ComputedNode<T> = {
 // Global State
 // ============================================================================
 
-let ExecCount = 0;  // Global timestamp counter
-let Listener: ComputedNode<any> | null = null;  // Current tracking context
+let ExecCount = 0; // Global timestamp counter
+let Listener: ComputedNode<any> | null = null; // Current tracking context
 
 // ============================================================================
 // Signal Implementation
@@ -86,13 +86,12 @@ export function signal<T>(initialValue: T): Signal<T> {
     node.updatedAt = ExecCount;
   }
 
-  const fn = function(value?: T): T | void {
+  const fn = ((value?: T): T | undefined => {
     if (arguments.length === 0) {
       return getter();
-    } else {
-      setter(value!);
     }
-  } as Signal<T>;
+    setter(value!);
+  }) as Signal<T>;
 
   fn.set = setter;
   fn.subscribe = (callback: (value: T) => void) => {
@@ -117,12 +116,12 @@ export function signal<T>(initialValue: T): Signal<T> {
 
 export function computed<T>(
   fn: () => T,
-  equalityFn: (a: T, b: T) => boolean = Object.is
+  equalityFn: (a: T, b: T) => boolean = Object.is,
 ): Computed<T> {
   const node: ComputedNode<T> = {
     kind: 'computed',
     value: null,
-    updatedAt: null,  // null = not computed yet
+    updatedAt: null, // null = not computed yet
     fn,
     sources: null,
     sourceSlots: null,
@@ -243,7 +242,7 @@ function updateComputed<T>(node: ComputedNode<T>): void {
 
 function addDependency(
   observer: ComputedNode<any>,
-  source: SignalNode<any> | ComputedNode<any>
+  source: SignalNode<any> | ComputedNode<any>,
 ): void {
   if (!observer.sources) {
     observer.sources = [];
@@ -259,10 +258,10 @@ function addDependency(
   const sourceIndex = observer.sources.length;
 
   source.observers.push(observer);
-  source.observerSlots!.push(sourceIndex);
+  source.observerSlots?.push(sourceIndex);
 
   observer.sources.push(source);
-  observer.sourceSlots!.push(observerIndex);
+  observer.sourceSlots?.push(observerIndex);
 }
 
 function cleanupComputed(node: ComputedNode<any>): void {
@@ -282,12 +281,12 @@ function cleanupComputed(node: ComputedNode<any>): void {
     if (slotIndex < lastIndex) {
       const lastObserver = source.observers[lastIndex];
       source.observers[slotIndex] = lastObserver;
-      source.observerSlots![slotIndex] = source.observerSlots![lastIndex];
-      lastObserver.sourceSlots![source.observerSlots![slotIndex]] = slotIndex;
+      source.observerSlots![slotIndex] = source.observerSlots?.[lastIndex];
+      lastObserver.sourceSlots![source.observerSlots?.[slotIndex]] = slotIndex;
     }
 
     source.observers.pop();
-    source.observerSlots!.pop();
+    source.observerSlots?.pop();
 
     if (source.observers.length === 0) {
       source.observers = null;
@@ -311,14 +310,14 @@ function createAutoComputed(fn: () => void): Computed<null> {
 // Batch
 // ============================================================================
 
-let batchDepth = 0;
+let _batchDepth = 0;
 
 export function batch<T>(fn: () => T): T {
-  batchDepth++;
+  _batchDepth++;
   try {
     return fn();
   } finally {
-    batchDepth--;
+    _batchDepth--;
     // Batching in this model is implicit via pull-based updates
     // No special handling needed
   }

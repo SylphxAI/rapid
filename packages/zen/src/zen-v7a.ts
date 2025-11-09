@@ -88,13 +88,12 @@ export function signal<T>(initialValue: T): Signal<T> {
     node.updatedAt = ExecCount;
   }
 
-  const fn = function(value?: T): T | void {
+  const fn = ((value?: T): T | undefined => {
     if (arguments.length === 0) {
       return getter();
-    } else {
-      setter(value!);
     }
-  } as Signal<T>;
+    setter(value!);
+  }) as Signal<T>;
 
   fn.set = setter;
   fn.subscribe = (callback: (value: T) => void) => {
@@ -117,10 +116,7 @@ export function signal<T>(initialValue: T): Signal<T> {
 // Computed Implementation
 // ============================================================================
 
-export function computed<T>(
-  fn: () => T,
-  equals: (a: T, b: T) => boolean = Object.is
-): Computed<T> {
+export function computed<T>(fn: () => T, equals: (a: T, b: T) => boolean = Object.is): Computed<T> {
   const node: CNode<T> = {
     value: null,
     updatedAt: null,
@@ -312,14 +308,14 @@ function createEffect(fn: () => void): Computed<null> {
 // Batch
 // ============================================================================
 
-let batchDepth = 0;
+let _batchDepth = 0;
 
 export function batch<T>(fn: () => T): T {
-  batchDepth++;
+  _batchDepth++;
   try {
     return fn();
   } finally {
-    batchDepth--;
+    _batchDepth--;
   }
 }
 

@@ -17,23 +17,23 @@ import type { AnyZen } from './types';
 // ============================================================================
 
 export type Signal<T> = {
-  (): T;                           // Getter (bound)
-  (value: T): void;                // Setter (overload)
-  set: (value: T) => void;         // Explicit setter
+  (): T; // Getter (bound)
+  (value: T): void; // Setter (overload)
+  set: (value: T) => void; // Explicit setter
   subscribe: (fn: (value: T) => void) => () => void;
-  _node: SignalNode<T>;            // Internal node
+  _node: SignalNode<T>; // Internal node
 };
 
 export type Computed<T> = {
-  (): T | null;                    // Getter (bound)
+  (): T | null; // Getter (bound)
   subscribe: (fn: (value: T | null) => void) => () => void;
-  _node: ComputedNode<T>;          // Internal node
+  _node: ComputedNode<T>; // Internal node
 };
 
 type SignalNode<T> = {
   kind: 'signal';
   value: T;
-  color: 0 | 2;                    // CLEAN=0, RED=2 (signals skip GREEN)
+  color: 0 | 2; // CLEAN=0, RED=2 (signals skip GREEN)
   observers: ComputedNode<any>[] | null;
   observerSlots: number[] | null;
 };
@@ -41,7 +41,7 @@ type SignalNode<T> = {
 type ComputedNode<T> = {
   kind: 'computed';
   value: T | null;
-  color: 0 | 1 | 2;                // CLEAN=0, GREEN=1, RED=2
+  color: 0 | 1 | 2; // CLEAN=0, GREEN=1, RED=2
   fn: () => T;
   sources: (SignalNode<any> | ComputedNode<any>)[] | null;
   sourceSlots: number[] | null;
@@ -54,9 +54,9 @@ type ComputedNode<T> = {
 // Graph Coloring States
 // ============================================================================
 
-const CLEAN = 0;  // Definitely clean
-const GREEN = 1;  // Potentially affected (need verification)
-const RED = 2;    // Definitely dirty
+const CLEAN = 0; // Definitely clean
+const GREEN = 1; // Potentially affected (need verification)
+const RED = 2; // Definitely dirty
 
 // ============================================================================
 // Global Tracking Context
@@ -109,13 +109,12 @@ export function signal<T>(initialValue: T): Signal<T> {
   }
 
   // Polymorphic function (getter/setter)
-  const fn = function(value?: T): T | void {
+  const fn = ((value?: T): T | undefined => {
     if (arguments.length === 0) {
       return getter();
-    } else {
-      setter(value!);
     }
-  } as Signal<T>;
+    setter(value!);
+  }) as Signal<T>;
 
   fn.set = setter;
   fn.subscribe = (callback: (value: T) => void) => {
@@ -140,12 +139,12 @@ export function signal<T>(initialValue: T): Signal<T> {
 
 export function computed<T>(
   fn: () => T,
-  equalityFn: (a: T, b: T) => boolean = Object.is
+  equalityFn: (a: T, b: T) => boolean = Object.is,
 ): Computed<T> {
   const node: ComputedNode<T> = {
     kind: 'computed',
     value: null,
-    color: RED,  // Start as RED
+    color: RED, // Start as RED
     fn,
     sources: null,
     sourceSlots: null,
@@ -284,7 +283,7 @@ function updateComputed<T>(node: ComputedNode<T>): void {
   // Mark as RED and propagate GREEN downstream
   node.color = RED;
   markDependentsGreen(node);
-  node.color = CLEAN;  // Reset to clean after propagation
+  node.color = CLEAN; // Reset to clean after propagation
 }
 
 // ============================================================================
@@ -293,7 +292,7 @@ function updateComputed<T>(node: ComputedNode<T>): void {
 
 function addDependency(
   observer: ComputedNode<any>,
-  source: SignalNode<any> | ComputedNode<any>
+  source: SignalNode<any> | ComputedNode<any>,
 ): void {
   // Initialize arrays
   if (!observer.sources) {
@@ -315,10 +314,10 @@ function addDependency(
   const sourceIndex = observer.sources.length;
 
   source.observers.push(observer);
-  source.observerSlots!.push(sourceIndex);
+  source.observerSlots?.push(sourceIndex);
 
   observer.sources.push(source);
-  observer.sourceSlots!.push(observerIndex);
+  observer.sourceSlots?.push(observerIndex);
 }
 
 function unsubscribeComputed(node: ComputedNode<any>): void {
@@ -339,14 +338,14 @@ function unsubscribeComputed(node: ComputedNode<any>): void {
       // Swap with last
       const lastObserver = source.observers[lastIndex];
       source.observers[slotIndex] = lastObserver;
-      source.observerSlots![slotIndex] = source.observerSlots![lastIndex];
+      source.observerSlots![slotIndex] = source.observerSlots?.[lastIndex];
 
       // Update back-reference
-      lastObserver.sourceSlots![source.observerSlots![slotIndex]] = slotIndex;
+      lastObserver.sourceSlots![source.observerSlots?.[slotIndex]] = slotIndex;
     }
 
     source.observers.pop();
-    source.observerSlots!.pop();
+    source.observerSlots?.pop();
 
     // Cleanup empty arrays
     if (source.observers.length === 0) {

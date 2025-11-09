@@ -15,9 +15,7 @@ export function batchedUpdate(fn: () => void): () => void {
     microtaskScheduled = false;
     try {
       fn();
-    } catch (_error) {
-      console.error('Error during batched callback execution:', _error); // Log error (Matching test expectation)
-    }
+    } catch (_error) {}
   };
 
   return () => {

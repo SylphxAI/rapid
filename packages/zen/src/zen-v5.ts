@@ -31,7 +31,7 @@ export type Computed<T> = {
 // Signal node (no 'kind' field - use duck typing!)
 type SNode<T> = {
   value: T;
-  color: 0 | 2;  // CLEAN=0, RED=2 (signals skip GREEN)
+  color: 0 | 2; // CLEAN=0, RED=2 (signals skip GREEN)
   observers: CNode<any>[] | null;
   observerSlots: number[] | null;
 };
@@ -39,7 +39,7 @@ type SNode<T> = {
 // Computed node (has 'fn' - that's how we distinguish it)
 type CNode<T> = {
   value: T | null;
-  color: 0 | 1 | 2;  // CLEAN=0, GREEN=1, RED=2
+  color: 0 | 1 | 2; // CLEAN=0, GREEN=1, RED=2
   fn: () => T;
   sources: (SNode<any> | CNode<any>)[] | null;
   sourceSlots: number[] | null;
@@ -113,13 +113,12 @@ export function signal<T>(initialValue: T): Signal<T> {
     }
   }
 
-  const fn = function(value?: T): T | void {
+  const fn = ((value?: T): T | undefined => {
     if (arguments.length === 0) {
       return getter();
-    } else {
-      setter(value!);
     }
-  } as Signal<T>;
+    setter(value!);
+  }) as Signal<T>;
 
   fn.set = setter;
   fn.subscribe = (callback: (value: T) => void) => {
@@ -138,13 +137,10 @@ export function signal<T>(initialValue: T): Signal<T> {
 // Computed Implementation
 // ============================================================================
 
-export function computed<T>(
-  fn: () => T,
-  equals: (a: T, b: T) => boolean = Object.is
-): Computed<T> {
+export function computed<T>(fn: () => T, equals: (a: T, b: T) => boolean = Object.is): Computed<T> {
   const node: CNode<T> = {
     value: null,
-    color: RED,  // Start dirty
+    color: RED, // Start dirty
     fn,
     sources: null,
     sourceSlots: null,
@@ -168,7 +164,7 @@ export function computed<T>(
             if (src.color === GREEN) {
               // Recursively check
               const cnode = src as CNode<any>;
-              const cgetter = cnode.fn;
+              const _cgetter = cnode.fn;
               // Call the getter to check
               if (cnode.color === GREEN) {
                 checkSourcesUp(cnode);
@@ -339,12 +335,12 @@ function cleanNode(node: CNode<any>): void {
   // ✅ INLINE cleanup (no function calls)
   while (srcs.length) {
     const src = srcs.pop()!;
-    const idx = node.sourceSlots!.pop()!;
+    const idx = node.sourceSlots?.pop()!;
     const obs = src.observers;
 
-    if (obs && obs.length) {
+    if (obs?.length) {
       const last = obs.pop()!;
-      const lastSlot = src.observerSlots!.pop()!;
+      const lastSlot = src.observerSlots?.pop()!;
 
       if (idx < obs.length) {
         // Swap-remove
@@ -371,14 +367,14 @@ function createEffect(fn: () => void): Computed<null> {
 // Batch (implicit in pull-based model)
 // ============================================================================
 
-let batchDepth = 0;
+let _batchDepth = 0;
 
 export function batch<T>(fn: () => T): T {
-  batchDepth++;
+  _batchDepth++;
   try {
     return fn();
   } finally {
-    batchDepth--;
+    _batchDepth--;
   }
 }
 

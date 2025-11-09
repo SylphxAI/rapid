@@ -3,15 +3,15 @@
  * Zen V1 (current) vs Zen V2 (bound function) vs SolidJS
  */
 
+import { createEffect, createMemo, createSignal, batch as solidBatch } from 'solid-js';
 import { bench, describe } from 'vitest';
-import { createSignal, createMemo, batch as solidBatch, createEffect } from 'solid-js';
 
-// Zen V1 (current)
-import { zen, get, set, batch, subscribe } from './zen';
 import { computed } from './computed';
+// Zen V1 (current)
+import { batch, get, set, subscribe, zen } from './zen';
 
 // Zen V2 (bound function)
-import { signal, computed as computedV2, batch as batchV2 } from './zen-v2';
+import { batch as batchV2, computed as computedV2, signal } from './zen-v2';
 
 // ============================================================================
 // 1. Creation Overhead
@@ -19,15 +19,15 @@ import { signal, computed as computedV2, batch as batchV2 } from './zen-v2';
 
 describe('Creation - Zen V1 vs V2 vs Solid', () => {
   bench('Zen V1: zen(0)', () => {
-    const z = zen(0);
+    const _z = zen(0);
   });
 
   bench('Zen V2: signal(0)', () => {
-    const s = signal(0);
+    const _s = signal(0);
   });
 
   bench('Solid: createSignal(0)', () => {
-    const [s] = createSignal(0);
+    const [_s] = createSignal(0);
   });
 });
 
@@ -109,7 +109,7 @@ describe('Mixed Read/Write (1000x) - Zen V1 vs V2 vs Solid', () => {
   });
 
   bench('Solid: getter/setter', () => {
-    const [a, setA] = createSignal(0);
+    const [_a, setA] = createSignal(0);
     const [b] = createSignal(0);
     for (let i = 0; i < 1000; i++) {
       setA(b() + 2);
@@ -236,10 +236,10 @@ describe('Batching - 100 Updates - Zen V1 vs V2 vs Solid', () => {
   bench('Zen V1: batch', () => {
     const count = zen(0);
     const doubled = computed([count], (n) => n * 2);
-    let result = 0;
+    let _result = 0;
 
     subscribe(doubled, (v) => {
-      result = v;
+      _result = v;
     });
 
     batch(() => {
@@ -252,10 +252,10 @@ describe('Batching - 100 Updates - Zen V1 vs V2 vs Solid', () => {
   bench('Zen V2: batch', () => {
     const count = signal(0);
     const doubled = computedV2(() => count() * 2);
-    let result = 0;
+    let _result = 0;
 
     doubled.subscribe((v) => {
-      result = v!;
+      _result = v!;
     });
 
     batchV2(() => {
@@ -268,10 +268,10 @@ describe('Batching - 100 Updates - Zen V1 vs V2 vs Solid', () => {
   bench('Solid: batch', () => {
     const [count, setCount] = createSignal(0);
     const doubled = createMemo(() => count() * 2);
-    let result = 0;
+    let _result = 0;
 
     createEffect(() => {
-      result = doubled();
+      _result = doubled();
     });
 
     solidBatch(() => {

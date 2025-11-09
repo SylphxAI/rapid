@@ -3,14 +3,14 @@
  * The definitive performance comparison
  */
 
+import { createMemo, createSignal } from 'solid-js';
 import { bench, describe } from 'vitest';
-import { createSignal, createMemo } from 'solid-js';
 
-import { zen, get, set } from './zen';
 import { computed } from './computed';
-import { signal as signalV4, computed as computedV4 } from './zen-v4';
-import { signal as signalV5, computed as computedV5 } from './zen-v5';
-import { signal as signalV6, computed as computedV6 } from './zen-v6';
+import { get, set, zen } from './zen';
+import { computed as computedV4, signal as signalV4 } from './zen-v4';
+import { computed as computedV5, signal as signalV5 } from './zen-v5';
+import { computed as computedV6, signal as signalV6 } from './zen-v6';
 
 // ============================================================================
 // 🔥 CRITICAL: 3-Level Chain

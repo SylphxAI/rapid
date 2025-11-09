@@ -96,7 +96,7 @@ export function signal<T>(initialValue: T): Signal<T> {
           const sSlot = node.observers ? node.observers.length : 0;
           const oSlot = sources.length;
           sources.push(node);
-          Listener.sourceSlots!.push(sSlot);
+          Listener.sourceSlots?.push(sSlot);
           if (!node.observers) {
             node.observers = [Listener];
             node.observerSlots = [oSlot];
@@ -118,13 +118,12 @@ export function signal<T>(initialValue: T): Signal<T> {
     node.updatedAt = ExecCount;
   }
 
-  const fn = function(value?: T): T | void {
+  const fn = ((value?: T): T | undefined => {
     if (arguments.length === 0) {
       return getter();
-    } else {
-      setter(value!);
     }
-  } as Signal<T>;
+    setter(value!);
+  }) as Signal<T>;
 
   fn.set = setter;
   fn.subscribe = (callback: (value: T) => void) => {
@@ -148,10 +147,7 @@ export function signal<T>(initialValue: T): Signal<T> {
 // Computed Implementation
 // ============================================================================
 
-export function computed<T>(
-  fn: () => T,
-  equals: (a: T, b: T) => boolean = Object.is
-): Computed<T> {
+export function computed<T>(fn: () => T, equals: (a: T, b: T) => boolean = Object.is): Computed<T> {
   const node: CNode<T> = {
     value: null,
     updatedAt: null,
@@ -191,7 +187,7 @@ export function computed<T>(
           const sSlot = node.observers ? node.observers.length : 0;
           const oSlot = sources.length;
           sources.push(node);
-          Listener.sourceSlots!.push(sSlot);
+          Listener.sourceSlots?.push(sSlot);
           if (!node.observers) {
             node.observers = [Listener];
             node.observerSlots = [oSlot];
@@ -302,12 +298,12 @@ function cleanSources(node: CNode<any>): void {
 
   while (srcs.length) {
     const src = srcs.pop()!;
-    const idx = node.sourceSlots!.pop()!;
+    const idx = node.sourceSlots?.pop()!;
     const obs = src.observers;
 
-    if (obs && obs.length) {
+    if (obs?.length) {
       const last = obs.pop()!;
-      const lastSlot = src.observerSlots!.pop()!;
+      const lastSlot = src.observerSlots?.pop()!;
 
       if (idx < obs.length) {
         // Swap-remove
@@ -334,14 +330,14 @@ function createEffect(fn: () => void): Computed<null> {
 // Batch
 // ============================================================================
 
-let batchDepth = 0;
+let _batchDepth = 0;
 
 export function batch<T>(fn: () => T): T {
-  batchDepth++;
+  _batchDepth++;
   try {
     return fn();
   } finally {
-    batchDepth--;
+    _batchDepth--;
   }
 }
 

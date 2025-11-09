@@ -3,15 +3,15 @@
  * Testing if removing duplicate check helps
  */
 
+import { createMemo, createSignal } from 'solid-js';
 import { bench, describe } from 'vitest';
-import { createSignal, createMemo } from 'solid-js';
 
-import { zen, get, set } from './zen';
 import { computed } from './computed';
-import { signal as signalV4, computed as computedV4 } from './zen-v4';
-import { signal as signalV6, computed as computedV6 } from './zen-v6';
-import { signal as signalV7a, computed as computedV7a } from './zen-v7a';
-import { signal as signalV7b, computed as computedV7b } from './zen-v7b';
+import { get, set, zen } from './zen';
+import { computed as computedV4, signal as signalV4 } from './zen-v4';
+import { computed as computedV6, signal as signalV6 } from './zen-v6';
+import { computed as computedV7a, signal as signalV7a } from './zen-v7a';
+import { computed as computedV7b, signal as signalV7b } from './zen-v7b';
 
 // ============================================================================
 // 🔥 CRITICAL: 3-Level Chain

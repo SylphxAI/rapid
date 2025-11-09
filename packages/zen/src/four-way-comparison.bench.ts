@@ -3,18 +3,18 @@
  * Zen V1 vs V2 vs V3 vs SolidJS
  */
 
+import { createMemo, createSignal, batch as solidBatch } from 'solid-js';
 import { bench, describe } from 'vitest';
-import { createSignal, createMemo, batch as solidBatch } from 'solid-js';
 
-// Zen V1 (current)
-import { zen, get, set, batch, subscribe } from './zen';
 import { computed } from './computed';
+// Zen V1 (current)
+import { batch, get, set, subscribe, zen } from './zen';
 
 // Zen V2 (bound function, push-based)
-import { signal as signalV2, computed as computedV2, batch as batchV2 } from './zen-v2';
+import { batch as batchV2, computed as computedV2, signal as signalV2 } from './zen-v2';
 
 // Zen V3 (bound function + pull-based + graph coloring)
-import { signal as signalV3, computed as computedV3, batch as batchV3 } from './zen-v3';
+import { batch as batchV3, computed as computedV3, signal as signalV3 } from './zen-v3';
 
 // ============================================================================
 // 1. Read Performance (1000x)
@@ -348,10 +348,10 @@ describe('Batching - 100 Updates - All Versions', () => {
   bench('Zen V1: batch', () => {
     const count = zen(0);
     const doubled = computed([count], (n) => n * 2);
-    let result = 0;
+    let _result = 0;
 
     subscribe(doubled, (v) => {
-      result = v;
+      _result = v;
     });
 
     batch(() => {
@@ -364,10 +364,10 @@ describe('Batching - 100 Updates - All Versions', () => {
   bench('Zen V2: batch', () => {
     const count = signalV2(0);
     const doubled = computedV2(() => count() * 2);
-    let result = 0;
+    let _result = 0;
 
     doubled.subscribe((v) => {
-      result = v!;
+      _result = v!;
     });
 
     batchV2(() => {
@@ -380,10 +380,10 @@ describe('Batching - 100 Updates - All Versions', () => {
   bench('Zen V3: batch', () => {
     const count = signalV3(0);
     const doubled = computedV3(() => count() * 2);
-    let result = 0;
+    let _result = 0;
 
     doubled.subscribe((v) => {
-      result = v!;
+      _result = v!;
     });
 
     batchV3(() => {
@@ -396,7 +396,7 @@ describe('Batching - 100 Updates - All Versions', () => {
   bench('Solid: batch', () => {
     const [count, setCount] = createSignal(0);
     const doubled = createMemo(() => count() * 2);
-    let result = 0;
+    const _result = 0;
 
     // Solid doesn't have subscribe, use createEffect
     // For benchmark fairness, we'll just track the value
