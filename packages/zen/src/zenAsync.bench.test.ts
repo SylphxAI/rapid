@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { zenAsync, runZenAsync, subscribeToZenAsync, karmaCache } from './zenAsync';
+import { zenAsync, runZenAsync, subscribeToZenAsync, zenAsyncCache as karmaCache } from './zenAsync';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 

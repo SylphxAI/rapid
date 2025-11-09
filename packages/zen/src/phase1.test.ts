@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { zen } from './zen';
+import { zen, subscribe, get } from './zen';
 import { computed, dispose } from './computed';
 import { onMount, onStart, onStop, cleanup } from './lifecycle';
 import { untracked, tracked, isTracking } from './untracked';
@@ -71,17 +71,20 @@ describe('Phase 1: Lifecycle Cleanup', () => {
     const z = zen(0);
     let cleanupCalled = false;
 
-    onStart(z, () => {
+    const startCleanup = onStart(z, () => {
       return () => {
         cleanupCalled = true;
       };
     });
 
-    // Subscribe and unsubscribe
-    const unsub = z._listeners ? undefined : (() => {});
+    // Subscribe to trigger onStart
+    const unsub = subscribe(z, () => {});
 
-    // Manually cleanup
-    cleanup(z);
+    // Unsubscribe to trigger cleanup
+    unsub();
+
+    // Manually call cleanup to ensure onStart cleanup is called
+    startCleanup();
 
     expect(cleanupCalled).toBe(true);
   });
@@ -121,6 +124,14 @@ describe('Phase 1: Untracked Execution', () => {
     // Access computed to trigger initial calculation
     const _ = c._value;
     expect(bReadCount).toBe(1);
+
+    // Since b was read inside untracked, changing b should not trigger c to recalculate
+    const originalValue = c._value; // Should be cached
+    b._value = 3;
+    const newValue = c._value;
+
+    // Value should be the same (cached) since b was not tracked
+    expect(originalValue).toBe(newValue);
 
     // Changing b should not trigger c to recalculate
     b._value = 3;
@@ -163,14 +174,18 @@ describe('Phase 1: Computed Disposal', () => {
     const a = zen(1);
     const c = computed([a], (x) => x * 2);
 
-    // Should work normally
-    expect(c._value).toBe(2);
+    // Access computed to trigger initial calculation
+    const initialValue = get(c);
+    expect(initialValue).toBe(2);
 
     // Dispose
     dispose(c);
 
-    // After disposal, the pooled array is released
-    // The computed should still work but won't use pooled resources
+    // After disposal, the computed should still work
+    const afterDisposeValue = get(c);
+    expect(afterDisposeValue).toBe(2);
+
+    // Test that disposal works by checking internal state
     // We can't easily verify this without internal state access
   });
 });
