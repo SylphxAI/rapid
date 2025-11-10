@@ -3,11 +3,14 @@
  * Focus: Core signal operations without effects
  */
 
+import {
+  computed as createPreactComputed,
+  signal as createPreactSignal,
+} from '@preact/signals-core';
 import { bench, describe } from 'vitest';
-import { signal as createPreactSignal, computed as createPreactComputed } from '@preact/signals-core';
-import * as ZenOptimized from './zen-optimized';
 import { computed as zenComputed } from './computed';
 import { subscribe } from './zen';
+import * as ZenOptimized from './zen-optimized';
 
 // ============================================================================
 // BASELINE - Core Signal Operations
@@ -166,19 +169,19 @@ describe('Create 100 Signals', () => {
 
 describe('Update 100 Signals (with listeners)', () => {
   const zenSigs = Array.from({ length: 100 }, (_, i) => ZenOptimized.zen(i));
-  zenSigs.forEach(sig => subscribe((sig as any)._zenData, () => {}));
+  zenSigs.forEach((sig) => subscribe((sig as any)._zenData, () => {}));
 
   const preactSigs = Array.from({ length: 100 }, (_, i) => createPreactSignal(i));
-  preactSigs.forEach(sig => sig.subscribe(() => {}));
+  preactSigs.forEach((sig) => sig.subscribe(() => {}));
 
   let counter = 0;
 
   bench('zen (optimized bind)', () => {
-    zenSigs.forEach(sig => sig.set(++counter));
+    zenSigs.forEach((sig) => sig.set(++counter));
   });
 
   bench('preact signals', () => {
-    preactSigs.forEach(sig => sig.value = ++counter);
+    preactSigs.forEach((sig) => (sig.value = ++counter));
   });
 });
 

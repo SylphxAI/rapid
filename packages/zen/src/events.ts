@@ -99,7 +99,21 @@ export function onStart<A extends AnyZen>(a: A, fn: LifecycleListener<ZenValue<A
   if (baseZen._startListeners.indexOf(fn) === -1) {
     baseZen._startListeners.push(fn);
   }
-  return () => _unsubscribe(a, '_startListeners', fn);
+
+  // Return unsubscribe function that also calls any cleanup stored for this listener
+  return () => {
+    // Call the stored cleanup if it exists
+    const cleanups = (baseZen as any)._startCleanups;
+    if (cleanups) {
+      const cleanup = cleanups.get(fn);
+      if (typeof cleanup === 'function') {
+        cleanup();
+      }
+      cleanups.delete(fn);
+    }
+    // Remove the listener
+    _unsubscribe(a, '_startListeners', fn);
+  };
 }
 
 /** Attaches a listener triggered when the last subscriber disappears. */
