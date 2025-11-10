@@ -16,7 +16,9 @@
     "changeset": "bun changeset",
     "version-packages": "bun changeset version",
     "release": "bunx turbo run build --filter=\\\"./packages/*\\\" && bunx changeset publish",
-    "docs": "bun typedoc --entryPointStrategy packages --out docs packages/zen packages/zen-router"
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "author": "",
   "license": "ISC",
@@ -49,7 +51,9 @@
     "typedoc": "^0.28.14",
     "typescript": "^5.9.3",
     "valtio": "^2.2.0",
+    "vitepress": "^1.6.4",
     "vitest": "^3.2.4",
+    "vue": "^3.5.24",
     "zustand": "^5.0.8"
   },
   "dependencies": {

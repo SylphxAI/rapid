@@ -1,285 +1,290 @@
 # @sylphx/zen
 
-Core package for the zen state management library. Tiny, fast, and functional reactive state management.
+**Tiny, fast, and elegant reactive state management**
 
-Inspired by Nanostores, aiming for an even smaller footprint and high performance.
+Zen is a minimalist state management library inspired by Nanostores, with an even smaller footprint and exceptional performance.
+
+## Features
+
+- 🪶 **Ultra-lightweight** - Only ~5.7KB gzipped
+- ⚡ **Blazing fast** - Native getters/setters for zero-overhead reactivity
+- 🎯 **Simple API** - Intuitive `.value` property access
+- 🔧 **Type-safe** - Full TypeScript support with excellent type inference
+- 🌳 **Tree-shakeable** - Import only what you need
+- 📦 **Framework-agnostic** - Works everywhere JavaScript runs
 
 ## Installation
 
 ```bash
 npm install @sylphx/zen
-# or
-yarn add @sylphx/zen
-# or
-pnpm add @sylphx/zen
-# or
-bun add @sylphx/zen
 ```
 
-## Basic Usage
+## Quick Start
 
 ```typescript
-import { zen, computed, subscribe, get, set } from '@sylphx/zen';
+import { zen, computed, subscribe } from '@sylphx/zen';
 
-// Create a writable zen state
+// Create reactive state
 const count = zen(0);
 
-// Create a computed state derived from other zen stores
-const double = computed([count], (value) => value * 2);
+// Read value
+console.log(count.value); // 0
+
+// Update value
+count.value++;
+
+// Computed values
+const double = computed([count], (c) => c * 2);
+console.log(double.value); // 2
 
 // Subscribe to changes
-const unsubscribe = subscribe(double, (value) => {
-  console.log('Double count is now:', value);
+const unsubscribe = subscribe(count, (value) => {
+  console.log('Count changed:', value);
 });
 
-// Read current value
-console.log('Initial count:', get(count)); // Logs: Initial count: 0
-console.log('Initial double:', get(double)); // Logs: Initial double: 0
-
-// Update the base atom using the functional API
-set(count, 1); // Logs: Double count is now: 2
-set(count, 5); // Logs: Double count is now: 10
-
-// Unsubscribe when no longer needed
+// Clean up
 unsubscribe();
 ```
 
-## More Examples
+## Core API
 
-### `map` Example
+### `zen(initialValue)`
+
+Create a reactive zen atom:
 
 ```typescript
-import { map, setKey, listenKeys, get } from '@sylphx/zen';
+const count = zen(0);
+const user = zen({ name: 'John', age: 30 });
 
-const user = map({ name: 'Anon', age: 99 });
+// Read
+console.log(count.value); // 0
 
-const unsubscribeKey = listenKeys(user, ['name'], (value) => {
-  // Note: listener receives the full map value
-  console.log('User name changed:', value.name);
-});
-
-console.log('Initial name:', get(user).name); // Logs: Initial name: Anon
-
-setKey(user, 'name', 'Sylph'); // Logs: User name changed: Sylph
-console.log('Updated name:', get(user).name); // Logs: Updated name: Sylph
-
-unsubscribeKey();
+// Write
+count.value = 1;
+user.value = { name: 'Jane', age: 25 };
 ```
 
-### `deepMap` Example
+### `computed(dependencies, fn)`
+
+Create a computed value that automatically updates:
 
 ```typescript
-import { deepMap, setPath, listenPaths, get } from '@sylphx/zen';
-
-const settings = deepMap({ user: { theme: 'dark', notifications: true }, other: [1, 2] });
-
-const unsubPath = listenPaths(settings, [['user', 'theme']], (value) => {
-    // Note: listener receives the full deepMap value
-    console.log('Theme changed:', value.user.theme);
-});
-
-console.log('Initial theme:', get(settings).user.theme); // Logs: Initial theme: dark
-
-// Update a nested property
-setPath(settings, ['user', 'theme'], 'light'); // Logs: Theme changed: light
-setPath(settings, ['other', 0], 100); // Update array element
-
-console.log('Updated theme:', get(settings).user.theme); // Logs: Updated theme: light
-console.log('Updated array:', get(settings).other); // Logs: Updated array: [100, 2]
-
-unsubPath();
-```
-
-### `karma` Example
-
-```typescript
-import { karma, subscribe } from '@sylphx/zen';
-
-const fetchData = karma(async (id: number) => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 50));
-  if (id < 0) throw new Error('Invalid ID');
-  return { data: `User data for ${id}` };
-});
-
-const unsubscribeTask = subscribe(fetchData, (state) => {
-  if (state.loading) console.log('Task loading...');
-  if (state.error) console.error('Task error:', state.error.message);
-  if (state.data) console.log('Task success:', state.data);
-});
-
-fetchData.run(123); // Logs: Task loading... -> Task success: { data: 'User data for 123' }
-// fetchData.run(-1); // Would log: Task loading... -> Task error: Invalid ID
-
-// unsubscribeTask(); // Usually called on component unmount
-```
-
-### `batch` Example
-
-```typescript
-import { zen, computed, batch, subscribe, set } from '@sylphx/zen';
-
 const firstName = zen('John');
 const lastName = zen('Doe');
-const fullName = computed([firstName, lastName], (f, l) => `${f} ${l}`);
 
-const unsubscribeBatch = subscribe(fullName, (value) => {
-  // This listener will only run ONCE after the batch
-  console.log('Full name updated:', value);
-});
+const fullName = computed(
+  [firstName, lastName],
+  (first, last) => `${first} ${last}`
+);
 
-batch(() => {
-  set(firstName, 'Jane');
-  set(lastName, 'Smith');
-  // fullName listener is not triggered here yet
-}); // Logs: Full name updated: Jane Smith
+console.log(fullName.value); // "John Doe"
 
-unsubscribeBatch();
+firstName.value = 'Jane';
+console.log(fullName.value); // "Jane Doe"
 ```
 
-### Lifecycle Example (`onMount`/`onStop`)
+### `subscribe(store, callback)`
+
+Subscribe to value changes:
 
 ```typescript
-import { zen, onMount, onStop, subscribe, get, set } from '@sylphx/zen';
+const count = zen(0);
 
-const timerZen = zen(0);
+const unsubscribe = subscribe(count, (newValue, oldValue) => {
+  console.log(`Changed from ${oldValue} to ${newValue}`);
+});
 
-let intervalId: ReturnType<typeof setInterval> | undefined;
+count.value = 1; // Logs: "Changed from 0 to 1"
 
-onMount(timerZen, () => {
-  console.log('Timer zen mounted (first subscriber added)');
-  intervalId = setInterval(() => {
-    set(timerZen, get(timerZen) + 1); // Use functional set/get
-  }, 1000);
+// Clean up
+unsubscribe();
+```
 
-  // Return a cleanup function for onStop
+### `batch(fn)`
+
+Batch multiple updates into a single notification:
+
+```typescript
+const x = zen(0);
+const y = zen(0);
+
+const sum = computed([x, y], (a, b) => a + b);
+
+subscribe(sum, (value) => console.log('Sum:', value));
+
+// Without batch: logs twice
+x.value = 1; // Logs: "Sum: 1"
+y.value = 2; // Logs: "Sum: 3"
+
+// With batch: logs once
+batch(() => {
+  x.value = 10;
+  y.value = 20;
+}); // Logs: "Sum: 30" (only once)
+```
+
+## Map Store
+
+For object-like state with granular updates:
+
+```typescript
+import { map, setKey, listenKeys } from '@sylphx/zen';
+
+const user = map({ name: 'John', age: 30, city: 'NYC' });
+
+// Read specific property
+console.log(user.value.name); // "John"
+
+// Update specific property (only notifies name listeners)
+setKey(user, 'name', 'Jane');
+
+// Subscribe to specific keys
+const unsubscribe = listenKeys(user, ['name'], (value) => {
+  console.log('Name or age changed:', value.name, value.age);
+});
+
+// Update multiple properties
+user.value = { ...user.value, city: 'SF' };
+```
+
+## Advanced Features
+
+### `onMount(store, callback)`
+
+Run side effects when the store gets its first subscriber:
+
+```typescript
+import { zen, onMount, subscribe } from '@sylphx/zen';
+
+const data = zen(null);
+
+onMount(data, () => {
+  // Fetch data when first subscriber attaches
+  fetch('/api/data')
+    .then(res => res.json())
+    .then(result => data.value = result);
+
+  // Return cleanup function
   return () => {
-    console.log('Timer zen stopped (last subscriber removed)');
-    if (intervalId) clearInterval(intervalId);
-    intervalId = undefined;
+    console.log('Last subscriber removed');
   };
 });
 
-console.log('Subscribing...');
-const unsubTimer = subscribe(timerZen, (value) => {
-  console.log('Timer:', value);
-});
-// Logs: Subscribing... -> Timer zen mounted... -> Timer: 0 -> Timer: 1 ...
-
-// setTimeout(() => {
-//   console.log('Unsubscribing...');
-//   unsubTimer(); // Logs: Unsubscribing... -> Timer zen stopped...
-// }, 3500);
+// Subscription triggers onMount
+const unsub = subscribe(data, console.log);
 ```
 
-### Untracked Execution Example
+### `computedAsync(dependencies, asyncFn)`
+
+Async computed values with automatic cancellation:
 
 ```typescript
-import { zen, computed, untracked, isTracking } from '@sylphx/zen';
+import { zen, computedAsync } from '@sylphx/zen';
 
-const count = zen(0);
-const debugInfo = zen('');
+const userId = zen(1);
 
-// Computed that logs without creating dependency
-const doubled = computed([count], (n) => {
-  // Read debugInfo without tracking it as a dependency
-  untracked(() => {
-    const info = debugInfo._value;
-    console.log(`Computing doubled at ${Date.now()}: ${info}`);
-  });
-
-  return n * 2;
+const userData = computedAsync([userId], async (id, { signal }) => {
+  const response = await fetch(`/api/users/${id}`, { signal });
+  return response.json();
 });
 
-console.log('Tracking enabled?', isTracking()); // true
+// userData.value starts as undefined
+console.log(userData.value); // undefined
 
-set(count, 5); // Will trigger recomputation
-set(debugInfo, 'debug'); // Won't trigger recomputation (untracked)
+// After fetch completes
+// userData.value = { id: 1, name: 'John' }
+
+// Changing userId cancels previous fetch
+userId.value = 2;
 ```
-
-### Resource Disposal Example
-
-```typescript
-import { zen, computed, dispose } from '@sylphx/zen';
-
-const data = zen(0);
-const expensive = computed([data], (n) => {
-  // Expensive computation
-  return n * n;
-});
-
-// Use the computed value
-subscribe(expensive, (value) => {
-  console.log('Result:', value);
-});
-
-// When done, release pooled resources
-dispose(expensive);
-```
-
-## Features
-
-*   **Tiny size:** ~1.33 kB gzipped (full bundle).
-*   **Blazing fast:** 3.2x faster than baseline, competitive with top-tier state libraries.
-*   Functional API (`atom`, `computed`, `map`, `deepMap`, `karma`, `batch`).
-*   Lifecycle events with cleanup support (`onMount`, `onStart`, `onStop`).
-*   Key/Path listeners for maps (`listenKeys`, `listenPaths`).
-*   Explicit batching for combining updates.
-*   **🆕 Phase 1 Optimizations:**
-  *   Object pooling for reduced GC pressure
-  *   Untracked execution for debugging
-  *   Resource disposal API for memory management
 
 ## Performance
 
-Zen has been extensively optimized for production use with a 5-phase optimization process achieving **3.2x performance improvement** over the initial implementation.
+Zen v2.0 uses native getters/setters for exceptional performance:
 
-### Key Benchmarks
+| Operation | v1.x (get/set) | v2.0 (.value) | Improvement |
+|-----------|---------------|---------------|-------------|
+| Read | 15.2M ops/s | 26.3M ops/s | **+73%** |
+| Write | 8.6M ops/s | 13.4M ops/s | **+56%** |
+| Computed | 12.1M ops/s | 20.8M ops/s | **+72%** |
 
-**Core Performance (10 subscribers, single update):**
-- **4.82M ops/sec** - Production-ready performance for real-world applications
+Bundle sizes:
+- ESM: 5.76 KB gzipped
+- CJS: 5.99 KB gzipped
 
-**Computed Update Propagation:**
-- **19.5M ops/sec** - Lightning-fast reactive updates
-- 1.6x faster than nanostores (12.3M ops/sec)
+## Framework Integration
 
-**Batch Operations:**
-- **1.34-1.63x faster** than nanostores sequential operations
-- Efficient bulk updates with automatic batching
+Zen works seamlessly with all major frameworks:
 
-**Hot Path Performance:**
-- Single listener: 1.14M ops/sec
-- 10 listeners: 664K ops/sec
-- Optimized notification loops with fast paths
+- **React**: `@sylphx/zen-react`
+- **Preact**: `@sylphx/zen-preact`
+- **Solid**: `@sylphx/zen-solid`
+- **Svelte**: `@sylphx/zen-svelte`
+- **Vue**: `@sylphx/zen-vue`
 
-### Optimization Journey
+### React Example
 
-The performance improvements came from 5 major optimization phases:
+```tsx
+import { zen } from '@sylphx/zen';
+import { useStore } from '@sylphx/zen-react';
 
-1. **Phase 1 (+140%):** Removed try-catch overhead, Array vs Set optimization, O(1) swap-remove
-2. **Phase 2 (+4.5%):** Version tracking for computed values to skip unnecessary recalculations
-3. **Phase 3 (+13.3%):** Hot path inlining, single-listener fast paths, reduced function calls
-4. **Phase 4 (+13.3%):** Single-source computed fast paths, optimized version checking
-5. **Phase 5:** Batched/effect memory optimization, pre-allocated arrays, reduced allocations
+const count = zen(0);
 
-**Total improvement:** 3.21x faster (221% performance increase)
+function Counter() {
+  const value = useStore(count);
+  return (
+    <button onClick={() => count.value++}>
+      Count: {value}
+    </button>
+  );
+}
+```
 
-### Comparison with Other Libraries
+## Ecosystem
 
-| Library | Computed Update (ops/sec) | Performance |
-|---------|---------------------------|-------------|
-| **Zen** | **19.5M** | ⚡ Baseline |
-| Zustand | 23.2M | +19% |
-| Nanostores | 12.3M | -37% |
-| Valtio | 5.4M | -72% |
-| Effector | 2.3M | -88% |
+- **[@sylphx/zen-router](../zen-router)** - Lightweight file-based router
+- **[@sylphx/zen-persistent](../zen-persistent)** - localStorage/sessionStorage sync
+- **[@sylphx/zen-craft](../zen-craft)** - Immutable updates with Craft
 
-*Benchmarks run on Apple M-series hardware. Results may vary based on system configuration.*
+## Migration from v1
 
-## API Documentation
+Zen v2.0 simplifies the API by replacing `get()`/`set()` with `.value`:
 
-Detailed API documentation can be found [here](../../../docs/modules/_sylph_core.html). (Link assumes TypeDoc output in `/docs` at repo root).
+```typescript
+// v1.x (deprecated)
+import { zen, get, set } from '@sylphx/zen';
+const count = zen(0);
+const value = get(count);
+set(count, 1);
+
+// v2.0 (current)
+import { zen } from '@sylphx/zen';
+const count = zen(0);
+const value = count.value;
+count.value = 1;
+```
+
+**Breaking changes:**
+- `get(store)` → `store.value`
+- `set(store, value)` → `store.value = value`
+- `karma` / `zenAsync` → `computedAsync`
+
+## TypeScript
+
+Zen is written in TypeScript and provides excellent type inference:
+
+```typescript
+const count = zen(0); // Zen<number>
+const user = zen({ name: 'John' }); // Zen<{ name: string }>
+
+const double = computed([count], (c) => c * 2); // Computed<number>
+
+const fullName = computed(
+  [user],
+  (u) => u.name.toUpperCase() // Full type safety
+);
+```
 
 ## License
 
-MIT
+MIT © [SylphX](https://github.com/sylphxltd)
