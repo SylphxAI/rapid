@@ -8,17 +8,17 @@
 
 ## 🎯 Executive Summary
 
-Zen v2.0.0 delivers **35.77% average performance improvement** across all benchmarks compared to the latest published version (v1.2.1), while adding new reactive async capabilities and reducing bundle size.
+Zen v2.0.0 is a **major version upgrade** with breaking changes that delivers **44% average performance improvement** through the new zen.value API. This release introduces a modernized property-based API, reactive async capabilities, and significant performance optimizations.
 
 ### Key Highlights
 
 - ✅ **12 out of 13 benchmarks faster**
-- 🚀 **35.77% average performance gain**
+- 🚀 **44% average performance gain** (with new API)
 - 📦 **4.2% smaller bundle** (-0.25 KB gzipped)
 - ✨ **NEW: zen.value API** - 73% faster reads, 56% faster writes
 - ✨ **NEW: computedAsync** - reactive async computed values
 - 🔥 **Up to 60.86% faster** in subscription operations
-- ⚡ **Old get/set API deprecated** - use zen.value instead
+- 💥 **BREAKING: get()/set() API replaced** - must use zen.value
 
 ---
 
@@ -34,12 +34,12 @@ Zen v2.0.0 delivers **35.77% average performance improvement** across all benchm
 
 **API Comparison**:
 ```typescript
-// ❌ v1.2.1 - Old API (deprecated in v2.0.0)
+// ❌ v1.2.1 - Old API (REMOVED in v2.0.0)
 const count = zen(0);
 get(count);        // 164.76M ops/s
 set(count, 1);     // 67.35M ops/s
 
-// ✅ v2.0.0 - New Property API (recommended)
+// ✅ v2.0.0 - New Property API (REQUIRED)
 const count = zen(0);
 count.value;       // 285.65M ops/s - 73% faster! 🚀
 count.value = 1;   // 105.17M ops/s - 56% faster! 🚀
@@ -181,21 +181,21 @@ set(userId, 2); // ✅ Triggers automatic refetch
 
 ---
 
-### New zen.value API - 73% Faster!
+### 💥 BREAKING: New zen.value API - 73% Faster!
 
-The biggest change in v2.0.0 is the new property-based API that replaces the old `get()`/`set()` functions.
+The biggest change in v2.0.0 is the new property-based API that **replaces** the old `get()`/`set()` functions.
 
 ```typescript
 const count = zen(0);
 
-// ✅ v2.0.0 - New API (recommended)
+// ✅ v2.0.0 - New API (REQUIRED)
 count.value;     // read - 285M ops/s - 73% faster! 🚀
 count.value = 1; // write - 105M ops/s - 56% faster! 🚀
 count.value++;   // increment works too!
 
-// ❌ v1.2.1 - Old API (deprecated in v2.0.0)
-get(count);      // 165M ops/s - slow
-set(count, 1);   // 67M ops/s - slow
+// ❌ v1.2.1 - Old API (REMOVED in v2.0.0)
+get(count);      // 165M ops/s
+set(count, 1);   // 67M ops/s
 ```
 
 **Why the new API is better**:
@@ -209,31 +209,37 @@ set(count, 1);   // 67M ops/s - slow
 
 ## 💥 Breaking Changes
 
-### 1. Deprecated: get()/set() API
+### 1. BREAKING: get()/set() API Replaced
 
-The old `get(zen)` and `set(zen, value)` APIs are **deprecated** in v2.0.0. Use the new `zen.value` property API instead.
+The old `get(zen)` and `set(zen, value)` APIs have been **replaced** by the new `zen.value` property API in v2.0.0.
 
-**Migration**:
+**Required Migration**:
 
 ```typescript
-// ❌ Before (v1.2.1 - Old API)
+// ❌ v1.2.1 - Old API (NO LONGER WORKS)
 const count = zen(0);
 const value = get(count);
 set(count, 1);
 
-// ✅ After (v2.0.0 - New API)
+// ✅ v2.0.0 - New API (MUST USE THIS)
 const count = zen(0);
 const value = count.value;  // 73% faster!
 count.value = 1;            // 56% faster!
 ```
+
+**Migration Steps**:
+1. Find all `get(zenInstance)` and replace with `zenInstance.value`
+2. Find all `set(zenInstance, value)` and replace with `zenInstance.value = value`
+3. Test your application thoroughly
 
 **Why**:
 1. **73% faster** read performance (285M vs 165M ops/s)
 2. **56% faster** write performance (105M vs 67M ops/s)
 3. More natural JavaScript syntax
 4. Better developer experience
+5. Aligns with modern JavaScript property patterns
 
-**Note**: The old API still works for backward compatibility but is not recommended.
+**This is a breaking change.** You must update your code to use the new API.
 
 ---
 
@@ -341,14 +347,14 @@ Average:                +44% █████████████████
 - ✅ You're starting a new project
 - ✅ You want modern, intuitive property-based API
 
-**Consider migration if**:
-- ⚠️ You're using karma/zenAsync (requires code changes)
-- ⚠️ You're using get()/set() extensively (should migrate to zen.value)
-- ⚠️ You have time to test the migration
+**Migration required for**:
+- 🔴 **All projects** - get()/set() API replaced with zen.value
+- 🔴 Projects using karma/zenAsync - replaced with computedAsync
 
-**Safe upgrade if**:
-- ✅ You're NOT using karma/zenAsync
-- ℹ️ Old get()/set() API still works but is deprecated
+**Migration is straightforward**:
+- Simple find & replace: `get(x)` → `x.value`, `set(x, v)` → `x.value = v`
+- karma/zenAsync migration to computedAsync (see guide above)
+- Test thoroughly after migration
 
 ---
 
@@ -361,7 +367,7 @@ Zen v2.0.0 represents a **major leap forward** in performance while maintaining 
 - **4.2% smaller** bundle size despite adding features
 - **New computedAsync** feature for reactive async patterns
 - **12 out of 13 benchmarks faster** (92% success rate)
-- **get()/set() deprecated** - migrate to zen.value for best performance
+- **💥 BREAKING: get()/set() replaced** - must migrate to zen.value
 
 The optimizations target hot paths where they matter most:
 - **zen.value reads: +73%** - Blazing fast state access
