@@ -17,7 +17,8 @@
   "scripts": {
     "build": "bunup --format esm,cjs --dts --target node --minify",
     "build:optimized": "bunup src/zen-optimized.ts --format esm,cjs --dts --target node --minify --out-dir dist/optimized",
-    "build:all": "bun run build && bun run build:optimized",
+    "build:ultra": "bunup src/zen-ultra.ts --format esm,cjs --dts --target node --minify --out-dir dist/ultra",
+    "build:all": "bun run build && bun run build:optimized && bun run build:ultra",
     "compare:size": "bun run build:all && bun scripts/compare-builds.ts",
     "compare:perf": "bun scripts/benchmark-comparison.ts",
     "compare": "bun run compare:size && bun run compare:perf",

@@ -1,17 +1,18 @@
 /**
- * Performance Benchmark: Standard vs Optimized Build
+ * Performance Benchmark: Standard vs Optimized vs Ultra Build
  *
- * Tests common operations on both builds to ensure
- * optimized version maintains performance.
+ * Tests common operations on all builds to ensure
+ * optimized versions maintain performance.
  */
 
 import { bench, describe } from 'vitest';
 
-// Import from both builds
+// Import from all builds
 import * as StandardZen from '../src/index';
 import * as OptimizedZen from '../src/zen-optimized';
+import * as UltraZen from '../src/zen-ultra';
 
-describe('Standard vs Optimized - Signal Operations', () => {
+describe('Signal Operations', () => {
   bench('Standard: zen create + read', () => {
     const count = StandardZen.zen(0);
     const _ = count.value;
@@ -19,6 +20,11 @@ describe('Standard vs Optimized - Signal Operations', () => {
 
   bench('Optimized: zen create + read', () => {
     const count = OptimizedZen.zen(0);
+    const _ = count.value;
+  });
+
+  bench('Ultra: zen create + read', () => {
+    const count = UltraZen.zen(0);
     const _ = count.value;
   });
 
@@ -35,9 +41,16 @@ describe('Standard vs Optimized - Signal Operations', () => {
     count.value = 2;
     count.value = 3;
   });
+
+  bench('Ultra: zen write', () => {
+    const count = UltraZen.zen(0);
+    count.value = 1;
+    count.value = 2;
+    count.value = 3;
+  });
 });
 
-describe('Standard vs Optimized - Computed', () => {
+describe('Computed', () => {
   bench('Standard: computed (1 dep)', () => {
     const a = StandardZen.zen(1);
     const doubled = StandardZen.computed([a], (v) => v * 2);
@@ -48,6 +61,13 @@ describe('Standard vs Optimized - Computed', () => {
   bench('Optimized: computed (1 dep)', () => {
     const a = OptimizedZen.zen(1);
     const doubled = OptimizedZen.computed([a], (v) => v * 2);
+    a.value = 2;
+    const _ = doubled.value;
+  });
+
+  bench('Ultra: computed (1 dep)', () => {
+    const a = UltraZen.zen(1);
+    const doubled = UltraZen.computed([a], (v) => v * 2);
     a.value = 2;
     const _ = doubled.value;
   });
@@ -69,9 +89,18 @@ describe('Standard vs Optimized - Computed', () => {
     a.value = 2;
     const _ = sum.value;
   });
+
+  bench('Ultra: computed (3 deps)', () => {
+    const a = UltraZen.zen(1);
+    const b = UltraZen.zen(2);
+    const c = UltraZen.zen(3);
+    const sum = UltraZen.computed([a, b, c], (av, bv, cv) => av + bv + cv);
+    a.value = 2;
+    const _ = sum.value;
+  });
 });
 
-describe('Standard vs Optimized - Select', () => {
+describe('Select (Standard + Optimized only)', () => {
   bench('Standard: select', () => {
     const state = StandardZen.zen({ count: 0, name: 'test' });
     const count = StandardZen.select(state, (s) => s.count);
@@ -85,9 +114,17 @@ describe('Standard vs Optimized - Select', () => {
     state.value = { count: 1, name: 'test' };
     const _ = count.value;
   });
+
+  // Note: Ultra build uses computed() instead of select()
+  bench('Ultra: computed (as select alternative)', () => {
+    const state = UltraZen.zen({ count: 0, name: 'test' });
+    const count = UltraZen.computed([state], (s) => s.count);
+    state.value = { count: 1, name: 'test' };
+    const _ = count.value;
+  });
 });
 
-describe('Standard vs Optimized - Subscribe', () => {
+describe('Subscribe', () => {
   bench('Standard: subscribe + notify', () => {
     const count = StandardZen.zen(0);
     let _value = 0;
@@ -107,9 +144,19 @@ describe('Standard vs Optimized - Subscribe', () => {
     count.value = 1;
     unsub();
   });
+
+  bench('Ultra: subscribe + notify', () => {
+    const count = UltraZen.zen(0);
+    let _value = 0;
+    const unsub = UltraZen.subscribe(count, (v) => {
+      _value = v;
+    });
+    count.value = 1;
+    unsub();
+  });
 });
 
-describe('Standard vs Optimized - Batch', () => {
+describe('Batch', () => {
   bench('Standard: batch 10 updates', () => {
     const count = StandardZen.zen(0);
     let _value = 0;
@@ -135,9 +182,22 @@ describe('Standard vs Optimized - Batch', () => {
       }
     });
   });
+
+  bench('Ultra: batch 10 updates', () => {
+    const count = UltraZen.zen(0);
+    let _value = 0;
+    UltraZen.subscribe(count, (v) => {
+      _value = v;
+    });
+    UltraZen.batch(() => {
+      for (let i = 0; i < 10; i++) {
+        count.value = i;
+      }
+    });
+  });
 });
 
-describe('Standard vs Optimized - Map', () => {
+describe('Map (Standard + Optimized only)', () => {
   bench('Standard: map operations', () => {
     const users = StandardZen.map(
       new Map([
@@ -159,9 +219,19 @@ describe('Standard vs Optimized - Map', () => {
     OptimizedZen.setKey(users, 3, { name: 'Charlie', age: 35 });
     const _ = users.value.get(3);
   });
+
+  // Note: Ultra build uses plain zen with objects instead
+  bench('Ultra: zen with object (as map alternative)', () => {
+    const users = UltraZen.zen<Record<number, { name: string; age: number }>>({
+      1: { name: 'Alice', age: 30 },
+      2: { name: 'Bob', age: 25 },
+    });
+    users.value = { ...users.value, 3: { name: 'Charlie', age: 35 } };
+    const _ = users.value[3];
+  });
 });
 
-describe('Standard vs Optimized - Real-world Scenario', () => {
+describe('Real-world Scenario', () => {
   bench('Standard: Todo list operations', () => {
     const todos = StandardZen.zen([
       { id: 1, text: 'Buy milk', done: false },
@@ -198,6 +268,30 @@ describe('Standard vs Optimized - Real-world Scenario', () => {
 
     let _count = 0;
     OptimizedZen.subscribe(activeCount, (v) => {
+      _count = v;
+    });
+
+    // Add todo
+    todos.value = [...todos.value, { id: 3, text: 'Read book', done: false }];
+
+    // Complete todo
+    todos.value = todos.value.map((t) => (t.id === 1 ? { ...t, done: true } : t));
+
+    const _ = activeCount.value;
+  });
+
+  bench('Ultra: Todo list operations', () => {
+    const todos = UltraZen.zen([
+      { id: 1, text: 'Buy milk', done: false },
+      { id: 2, text: 'Walk dog', done: false },
+    ]);
+
+    const activeTodos = UltraZen.computed([todos], (list) => list.filter((t) => !t.done));
+
+    const activeCount = UltraZen.computed([activeTodos], (list) => list.length);
+
+    let _count = 0;
+    UltraZen.subscribe(activeCount, (v) => {
       _count = v;
     });
 
