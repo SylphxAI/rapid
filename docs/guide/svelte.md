@@ -94,7 +94,7 @@ const lastName = fromZen(lastNameStore);
 
 ## Computed Values
 
-Use computed stores with `fromZen`:
+Use computed stores with `fromZen`. Zen v3 features **auto-tracking**:
 
 ```svelte
 <script lang="ts">
@@ -104,9 +104,9 @@ import { fromZen } from '@sylphx/zen-svelte';
 const priceStore = zen(10);
 const quantityStore = zen(5);
 
-const totalStore = computed(
-  [priceStore, quantityStore],
-  (price, quantity) => price * quantity
+// Auto-tracks priceStore and quantityStore - no dependency array!
+const totalStore = computed(() =>
+  priceStore.value * quantityStore.value
 );
 
 const price = fromZen(priceStore);
@@ -267,7 +267,7 @@ import { computed } from '@sylphx/zen';
 import { fromZen } from '@sylphx/zen-svelte';
 
 // ✅ Good - create computed for specific property
-const userAgeStore = computed([userStore], (user) => user.age);
+const userAgeStore = computed(() => userStore.value.age);
 const age = fromZen(userAgeStore);
 </script>
 

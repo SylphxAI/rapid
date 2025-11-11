@@ -78,7 +78,7 @@ const lastName = useStore(lastNameStore);
 
 ## Computed Values
 
-Use computed stores with the same `useStore` composable:
+Use computed stores with the same `useStore` composable. Zen v3 features **auto-tracking**:
 
 ```vue
 <script setup lang="ts">
@@ -88,9 +88,9 @@ import { useStore } from '@sylphx/zen-vue';
 const priceStore = zen(10);
 const quantityStore = zen(5);
 
-const totalStore = computed(
-  [priceStore, quantityStore],
-  (price, quantity) => price * quantity
+// Auto-tracks priceStore and quantityStore - no dependency array!
+const totalStore = computed(() =>
+  priceStore.value * quantityStore.value
 );
 
 const price = useStore(priceStore);
@@ -256,7 +256,7 @@ import { useStore } from '@sylphx/zen-vue';
 const user = useStore(userStore);
 
 // ✅ Good - create computed for specific property
-const userAgeStore = computed([userStore], (user) => user.age);
+const userAgeStore = computed(() => userStore.value.age);
 const age = useStore(userAgeStore);
 </script>
 

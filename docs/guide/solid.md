@@ -82,7 +82,7 @@ function UserProfile() {
 
 ## Computed Values
 
-Use computed stores with `useStore`:
+Use computed stores with `useStore`. Zen v3 features **auto-tracking**:
 
 ```tsx
 import { zen, computed } from '@sylphx/zen';
@@ -91,9 +91,9 @@ import { useStore } from '@sylphx/zen-solid';
 const priceStore = zen(10);
 const quantityStore = zen(5);
 
-const totalStore = computed(
-  [priceStore, quantityStore],
-  (price, quantity) => price * quantity
+// Auto-tracks priceStore and quantityStore - no dependency array!
+const totalStore = computed(() =>
+  priceStore.value * quantityStore.value
 );
 
 function Cart() {
@@ -243,7 +243,7 @@ import { computed } from '@sylphx/zen';
 import { useStore } from '@sylphx/zen-solid';
 
 // ✅ Good - create computed for specific property
-const userAgeStore = computed([userStore], (user) => user.age);
+const userAgeStore = computed(() => userStore.value.age);
 
 function UserAge() {
   const age = useStore(userAgeStore);

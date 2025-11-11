@@ -59,7 +59,7 @@ const todos = zen<Todo[]>([]);
 
 ## Computed Values
 
-Computed values derive state from one or more atoms. They automatically update when their dependencies change.
+Computed values derive state from one or more atoms. They automatically track dependencies and update when those dependencies change.
 
 ```typescript
 import { zen, computed } from '@sylphx/zen';
@@ -67,10 +67,9 @@ import { zen, computed } from '@sylphx/zen';
 const firstName = zen('John');
 const lastName = zen('Doe');
 
-// Computed value depends on two atoms
-const fullName = computed(
-  [firstName, lastName],
-  (first, last) => `${first} ${last}`
+// Auto-tracks firstName and lastName - no dependency array!
+const fullName = computed(() =>
+  `${firstName.value} ${lastName.value}`
 );
 
 console.log(fullName.value); // "John Doe"
@@ -82,20 +81,23 @@ console.log(fullName.value); // "Jane Doe"
 ### Computed Characteristics
 
 - **Automatic updates**: Recalculates when dependencies change
+- **Auto-tracking**: Dependencies tracked automatically (v3 feature)
 - **Read-only**: Cannot be written to directly
 - **Cached**: Only recalculates when dependencies change
 - **Lazy**: Only evaluates when accessed
 
-### Multiple Dependencies
+### Auto-tracking Magic
+
+Zen v3 automatically tracks which signals you access inside computed functions:
 
 ```typescript
 const quantity = zen(5);
 const price = zen(10);
 const taxRate = zen(0.1);
 
-const total = computed(
-  [quantity, price, taxRate],
-  (qty, p, tax) => qty * p * (1 + tax)
+// Automatically tracks quantity, price, and taxRate
+const total = computed(() =>
+  quantity.value * price.value * (1 + taxRate.value)
 );
 
 console.log(total.value); // 55
@@ -105,14 +107,37 @@ console.log(total.value); // 55
 
 ```typescript
 const base = zen(10);
-const doubled = computed([base], (x) => x * 2);
-const quadrupled = computed([doubled], (x) => x * 2);
+
+const doubled = computed(() => base.value * 2);
+const quadrupled = computed(() => doubled.value * 2);
 
 console.log(quadrupled.value); // 40
 
 base.value = 20;
 console.log(quadrupled.value); // 80
 ```
+
+### Conditional Dependencies
+
+Auto-tracking shines with conditional logic - only subscribes to signals actually accessed:
+
+```typescript
+const mode = zen<'light' | 'dark'>('light');
+const lightBg = zen('#ffffff');
+const darkBg = zen('#000000');
+
+// Only tracks the active branch!
+const background = computed(() =>
+  mode.value === 'light' ? lightBg.value : darkBg.value
+);
+
+// Changing darkBg doesn't trigger updates when mode is 'light'
+darkBg.value = '#111111'; // No update!
+
+mode.value = 'dark'; // Now subscribes to darkBg
+```
+
+**Performance:** 2.12x faster than manual dependency lists for conditional logic!
 
 ## Subscriptions
 
@@ -148,7 +173,7 @@ count.value = 3; // No log - subscription removed
 
 ```typescript
 const count = zen(0);
-const doubled = computed([count], (x) => x * 2);
+const doubled = computed(() => count.value * 2);
 
 subscribe(doubled, (newValue) => {
   console.log(`Doubled: ${newValue}`);
@@ -174,6 +199,35 @@ count.value = 1;
 sub1();
 sub2();
 ```
+
+## Async Computed Values
+
+For async operations, use `computedAsync()`:
+
+```typescript
+import { zen, computedAsync } from '@sylphx/zen';
+
+const userId = zen(1);
+
+// Auto-tracks userId!
+const user = computedAsync(async () => {
+  const id = userId.value; // Dependencies tracked BEFORE first await
+  const response = await fetch(`/api/users/${id}`);
+  return response.json();
+});
+
+// Access loading/data/error states
+subscribe(user, (state) => {
+  if (state.loading) console.log('Loading...');
+  if (state.data) console.log('User:', state.data);
+  if (state.error) console.log('Error:', state.error);
+});
+
+// Automatically refetches when userId changes!
+userId.value = 2;
+```
+
+See [Async Operations](/guide/async) for full documentation.
 
 ## Map Stores
 
@@ -286,7 +340,7 @@ function Counter() {
 
 ## Next Steps
 
-- [Performance](/guide/performance) - Understand Zen's performance characteristics
-- [Framework Integration](/guide/react) - Learn how to use Zen with your framework
+- [Getting Started](/guide/getting-started) - Quick start guide
 - [Computed Values](/guide/computed) - Deep dive into computed values
-- [Map Stores](/guide/maps) - Master efficient object updates
+- [Async Operations](/guide/async) - Learn about async patterns
+- [Migration Guide](/guide/migration-v2-to-v3) - Upgrading from v2

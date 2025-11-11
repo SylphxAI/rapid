@@ -48,7 +48,7 @@ console.log(count.value); // 2
 
 ## Computed Values
 
-Create values that automatically update based on other stores:
+Create values that automatically update based on other stores with **auto-tracking**:
 
 ```typescript
 import { zen, computed } from '@sylphx/zen';
@@ -56,9 +56,9 @@ import { zen, computed } from '@sylphx/zen';
 const firstName = zen('John');
 const lastName = zen('Doe');
 
-const fullName = computed(
-  [firstName, lastName],
-  (first, last) => `${first} ${last}`
+// Auto-tracks firstName and lastName - no dependency array!
+const fullName = computed(() =>
+  `${firstName.value} ${lastName.value}`
 );
 
 console.log(fullName.value); // "John Doe"
@@ -66,6 +66,25 @@ console.log(fullName.value); // "John Doe"
 // Update first name
 firstName.value = 'Jane';
 console.log(fullName.value); // "Jane Doe"
+```
+
+### Why Auto-tracking?
+
+Zen v3 automatically tracks which signals you access inside computed functions. This means:
+
+- ✅ **No manual dependency arrays** - less boilerplate
+- ✅ **Automatic updates** - dependencies tracked for you
+- ✅ **Conditional logic support** - only subscribes to active branches
+- ✅ **Cleaner code** - focus on the logic, not the plumbing
+
+```typescript
+const count = zen(0);
+const showDouble = zen(true);
+
+// Only tracks count when showDouble is true
+const display = computed(() =>
+  showDouble.value ? count.value * 2 : 0
+);
 ```
 
 ## Subscribing to Changes
@@ -89,6 +108,33 @@ count.value = 2; // Logs: "Count changed from 1 to 2"
 unsubscribe();
 ```
 
+## Async Operations
+
+Handle async data with built-in loading states:
+
+```typescript
+import { zen, computedAsync } from '@sylphx/zen';
+
+const userId = zen(1);
+
+// Auto-tracks userId and refetches when it changes
+const user = computedAsync(async () => {
+  const id = userId.value; // Dependencies tracked BEFORE first await
+  const response = await fetch(`/api/users/${id}`);
+  return response.json();
+});
+
+// Access loading/data/error states
+subscribe(user, (state) => {
+  if (state.loading) console.log('Loading...');
+  if (state.data) console.log('User:', state.data);
+  if (state.error) console.log('Error:', state.error);
+});
+
+// Automatically refetches when userId changes!
+userId.value = 2;
+```
+
 ## Framework Integration
 
 ### React
@@ -102,18 +148,21 @@ npm install @sylphx/zen-react
 Use in your components:
 
 ```tsx
-import { zen } from '@sylphx/zen';
+import { zen, computed } from '@sylphx/zen';
 import { useStore } from '@sylphx/zen-react';
 
-// Create store outside component
+// Create stores outside component
 const count = zen(0);
+const doubled = computed(() => count.value * 2);
 
 function Counter() {
   const value = useStore(count);
+  const doubledValue = useStore(doubled);
 
   return (
     <div>
       <p>Count: {value}</p>
+      <p>Doubled: {doubledValue}</p>
       <button onClick={() => count.value++}>
         Increment
       </button>
@@ -134,16 +183,20 @@ Use in your components:
 
 ```vue
 <script setup>
-import { zen } from '@sylphx/zen';
+import { zen, computed } from '@sylphx/zen';
 import { useStore } from '@sylphx/zen-vue';
 
 const count = zen(0);
+const doubled = computed(() => count.value * 2);
+
 const value = useStore(count);
+const doubledValue = useStore(doubled);
 </script>
 
 <template>
   <div>
     <p>Count: {{ value }}</p>
+    <p>Doubled: {{ doubledValue }}</p>
     <button @click="count.value++">
       Increment
     </button>
@@ -163,15 +216,19 @@ Use in your components:
 
 ```svelte
 <script>
-import { zen } from '@sylphx/zen';
+import { zen, computed } from '@sylphx/zen';
 import { fromZen } from '@sylphx/zen-svelte';
 
 const count = zen(0);
-const store = fromZen(count);
+const doubled = computed(() => count.value * 2);
+
+const countStore = fromZen(count);
+const doubledStore = fromZen(doubled);
 </script>
 
 <div>
-  <p>Count: {$store}</p>
+  <p>Count: {$countStore}</p>
+  <p>Doubled: {$doubledStore}</p>
   <button on:click={() => count.value++}>
     Increment
   </button>
@@ -233,6 +290,7 @@ const unsubscribe = listenKeys(user, ['name', 'email'], (value) => {
 ## Next Steps
 
 - [Core Concepts](/guide/core-concepts) - Understand Zen's fundamentals
+- [Computed Values](/guide/computed) - Deep dive into auto-tracking
+- [Async Operations](/guide/async) - Learn about async patterns
 - [Framework Guides](/guide/react) - Deep dive into framework integration
-- [API Reference](/api/core) - Complete API documentation
-- [Examples](/examples/counter) - Real-world examples
+- [Migration Guide](/guide/migration-v2-to-v3) - Upgrading from v2

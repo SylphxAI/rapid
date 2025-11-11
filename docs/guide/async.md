@@ -2,7 +2,7 @@
 
 Zen provides two approaches for handling asynchronous operations:
 
-1. **`computedAsync()`** - Reactive async computed values (recommended for most cases)
+1. **`computedAsync()`** - Reactive async computed values with auto-tracking (recommended for most cases)
 2. **Manual stores** - Separate stores for data, loading, and error states
 
 ## computedAsync() - Reactive Async (Recommended)
@@ -14,8 +14,9 @@ import { zen, computedAsync, subscribe } from '@sylphx/zen';
 
 const userId = zen(1);
 
-// Automatically refetches when userId changes!
-const user = computedAsync([userId], async (id) => {
+// Auto-tracks userId! Dependencies tracked BEFORE first await
+const user = computedAsync(async () => {
+  const id = userId.value; // Read dependencies before any await
   const response = await fetch(`/api/users/${id}`);
   return response.json();
 });
@@ -33,10 +34,31 @@ userId.value = 2;
 **Benefits:**
 - ✅ Automatic refetching when dependencies change
 - ✅ Built-in loading/error states
-- ✅ Race condition protection
+- ✅ Race condition protection (auto-cancellation)
+- ✅ Auto-tracking - no manual dependency arrays
 - ✅ Lazy execution (only runs when subscribed)
 
-See [Async Computed API](/api/computed-async) for full documentation.
+**Important:** Dependencies are tracked synchronously BEFORE the first `await`. Access all dependencies at the top of your async function.
+
+```typescript
+// ✅ Good - dependencies tracked before await
+const result = computedAsync(async () => {
+  const a = signalA.value;  // Tracked
+  const b = signalB.value;  // Tracked
+
+  const response = await fetch('/api');
+  return processData(response, a, b);
+});
+
+// ❌ Bad - signalB accessed after await, not tracked
+const result = computedAsync(async () => {
+  const a = signalA.value;  // Tracked
+
+  const response = await fetch('/api');
+  const b = signalB.value;  // NOT tracked!
+  return processData(response, a, b);
+});
+```
 
 ---
 
@@ -113,6 +135,32 @@ async function loadData() {
 ```
 
 ## React Integration
+
+### Using computedAsync
+
+```tsx
+import { zen, computedAsync } from '@sylphx/zen';
+import { useStore } from '@sylphx/zen-react';
+
+const userId = zen(1);
+
+// Auto-tracked async computed
+const user = computedAsync(async () => {
+  const id = userId.value;
+  const response = await fetch(`/api/users/${id}`);
+  return response.json();
+});
+
+function UserProfile() {
+  const { loading, data, error } = useStore(user);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!data) return <div>No user</div>;
+
+  return <div>User: {data.name}</div>;
+}
+```
 
 ### Basic Async Component
 
@@ -224,7 +272,43 @@ onMounted(async () => {
 </template>
 ```
 
-## Debouncing
+## Debouncing with computedAsync
+
+Use an intermediate signal to debounce:
+
+```typescript
+import { zen, computedAsync, subscribe } from '@sylphx/zen';
+
+const searchTerm = zen('');
+const debouncedQuery = zen('');
+
+// Debounce logic
+let timeout: any;
+subscribe(searchTerm, (term) => {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    debouncedQuery.value = term;
+  }, 300);
+});
+
+// Auto-refetches when debouncedQuery changes
+const results = computedAsync(async () => {
+  const query = debouncedQuery.value;
+  if (!query) return [];
+
+  const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+  return response.json();
+});
+
+// Render results
+subscribe(results, ({ loading, data, error }) => {
+  if (loading) showSpinner();
+  if (error) showError(error);
+  if (data) renderResults(data);
+});
+```
+
+## Debouncing (Manual Pattern)
 
 Debounce API calls when input changes frequently:
 
@@ -322,8 +406,8 @@ function stopPolling() {
 
 ```tsx
 function PollingComponent() {
-  const data = useStore(data);
-  const polling = useStore(polling);
+  const data = useStore(dataStore);
+  const polling = useStore(pollingStore);
 
   useEffect(() => {
     startPolling();
@@ -372,6 +456,8 @@ async function fetchData() {
   }
 }
 ```
+
+**Note:** `computedAsync()` handles cancellation automatically when dependencies change!
 
 ## Optimistic Updates
 
@@ -567,6 +653,6 @@ async function loadData() {
 
 ## Next Steps
 
-- [Map Stores](/guide/maps) - Learn about map stores
+- [Computed Values](/guide/computed) - Learn about computed values
+- [Migration Guide](/guide/migration-v2-to-v3) - Upgrading from v2
 - [Batching Updates](/guide/batching) - Optimize updates
-- [Data Fetching Example](/examples/fetching) - See complete examples
