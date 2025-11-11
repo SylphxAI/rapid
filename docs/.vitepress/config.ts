@@ -89,7 +89,10 @@ export default defineConfig({
         },
         {
           text: 'Other',
-          items: [{ text: 'Changelog', link: '/guide/changelog' }],
+          items: [
+            { text: 'Changelog', link: '/guide/changelog' },
+            { text: 'Credits', link: '/guide/credits' },
+          ],
         },
       ],
       '/api/': [
