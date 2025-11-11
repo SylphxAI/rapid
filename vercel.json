@@ -3,5 +3,7 @@
   "framework": null,
   "buildCommand": "bun run docs:build",
   "installCommand": "bun install",
-  "outputDirectory": "docs/.vitepress/dist"
+  "outputDirectory": "docs/.vitepress/dist",
+  "cleanUrls": true,
+  "trailingSlash": false
 }
