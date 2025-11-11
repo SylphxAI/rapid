@@ -16,13 +16,13 @@ hero:
 features:
   - icon: 🪶
     title: Ultra Lightweight
-    details: Only 5.7KB gzipped. Every byte counts in modern web development.
+    details: Only 1.14 KB gzipped. 80% smaller than v2 - extreme minimalism for modern web.
   - icon: ⚡
     title: Blazing Fast
-    details: Native getters/setters for zero-overhead reactivity. 73% faster reads, 56% faster writes.
-  - icon: 🎯
-    title: Simple API
-    details: Intuitive .value property access. No magic, just simple JavaScript.
+    details: 8x faster in real-world apps. Auto-tracking with zero overhead reactivity.
+  - icon: 🪄
+    title: Auto-tracking Magic
+    details: Dependencies tracked automatically. No manual dependency arrays needed.
   - icon: 🔧
     title: Type Safe
     details: Written in TypeScript with excellent type inference out of the box.
@@ -66,8 +66,8 @@ import { zen, computed } from '@sylphx/zen';
 // Create reactive state
 const count = zen(0);
 
-// Create computed value
-const double = computed([count], (c) => c * 2);
+// Create computed value - auto-tracks dependencies!
+const double = computed(() => count.value * 2);
 
 // Read values
 console.log(count.value); // 0
@@ -142,10 +142,10 @@ const store = fromZen(count);
 No need to learn complex APIs. Just use `.value` to read and write.
 
 ### **Fast**
-Native getters/setters mean zero overhead. Benchmarks show 73% faster reads than alternatives.
+Auto-tracking with zero overhead. Benchmarks show 8x faster performance in real-world apps.
 
 ### **Tiny**
-At 5.7KB gzipped, Zen is one of the smallest state management libraries available.
+At 1.14 KB gzipped, Zen is the smallest reactive library with auto-tracking.
 
 ### **Complete**
 Router, persistence, and immutable updates included. Everything you need, nothing you don't.
