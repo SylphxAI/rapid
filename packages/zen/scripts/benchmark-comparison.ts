@@ -20,7 +20,7 @@ interface BenchResult {
   diffPercent: number;
 }
 
-function benchmark(name: string, fn: () => void, iterations = 100000): number {
+function benchmark(_name: string, fn: () => void, iterations = 100000): number {
   // Warmup
   for (let i = 0; i < 1000; i++) fn();
 
@@ -47,11 +47,16 @@ function formatDiff(standard: number, optimized: number): string {
 
 const results: BenchResult[] = [];
 
-function runBench(name: string, standardFn: () => void, optimizedFn: () => void, iterations = 100000) {
+function runBench(
+  name: string,
+  standardFn: () => void,
+  optimizedFn: () => void,
+  iterations = 100000,
+) {
   const standard = benchmark('standard', standardFn, iterations);
   const optimized = benchmark('optimized', optimizedFn, iterations);
   const diff = optimized - standard;
-  const diffPercent = ((diff / standard) * 100);
+  const diffPercent = (diff / standard) * 100;
 
   results.push({ name, standard, optimized, diff, diffPercent });
 }
@@ -147,18 +152,18 @@ runBench(
   'subscribe + notify',
   () => {
     const count = StandardZen.zen(0);
-    let value = 0;
+    let _value = 0;
     const unsub = StandardZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     count.value = 1;
     unsub();
   },
   () => {
     const count = OptimizedZen.zen(0);
-    let value = 0;
+    let _value = 0;
     const unsub = OptimizedZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     count.value = 1;
     unsub();
@@ -170,9 +175,9 @@ runBench(
   'batch (10 updates)',
   () => {
     const count = StandardZen.zen(0);
-    let value = 0;
+    let _value = 0;
     StandardZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     StandardZen.batch(() => {
       for (let i = 0; i < 10; i++) {
@@ -182,9 +187,9 @@ runBench(
   },
   () => {
     const count = OptimizedZen.zen(0);
-    let value = 0;
+    let _value = 0;
     OptimizedZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     OptimizedZen.batch(() => {
       for (let i = 0; i < 10; i++) {
@@ -198,13 +203,19 @@ runBench(
 runBench(
   'map operations',
   () => {
-    const users = StandardZen.map({ '1': { name: 'Alice', age: 30 }, '2': { name: 'Bob', age: 25 } });
+    const users = StandardZen.map({
+      '1': { name: 'Alice', age: 30 },
+      '2': { name: 'Bob', age: 25 },
+    });
     StandardZen.setKey(users, '3', { name: 'Charlie', age: 35 });
     const value = StandardZen.get(users);
     const _ = value['3'];
   },
   () => {
-    const users = OptimizedZen.map({ '1': { name: 'Alice', age: 30 }, '2': { name: 'Bob', age: 25 } });
+    const users = OptimizedZen.map({
+      '1': { name: 'Alice', age: 30 },
+      '2': { name: 'Bob', age: 25 },
+    });
     OptimizedZen.setKey(users, '3', { name: 'Charlie', age: 35 });
     const value = OptimizedZen.get(users);
     const _ = value['3'];
@@ -221,9 +232,9 @@ runBench(
     ]);
     const activeTodos = StandardZen.computed([todos], (list) => list.filter((t) => !t.done));
     const activeCount = StandardZen.computed([activeTodos], (list) => list.length);
-    let count = 0;
+    let _count = 0;
     StandardZen.subscribe(activeCount, (v) => {
-      count = v;
+      _count = v;
     });
     todos.value = [...todos.value, { id: 3, text: 'Read book', done: false }];
     todos.value = todos.value.map((t) => (t.id === 1 ? { ...t, done: true } : t));
@@ -236,9 +247,9 @@ runBench(
     ]);
     const activeTodos = OptimizedZen.computed([todos], (list) => list.filter((t) => !t.done));
     const activeCount = OptimizedZen.computed([activeTodos], (list) => list.length);
-    let count = 0;
+    let _count = 0;
     OptimizedZen.subscribe(activeCount, (v) => {
-      count = v;
+      _count = v;
     });
     todos.value = [...todos.value, { id: 3, text: 'Read book', done: false }];
     todos.value = todos.value.map((t) => (t.id === 1 ? { ...t, done: true } : t));
@@ -284,5 +295,7 @@ if (Math.abs(avgDiff) < 5) {
 console.log();
 console.log('💡 Conclusion:');
 console.log('   - Bundle size: 43.9% smaller (5.75 KB → 3.23 KB gzipped)');
-console.log(`   - Performance: ${Math.abs(avgDiff) < 5 ? 'Equivalent' : avgDiff < 0 ? `${Math.abs(avgDiff).toFixed(1)}% faster` : `${avgDiff.toFixed(1)}% slower`}`);
+console.log(
+  `   - Performance: ${Math.abs(avgDiff) < 5 ? 'Equivalent' : avgDiff < 0 ? `${Math.abs(avgDiff).toFixed(1)}% faster` : `${avgDiff.toFixed(1)}% slower`}`,
+);
 console.log('   - API: Core features only (zen, computed, select, map, batch, subscribe)');

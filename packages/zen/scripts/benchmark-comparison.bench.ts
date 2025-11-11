@@ -90,9 +90,9 @@ describe('Standard vs Optimized - Select', () => {
 describe('Standard vs Optimized - Subscribe', () => {
   bench('Standard: subscribe + notify', () => {
     const count = StandardZen.zen(0);
-    let value = 0;
+    let _value = 0;
     const unsub = StandardZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     count.value = 1;
     unsub();
@@ -100,9 +100,9 @@ describe('Standard vs Optimized - Subscribe', () => {
 
   bench('Optimized: subscribe + notify', () => {
     const count = OptimizedZen.zen(0);
-    let value = 0;
+    let _value = 0;
     const unsub = OptimizedZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     count.value = 1;
     unsub();
@@ -112,9 +112,9 @@ describe('Standard vs Optimized - Subscribe', () => {
 describe('Standard vs Optimized - Batch', () => {
   bench('Standard: batch 10 updates', () => {
     const count = StandardZen.zen(0);
-    let value = 0;
+    let _value = 0;
     StandardZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     StandardZen.batch(() => {
       for (let i = 0; i < 10; i++) {
@@ -125,9 +125,9 @@ describe('Standard vs Optimized - Batch', () => {
 
   bench('Optimized: batch 10 updates', () => {
     const count = OptimizedZen.zen(0);
-    let value = 0;
+    let _value = 0;
     OptimizedZen.subscribe(count, (v) => {
-      value = v;
+      _value = v;
     });
     OptimizedZen.batch(() => {
       for (let i = 0; i < 10; i++) {
@@ -172,9 +172,9 @@ describe('Standard vs Optimized - Real-world Scenario', () => {
 
     const activeCount = StandardZen.computed([activeTodos], (list) => list.length);
 
-    let count = 0;
+    let _count = 0;
     StandardZen.subscribe(activeCount, (v) => {
-      count = v;
+      _count = v;
     });
 
     // Add todo
@@ -196,9 +196,9 @@ describe('Standard vs Optimized - Real-world Scenario', () => {
 
     const activeCount = OptimizedZen.computed([activeTodos], (list) => list.length);
 
-    let count = 0;
+    let _count = 0;
     OptimizedZen.subscribe(activeCount, (v) => {
-      count = v;
+      _count = v;
     });
 
     // Add todo

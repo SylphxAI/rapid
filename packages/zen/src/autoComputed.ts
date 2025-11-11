@@ -3,8 +3,8 @@
  * Automatically tracks dependencies when accessing .value
  */
 
-import type { AnyZen, ZenWithValue } from './types';
 import { computed as manualComputed } from './computed';
+import type { AnyZen, ZenWithValue } from './types';
 
 // Global tracking context
 let activeComputed: Set<AnyZen> | null = null;
@@ -44,7 +44,7 @@ export function autoComputed<T>(fn: () => T) {
   try {
     // Execute to collect dependencies
     fn();
-  } catch (err) {
+  } catch (_err) {
     // Ignore errors during tracking phase
   } finally {
     activeComputed = prevActive;
@@ -53,7 +53,6 @@ export function autoComputed<T>(fn: () => T) {
   const depsArray = Array.from(deps);
 
   if (depsArray.length === 0) {
-    console.warn('autoComputed: No dependencies detected. Did you forget to access .value?');
   }
 
   // Create regular computed with collected dependencies

@@ -8,8 +8,8 @@
  */
 
 import { readFileSync, statSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
 import { join } from 'node:path';
+import { gzipSync } from 'node:zlib';
 
 interface BuildStats {
   name: string;
@@ -42,7 +42,7 @@ function formatBytes(bytes: number): string {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+  return `${(bytes / k ** i).toFixed(2)} ${sizes[i]}`;
 }
 
 function formatDiff(original: number, optimized: number): string {
