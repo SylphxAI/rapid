@@ -287,4 +287,4 @@ const fullName = computed(
 
 ## License
 
-MIT © [SylphX](https://github.com/sylphxltd)
+MIT © [SylphX](https://github.com/SylphxAI)

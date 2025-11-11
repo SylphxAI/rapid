@@ -6,7 +6,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@sylphx/zen.svg)](https://www.npmjs.com/package/@sylphx/zen)
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/@sylphx/zen)](https://bundlephobia.com/package/@sylphx/zen)
-[![License](https://img.shields.io/npm/l/@sylphx/zen.svg)](https://github.com/sylphxltd/zen/blob/main/LICENSE)
+[![License](https://img.shields.io/npm/l/@sylphx/zen.svg)](https://github.com/SylphxAI/zen/blob/main/LICENSE)
 
 </div>
 
@@ -187,7 +187,7 @@ count.value = 1;
 
 ## License
 
-MIT © [SylphX](https://github.com/sylphxltd)
+MIT © [SylphX](https://github.com/SylphxAI)
 
 ## Contributing
 

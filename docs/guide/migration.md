@@ -365,7 +365,7 @@ After migration, you'll see performance improvements:
 
 ## Need Help?
 
-- [GitHub Issues](https://github.com/sylphxltd/zen/issues)
+- [GitHub Issues](https://github.com/SylphxAI/zen/issues)
 - [API Reference](/api/core)
 - [Examples](/examples/counter)
 

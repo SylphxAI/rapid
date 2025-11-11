@@ -121,7 +121,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/sylphxltd/zen' },
+      { icon: 'github', link: 'https://github.com/SylphxAI/zen' },
       { icon: 'npm', link: 'https://www.npmjs.com/package/@sylphx/zen' },
       { icon: 'x', link: 'https://x.com/SylphxAI' },
     ],

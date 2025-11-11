@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@sylphx/zen-craft)](https://www.npmjs.com/package/@sylphx/zen-craft)
 
-**Craft-powered immutable state updates for Zen** - Built with [Craft](https://github.com/sylphxltd/craft), our high-performance immer replacement.
+**Craft-powered immutable state updates for Zen** - Built with [Craft](https://github.com/SylphxAI/craft), our high-performance immer replacement.
 
 This package allows you to work with immutable state in Zen atoms using a convenient mutation-style API on draft objects, while automatically producing the next immutable state with structural sharing and optional JSON patch generation.
 
@@ -122,7 +122,7 @@ craftZen(store, (draft) => {
 
 ## Features
 
-- 🚀 **1.4-35x faster than immer** - Powered by [Craft](https://github.com/sylphxltd/craft)
+- 🚀 **1.4-35x faster than immer** - Powered by [Craft](https://github.com/SylphxAI/craft)
 - 🎯 **Structural sharing** - Unchanged parts maintain references
 - 📝 **JSON Patches (RFC 6902)** - Track changes for undo/redo
 - 🗺️ **Map/Set support** - Full support for ES6 collections
@@ -131,14 +131,14 @@ craftZen(store, (draft) => {
 
 ## Why Craft?
 
-zen-craft is powered by **[Craft](https://github.com/sylphxltd/craft)**, our in-house high-performance immer replacement:
+zen-craft is powered by **[Craft](https://github.com/SylphxAI/craft)**, our in-house high-performance immer replacement:
 
 - **1.4-35x faster** than immer across all operations
 - **2.9 KB gzipped** - 39% smaller than immer
 - **100% API compatible** - Drop-in replacement
 - **Built by us** - Same team, same performance obsession
 
-[Learn more about Craft →](https://github.com/sylphxltd/craft)
+[Learn more about Craft →](https://github.com/SylphxAI/craft)
 
 ## License
 
