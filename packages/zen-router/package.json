@@ -22,12 +22,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sylphx/zen.git",
+    "url": "git+https://github.com/SylphxAI/zen.git",
     "directory": "packages/zen-router"
   },
-  "homepage": "https://github.com/sylphx/zen/tree/main/packages/zen-router#readme",
+  "homepage": "https://github.com/SylphxAI/zen/tree/main/packages/zen-router#readme",
   "bugs": {
-    "url": "https://github.com/sylphx/zen/issues"
+    "url": "https://github.com/SylphxAI/zen/issues"
   },
   "devDependencies": {
     "bunup": "^0.15.13",

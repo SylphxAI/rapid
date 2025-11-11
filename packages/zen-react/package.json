@@ -32,7 +32,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sylphx/zen.git",
+    "url": "https://github.com/SylphxAI/zen.git",
     "directory": "packages/zen-react"
   },
   "keywords": ["zen", "state manager", "react", "hooks"],
