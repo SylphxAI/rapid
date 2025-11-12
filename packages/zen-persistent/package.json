@@ -21,10 +21,12 @@
     "validate": "bun run check-format && bun run lint && bun run typecheck && bun run test"
   },
   "dependencies": {
-    "@sylphx/zen": "workspace:*"
+    "@sylphx/zen": "workspace:*",
+    "@sylphx/zen-patterns": "workspace:*"
   },
   "peerDependencies": {
-    "@sylphx/zen": "workspace:*"
+    "@sylphx/zen": "workspace:*",
+    "@sylphx/zen-patterns": "workspace:*"
   },
   "devDependencies": {
     "bunup": "^0.15.13",

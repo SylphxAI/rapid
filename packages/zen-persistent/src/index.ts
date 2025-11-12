@@ -1,12 +1,6 @@
-// Combined imports from @sylphx/zen
-import {
-  type MapZen,
-  type Unsubscribe, // Added missing import
-  type Zen,
-  map,
-  subscribe,
-  zen,
-} from '@sylphx/zen';
+// Combined imports
+import { type Zen, subscribe, zen } from '@sylphx/zen';
+import { map, type MapStore } from '@sylphx/zen-patterns';
 
 // --- Types ---
 
@@ -169,7 +163,7 @@ export function persistentMap<Value extends object>(
   key: string,
   initialValue: Value,
   options?: PersistentOptions<Value>,
-): MapZen<Value> {
+): MapStore<Value> {
   const storage = options?.storage ?? (typeof window !== 'undefined' ? localStorage : undefined);
   const serializer = options?.serializer ?? GenericJSONSerializer;
   const shouldListen = options?.listen ?? true;
