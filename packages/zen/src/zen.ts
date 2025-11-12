@@ -93,18 +93,6 @@ const zenProto = {
     const oldValue = this._value;
     if (Object.is(newValue, oldValue)) return;
 
-    // Trigger onSet listeners before setting value (only outside batch)
-    if (batchDepth === 0) {
-      const setListeners = (this as any)._setListeners;
-      if (setListeners) {
-        for (let i = 0; i < setListeners.length; i++) {
-          try {
-            setListeners[i](newValue);
-          } catch (_) {}
-        }
-      }
-    }
-
     this._value = newValue;
 
     // Mark computed dependents as dirty
@@ -124,16 +112,6 @@ const zenProto = {
       }
     } else {
       notifyListeners(this, newValue, oldValue);
-
-      // Trigger onNotify listeners after notifying value listeners (only outside batch)
-      const notifyListeners2 = (this as any)._notifyListeners;
-      if (notifyListeners2) {
-        for (let i = 0; i < notifyListeners2.length; i++) {
-          try {
-            notifyListeners2[i](newValue);
-          } catch (_) {}
-        }
-      }
     }
   },
 };
@@ -154,9 +132,6 @@ export type Zen<T> = ReturnType<typeof zen<T>>;
 export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<A>>): Unsubscribe {
   const zenData = zen._kind === 'zen' ? zen : zen;
 
-  // Check if this is the first listener (before adding)
-  const wasEmpty = !zenData._listeners || zenData._listeners.length === 0;
-
   // Add listener
   if (!zenData._listeners) zenData._listeners = [];
   zenData._listeners.push(listener as any);
@@ -174,42 +149,6 @@ export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<
     }
   }
 
-  // Trigger onMount listeners only on first subscribe
-  if (wasEmpty) {
-    const mountListeners = (zenData as any)._mountListeners;
-    if (mountListeners) {
-      for (let i = 0; i < mountListeners.length; i++) {
-        try {
-          const cleanup = mountListeners[i]();
-          // Store cleanup function if returned
-          if (cleanup) {
-            if (!(zenData as any)._mountCleanups) {
-              (zenData as any)._mountCleanups = new Map();
-            }
-            (zenData as any)._mountCleanups.set(mountListeners[i], cleanup);
-          }
-        } catch (_) {}
-      }
-    }
-
-    // Trigger onStart listeners if this is the first subscriber
-    const startListeners = (zenData as any)._startListeners;
-    if (startListeners) {
-      for (let i = 0; i < startListeners.length; i++) {
-        try {
-          const cleanup = startListeners[i](zenData._value);
-          // Store cleanup function if returned
-          if (cleanup) {
-            if (!(zenData as any)._startCleanups) {
-              (zenData as any)._startCleanups = new Map();
-            }
-            (zenData as any)._startCleanups.set(startListeners[i], cleanup);
-          }
-        } catch (_) {}
-      }
-    }
-  }
-
   // Initial notification
   listener(zenData._value as any, undefined);
 
@@ -223,11 +162,8 @@ export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<
 
     listeners.splice(idx, 1);
 
-    // Check if this was the last listener (after removing)
-    const isEmpty = listeners.length === 0;
-
     // Unsubscribe computed from sources if no more listeners
-    if (isEmpty) {
+    if (listeners.length === 0) {
       zenData._listeners = undefined;
       if (zen._kind === 'computed' && zen._unsubs) {
         unsubscribeFromSources(zen as any);
@@ -235,38 +171,6 @@ export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<
       // Unsubscribe batched from sources
       if (zen._kind === 'batched' && (zen as any)._unsubscribeFromSources) {
         (zen as any)._unsubscribeFromSources();
-      }
-
-      // Trigger onStop listeners if this was the last subscriber
-      const stopListeners = (zenData as any)._stopListeners;
-      if (stopListeners) {
-        for (let i = 0; i < stopListeners.length; i++) {
-          try {
-            stopListeners[i](zenData._value);
-          } catch (_) {}
-        }
-      }
-
-      // Run onMount cleanups
-      const mountCleanups = (zenData as any)._mountCleanups;
-      if (mountCleanups) {
-        for (const cleanup of mountCleanups.values()) {
-          try {
-            cleanup();
-          } catch (_) {}
-        }
-        mountCleanups.clear();
-      }
-
-      // Run onStart cleanups
-      const startCleanups = (zenData as any)._startCleanups;
-      if (startCleanups) {
-        for (const cleanup of startCleanups.values()) {
-          try {
-            cleanup();
-          } catch (_) {}
-        }
-        startCleanups.clear();
       }
     }
   };
@@ -294,23 +198,6 @@ export function batch<T>(fn: () => T): T {
             }
           }
         }
-
-        // Trigger onNotify listeners after batch completes (only if value actually changed)
-        for (const [zen, oldValue] of pendingNotifications) {
-          const notifyListeners = (zen as any)._notifyListeners;
-          if (notifyListeners) {
-            const newValue = zen._value;
-            // Only notify if value actually changed from the original oldValue
-            if (!Object.is(newValue, oldValue)) {
-              for (let i = 0; i < notifyListeners.length; i++) {
-                try {
-                  notifyListeners[i](newValue);
-                } catch (_) {}
-              }
-            }
-          }
-        }
-
         pendingNotifications.clear();
       }
       // Flush effects after notifications
