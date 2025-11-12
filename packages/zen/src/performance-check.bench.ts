@@ -31,25 +31,31 @@ describe('Core Performance - zen.ts with lifecycle events', () => {
   describe('Atom with Listeners', () => {
     bench('write with 1 listener', () => {
       const a = zen(0);
-      let count = 0;
-      subscribe(a, () => { count++; });
+      let _count = 0;
+      subscribe(a, () => {
+        _count++;
+      });
       a.value = 1;
     });
 
     bench('write with 5 listeners', () => {
       const a = zen(0);
-      let count = 0;
+      let _count = 0;
       for (let i = 0; i < 5; i++) {
-        subscribe(a, () => { count++; });
+        subscribe(a, () => {
+          _count++;
+        });
       }
       a.value = 1;
     });
 
     bench('write with 10 listeners', () => {
       const a = zen(0);
-      let count = 0;
+      let _count = 0;
       for (let i = 0; i < 10; i++) {
-        subscribe(a, () => { count++; });
+        subscribe(a, () => {
+          _count++;
+        });
       }
       a.value = 1;
     });
@@ -83,9 +89,13 @@ describe('Core Performance - zen.ts with lifecycle events', () => {
     bench('batch 2 updates with 1 listener', () => {
       const a = zen(0);
       const b = zen(0);
-      let count = 0;
-      subscribe(a, () => { count++; });
-      subscribe(b, () => { count++; });
+      let _count = 0;
+      subscribe(a, () => {
+        _count++;
+      });
+      subscribe(b, () => {
+        _count++;
+      });
       batch(() => {
         a.value = 1;
         b.value = 1;
@@ -94,9 +104,11 @@ describe('Core Performance - zen.ts with lifecycle events', () => {
 
     bench('batch 10 updates with 1 listener each', () => {
       const atoms = Array.from({ length: 10 }, () => zen(0));
-      let count = 0;
+      let _count = 0;
       for (const a of atoms) {
-        subscribe(a, () => { count++; });
+        subscribe(a, () => {
+          _count++;
+        });
       }
       batch(() => {
         for (const a of atoms) {
@@ -107,9 +119,11 @@ describe('Core Performance - zen.ts with lifecycle events', () => {
 
     bench('batch 100 updates with 1 listener each', () => {
       const atoms = Array.from({ length: 100 }, () => zen(0));
-      let count = 0;
+      let _count = 0;
       for (const a of atoms) {
-        subscribe(a, () => { count++; });
+        subscribe(a, () => {
+          _count++;
+        });
       }
       batch(() => {
         for (const a of atoms) {
@@ -129,10 +143,10 @@ describe('Core Performance - zen.ts with lifecycle events', () => {
 
     bench('effect trigger (1 dep)', () => {
       const a = zen(0);
-      let count = 0;
+      let _count = 0;
       effect(() => {
         a.value;
-        count++;
+        _count++;
       });
       a.value = 1;
     });
@@ -143,10 +157,10 @@ describe('Core Performance - zen.ts with lifecycle events', () => {
       const c = zen(0);
       const d = zen(0);
       const e = zen(0);
-      let count = 0;
+      let _count = 0;
       effect(() => {
         a.value + b.value + c.value + d.value + e.value;
-        count++;
+        _count++;
       });
       a.value = 1;
     });
