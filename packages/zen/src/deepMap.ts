@@ -1,7 +1,7 @@
 import { type PathListener, _emitPathChanges, listenPaths as addPathListener } from './events'; // Path listener logic from parent
 // Functional DeepMap zen implementation.
 import type { AnyZen, DeepMapZen, Listener, Unsubscribe } from './types'; // Combine types, Add AnyZen
-import { get as getCoreValue, subscribe as subscribeToCoreZen } from './zen'; // Core get/subscribe
+import { subscribe as subscribeToCoreZen } from './zen'; // Core subscribe (get removed)
 import type { Zen } from './zen'; // Import Zen type for casting
 import { batchDepth, notifyListeners, queueZenForBatch } from './zen'; // Import batch helpers
 // Removed import { notifyListeners } from './zen'; // Import notifyListeners from zen.ts
@@ -351,8 +351,8 @@ export function deepMap<T extends object>(initialValue: T): DeepMapZen<T> {
   return deepMapZen;
 }
 
-// Re-export core get/subscribe for compatibility
-export { getCoreValue as get, subscribeToCoreZen as subscribe };
+// Re-export core subscribe for compatibility (get removed from zen.ts)
+export { subscribeToCoreZen as subscribe };
 
 /**
  * Sets a value at a specific path within the DeepMap Zen, creating a new object immutably.

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { deepMap, get, set, setPath, subscribe } from './deepMap'; // Import updated functional API (listenPaths removed)
+import { deepMap, set, setPath, subscribe } from './deepMap'; // Import updated functional API (get/listenPaths removed)
 import type { Path } from './events'; // Import Path type if needed
 import { batch } from './zen';
 
@@ -7,24 +7,23 @@ describe('deepMap (functional)', () => {
   it('should create a deep map store', () => {
     const initial = { user: { name: 'John', age: 30 }, settings: { theme: 'dark' } };
     const store = deepMap(initial); // Use deepMap
-    expect(get(store)).toEqual(initial); // Use get
+    expect(store._value).toEqual(initial); // Use ._value
     // Check if functions exist
     expect(typeof setPath).toBe('function'); // Use setPath
     expect(typeof subscribe).toBe('function'); // Use subscribe
-    expect(typeof get).toBe('function'); // Use get
     expect(typeof set).toBe('function'); // Use set
   });
 
   it('should get the initial value', () => {
     const initial = { a: { b: { c: 1 } } };
     const store = deepMap(initial); // Use deepMap
-    expect(get(store)).toEqual(initial); // Use get
+    expect(store._value).toEqual(initial); // Use get
   });
 
   it('should set a deep value using string path', () => {
     const store = deepMap({ user: { name: 'John', address: { city: 'Old City' } } }); // Use deepMap
     setPath(store, 'user.address.city', 'New City'); // Use setPath
-    const state = get(store) as { user: { name: string; address: { city: string } } }; // Cast (removed !)
+    const state = store._value as { user: { name: string; address: { city: string } } }; // Cast (removed !)
     expect(state.user.address.city).toBe('New City');
     expect(state.user.name).toBe('John');
   });
@@ -38,7 +37,7 @@ describe('deepMap (functional)', () => {
     }); // Use deepMap
     setPath(store, ['data', 1, 'value'], 'New B'); // Use setPath
     // Add non-null assertions and cast to specific type
-    const dataState = get(store) as { data: ({ id: number; value: string } | undefined)[] }; // (removed !)
+    const dataState = store._value as { data: ({ id: number; value: string } | undefined)[] }; // (removed !)
     expect(dataState.data?.[1]?.value).toBe('New B');
     expect(dataState.data?.[0]?.value).toBe('A');
   });
@@ -47,13 +46,13 @@ describe('deepMap (functional)', () => {
     const store = deepMap<{ user?: { profile?: { name?: string }; tags?: string[] } }>({}); // Use deepMap
 
     setPath(store, 'user.profile.name', 'Alice'); // Use setPath
-    const state1 = get(store) as { user?: { profile?: { name?: string } } }; // Use get (removed !) and cast
+    const state1 = store._value as { user?: { profile?: { name?: string } } }; // Use get (removed !) and cast
     // Check intermediate objects exist. Use ts-ignore as type narrowing is complex here.
     // @ts-ignore Testing path creation, expect properties to exist
     expect(state1.user.profile.name).toBe('Alice');
 
     setPath(store, 'user.tags.0', 'tag1'); // Use setPath
-    const state2 = get(store) as { user?: { tags?: string[] } }; // Use get (removed !) and cast
+    const state2 = store._value as { user?: { tags?: string[] } }; // Use get (removed !) and cast
     // Check intermediate array and element exist. Use ts-ignore.
     expect(Array.isArray(state2.user?.tags)).toBe(true);
     // @ts-ignore Testing path creation, expect properties to exist
@@ -63,11 +62,11 @@ describe('deepMap (functional)', () => {
   it('should maintain immutability', () => {
     const initial = { a: { b: 1 } };
     const store = deepMap(initial); // Use deepMap
-    const originalA = (get(store) as typeof initial).a; // Use get (removed !) and cast
+    const originalA = (store._value as typeof initial).a; // Use get (removed !) and cast
 
     setPath(store, 'a.b', 2); // Use setPath
 
-    const newState = get(store) as typeof initial; // Use get (removed !) and cast
+    const newState = store._value as typeof initial; // Use get (removed !) and cast
     const newA = newState.a;
     expect(newState.a.b).toBe(2);
     expect(newA).not.toBe(originalA); // The 'a' object should be a new reference
@@ -93,7 +92,7 @@ describe('deepMap (functional)', () => {
     const store = deepMap({ user: { name: 'John' } }); // Use deepMap
     const listener = vi.fn();
     const unsubscribe = subscribe(store, listener); // Use subscribe
-    const oldValue = get(store) as { user: { name: string } }; // Use get (removed !) and cast
+    const oldValue = store._value as { user: { name: string } }; // Use get (removed !) and cast
     listener.mockClear(); // Clear initial call from subscribe
 
     setPath(store, 'user.name', 'Jane'); // Use setPath
@@ -113,25 +112,25 @@ describe('deepMap (functional)', () => {
   it('should handle setting root properties', () => {
     const store = deepMap<{ name: string; age?: number }>({ name: 'Initial' }); // Use deepMap
     setPath(store, 'name', 'Updated'); // Use setPath
-    expect((get(store) as { name: string; age?: number }).name).toBe('Updated'); // Cast (removed !)
+    expect((store._value as { name: string; age?: number }).name).toBe('Updated'); // Cast (removed !)
     setPath(store, 'age', 42); // Use setPath
-    expect((get(store) as { name: string; age?: number }).age).toBe(42); // Cast (removed !)
+    expect((store._value as { name: string; age?: number }).age).toBe(42); // Cast (removed !)
   });
 
   it('should handle setting values in arrays correctly', () => {
     const store = deepMap<{ items: (string | number)[] }>({ items: ['a', 'b', 'c'] }); // Use deepMap
     setPath(store, 'items.1', 'B'); // Use setPath
-    expect((get(store) as { items: (string | number)[] }).items).toEqual(['a', 'B', 'c']); // Cast (removed !)
+    expect((store._value as { items: (string | number)[] }).items).toEqual(['a', 'B', 'c']); // Cast (removed !)
 
     setPath(store, ['items', 2], 3); // Use setPath
-    expect((get(store) as { items: (string | number)[] }).items).toEqual(['a', 'B', 3]); // Cast (removed !)
+    expect((store._value as { items: (string | number)[] }).items).toEqual(['a', 'B', 3]); // Cast (removed !)
 
     // Test adding beyond current length (should ideally handle sparse arrays or expand)
     setPath(store, 'items.4', 'e'); // Use setPath
-    expect((get(store) as { items: (string | number)[] }).items.length).toBe(5); // Cast (removed !)
-    expect((get(store) as { items: (string | number)[] }).items[3]).toBeUndefined(); // Cast (removed !)
-    expect((get(store) as { items: (string | number)[] }).items[4]).toBe('e'); // Cast (removed !)
-    expect((get(store) as { items: (string | number)[] }).items).toEqual([
+    expect((store._value as { items: (string | number)[] }).items.length).toBe(5); // Cast (removed !)
+    expect((store._value as { items: (string | number)[] }).items[3]).toBeUndefined(); // Cast (removed !)
+    expect((store._value as { items: (string | number)[] }).items[4]).toBe('e'); // Cast (removed !)
+    expect((store._value as { items: (string | number)[] }).items).toEqual([
       // Cast (removed !)
       'a',
       'B',
@@ -149,11 +148,11 @@ describe('deepMap (functional)', () => {
     listener.mockClear();
 
     setPath(store, '', 'should not change'); // Use setPath
-    expect(get(store)).toEqual(initial); // Use get (removed !)
+    expect(store._value).toEqual(initial); // Use get (removed !)
     expect(listener).not.toHaveBeenCalled();
 
     setPath(store, [], 'should also not change'); // Use setPath
-    expect(get(store)).toEqual(initial); // Use get (removed !)
+    expect(store._value).toEqual(initial); // Use get (removed !)
     expect(listener).not.toHaveBeenCalled();
 
     unsubscribe();
@@ -174,7 +173,7 @@ describe('deepMap (functional)', () => {
     });
 
     const expectedValue = { user: { name: 'B', age: 2 }, settings: { theme: 'light' } };
-    expect(get(store)).toEqual(expectedValue);
+    expect(store._value).toEqual(expectedValue);
     expect(listener).toHaveBeenCalledTimes(1); // Called once after batch
     expect(listener).toHaveBeenCalledWith(expectedValue, initial);
 
@@ -192,9 +191,9 @@ describe('deepMap (functional)', () => {
 
       set(store, newValue);
 
-      expect(get(store)).toEqual(newValue);
-      expect(get(store)).not.toBe(newValue); // Should be a deep clone
-      expect(get(store).a).not.toBe(newValue.a); // Nested objects should also be cloned
+      expect(store._value).toEqual(newValue);
+      expect(store._value).not.toBe(newValue); // Should be a deep clone
+      expect(store._value.a).not.toBe(newValue.a); // Nested objects should also be cloned
     });
 
     it('should notify listeners when object content changes', () => {
@@ -254,7 +253,7 @@ describe('deepMap (functional)', () => {
         expect(listener).not.toHaveBeenCalled();
       });
 
-      expect(get(store)).toEqual(finalValue);
+      expect(store._value).toEqual(finalValue);
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener).toHaveBeenCalledWith(finalValue, initial);
       unsubscribe();
