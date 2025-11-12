@@ -64,6 +64,16 @@ export function notifyListeners<T>(zen: ZenCore<T>, newValue: T, oldValue: T) {
   }
 }
 
+// Helper for external stores (map, deepMap) to integrate with batching
+export function queueZenForBatch(zen: AnyZen, oldValue: any): void {
+  if (!pendingNotifications.has(zen)) {
+    pendingNotifications.set(zen, oldValue);
+  }
+}
+
+// Helper to check if currently in a batch
+export { batchDepth };
+
 // ============================================================================
 // ZEN (Core Signal)
 // ============================================================================

@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { map, set, setKey } from './map';
-import { batch, get, subscribe } from './zen'; // get/subscribe/batch are from atom
+import { batch, subscribe } from './zen'; // subscribe/batch from zen (get removed)
 
 describe('map', () => {
   it('should create a map atom with initial value', () => {
     const initial = { name: 'A', value: 1 };
     const mapAtom = map(initial);
     expect(mapAtom._kind).toBe('map');
-    expect(get(mapAtom)).toEqual(initial);
-    expect(get(mapAtom)).not.toBe(initial); // Should be a shallow copy
+    expect(mapAtom._value).toEqual(initial);
+    expect(mapAtom._value).not.toBe(initial); // Should be a shallow copy
   });
 
   describe('setKey', () => {
@@ -21,7 +21,7 @@ describe('map', () => {
 
       setKey(mapAtom, 'name', 'B');
 
-      expect(get(mapAtom)).toEqual({ name: 'B', value: 1 });
+      expect(mapAtom._value).toEqual({ name: 'B', value: 1 });
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener).toHaveBeenCalledWith({ name: 'B', value: 1 }, initial);
 
@@ -37,7 +37,7 @@ describe('map', () => {
 
       setKey(mapAtom, 'name', 'A'); // Same value
 
-      expect(get(mapAtom)).toEqual(initial);
+      expect(mapAtom._value).toEqual(initial);
       expect(listener).not.toHaveBeenCalled();
 
       unsubscribe();
@@ -56,7 +56,7 @@ describe('map', () => {
         expect(listener).not.toHaveBeenCalled(); // Not called inside batch
       });
 
-      expect(get(mapAtom)).toEqual({ name: 'B', value: 2 });
+      expect(mapAtom._value).toEqual({ name: 'B', value: 2 });
       expect(listener).toHaveBeenCalledTimes(1); // Called once after batch
       expect(listener).toHaveBeenCalledWith({ name: 'B', value: 2 }, initial);
 
@@ -77,8 +77,8 @@ describe('map', () => {
       const newValue = { name: 'C', value: 3 };
       set(mapAtom, newValue);
 
-      expect(get(mapAtom)).toEqual(newValue);
-      expect(get(mapAtom)).not.toBe(newValue); // Should create a new object
+      expect(mapAtom._value).toEqual(newValue);
+      expect(mapAtom._value).not.toBe(newValue); // Should create a new object
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener).toHaveBeenCalledWith(newValue, initial);
 
@@ -94,7 +94,7 @@ describe('map', () => {
 
       set(mapAtom, initial); // Set same object reference
 
-      expect(get(mapAtom)).toEqual(initial);
+      expect(mapAtom._value).toEqual(initial);
       expect(listener).not.toHaveBeenCalled();
 
       unsubscribe();
@@ -114,7 +114,7 @@ describe('map', () => {
         expect(listener).not.toHaveBeenCalled(); // Not called inside batch
       });
 
-      expect(get(mapAtom)).toEqual(finalValue);
+      expect(mapAtom._value).toEqual(finalValue);
       expect(listener).toHaveBeenCalledTimes(1); // Called once after batch
       expect(listener).toHaveBeenCalledWith(finalValue, initial);
 
