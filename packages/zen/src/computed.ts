@@ -2,7 +2,8 @@ import type { BatchedZen } from './batched'; // Import BatchedZen type
 import { sourceValuesPool } from './pool';
 // Functional computed (derived state) implementation.
 import type { AnyZen, Unsubscribe, ZenWithValue } from './types';
-import { markDirty, notifyListeners, updateIfNecessary } from './zen';
+import { notifyListeners } from './zen';
+// NOTE: markDirty and updateIfNecessary were removed in zen.ts radical optimization
 // Removed getZenValue, subscribeToZen imports as logic is inlined
 
 // --- Type Definitions ---
@@ -102,68 +103,19 @@ function _getSourceValuesAndReadiness(
  * @internal
  */
 function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
-  // ✅ PHASE 6 OPTIMIZATION: Graph coloring check
-  // CLEAN (0) - no update needed
-  if (zen._color === 0) {
+  // NOTE: Graph coloring optimization (_color, updateIfNecessary) was removed in zen.ts radical optimization
+  // This function now uses simple _dirty flag instead of 3-state coloring
+
+  // Check if update is needed
+  if (!zen._dirty && zen._value !== null) {
     return false;
   }
 
-  // GREEN (1) - need to verify if sources actually changed
-  if (zen._color === 1) {
-    const srcs = zen._sources;
-    if (srcs && srcs.length > 0) {
-      const srcLen = srcs.length;
-
-      // Fast path for single source
-      if (srcLen === 1) {
-        // Recursively check parent
-        const source = srcs[0];
-        if (source._color !== undefined) {
-          updateIfNecessary(source);
-          if (source._color === 2) {
-            // Parent is dirty - we're dirty too
-            zen._color = 2;
-          } else {
-            // Parent is clean - we're clean too
-            zen._color = 0;
-            zen._dirty = false;
-            return false;
-          }
-        }
-      } else {
-        // Multiple sources - check all
-        let anyParentDirty = false;
-        for (let i = 0; i < srcLen; i++) {
-          const source = srcs[i];
-          if (source) {
-            updateIfNecessary(source);
-            if (source._color === 2) {
-              anyParentDirty = true;
-              break; // ✅ Early exit
-            }
-          }
-        }
-
-        if (!anyParentDirty) {
-          // All parents clean - we're clean too
-          zen._color = 0;
-          zen._dirty = false;
-          return false;
-        }
-
-        // At least one parent dirty - mark ourselves RED
-        zen._color = 2;
-      }
-    }
-  }
-
-  // Now we know we're RED (2) - need to recompute
   const srcs = zen._sources;
 
   // If there are no sources, the value cannot be computed.
   if (!srcs || srcs.length === 0) {
     zen._dirty = true; // Remain dirty
-    zen._color = 2; // RED
     return false;
   }
 
@@ -178,7 +130,6 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
   // mark computed as dirty and return false (no change).
   if (!computedCanUpdate) {
     zen._dirty = true;
-    zen._color = 2; // RED
     return false;
   }
   // Note: We proceed even if some vals are null, assuming null is a valid state.
@@ -188,14 +139,12 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
   if (srcs.length === 1) {
     if (vals[0] === undefined) {
       zen._dirty = true;
-      zen._color = 2; // RED
       return false;
     }
   } else {
     // Multiple sources - check all
     if (vals.some((v) => v === undefined)) {
       zen._dirty = true;
-      zen._color = 2; // RED
       return false;
     }
   }
@@ -203,7 +152,6 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
   // 2. Dependencies are ready, proceed with calculation
   const newValue = calc(...vals); // vals are now guaranteed non-null AND non-undefined
   zen._dirty = false; // Mark as clean *after* successful calculation
-  zen._color = 0; // CLEAN
 
   // 3. Check if the value actually changed using the equality function
   // Handle the initial null case for 'old'
@@ -213,8 +161,8 @@ function updateComputedValue<T>(zen: ComputedZen<T>): boolean {
 
   // 4. Update internal value
   zen._value = newValue;
-  // ✅ PHASE 6 OPTIMIZATION: Mark as RED and propagate GREEN to dependents
-  markDirty(zen as AnyZen);
+  // NOTE: markDirty was removed in radical optimization - no longer needed
+  // The _dirty flag is managed by the reactive system automatically
 
   // 5. Value updated. Return true to indicate change.
   // DO NOT notify here. Notification is handled by the caller (e.g., computedSourceChanged or batch end).
@@ -230,8 +178,7 @@ function computedSourceChanged<T>(zen: ComputedZen<T>): void {
   if (zen._dirty) return;
 
   zen._dirty = true;
-  // ✅ PHASE 6 OPTIMIZATION: Mark as RED when source changes
-  zen._color = 2;
+  // NOTE: _color assignment removed (graph coloring was removed in zen.ts radical optimization)
 
   // ✅ PHASE 1 OPTIMIZATION: Array-based listeners
   if (zen._listeners?.length) {

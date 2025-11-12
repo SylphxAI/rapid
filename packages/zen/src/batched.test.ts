@@ -220,7 +220,7 @@ describe('batched', () => {
     await nextTick(); // Initial calculation { type: 'new', id: 1 }
     // Async call: ({ type: 'new', id: 1 }, null)
     expect(listener).toHaveBeenCalledTimes(2);
-    const value1 = get(derived); // { type: 'new', id: 1 }
+    const value1 = derived.value; // { type: 'new', id: 1 }
     expect(listener).toHaveBeenNthCalledWith(2, value1, null);
     expect(calculationCount).toBe(1);
     listener.mockClear();
@@ -245,7 +245,7 @@ describe('batched', () => {
     // Update source to id: 3 -> calculation returns new object
     source.value = { id: 3 };
     await nextTick();
-    const value3 = get(derived); // { type: 'new', id: 3 }
+    const value3 = derived.value; // { type: 'new', id: 3 }
     // Listener called: (value3, stableRef)
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenCalledWith(value3, stableRef);

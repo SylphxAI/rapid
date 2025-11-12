@@ -1,6 +1,7 @@
 // Batched computed store implementation (Nanostores style)
 import type { AnyZen, Listener, Unsubscribe, ZenValue } from './types';
-import { get, notifyListeners, subscribe } from './zen'; // Use core subscribe, notifyListeners, AND get
+import { notifyListeners, subscribe } from './zen'; // Use core subscribe, notifyListeners
+// NOTE: get() was removed from zen.ts - use .value instead
 // Removed unused ComputedZen import
 
 // --- Types ---
@@ -47,9 +48,9 @@ function _getDependencyValues(stores: AnyZen[], targetArray: unknown[]): boolean
         dependenciesReady = false;
         break;
       }
-      // Use get() for all other types
+      // Use .value property accessor (get() was removed from zen.ts)
       // biome-ignore lint/suspicious/noExplicitAny: TS struggles with generic overload resolution here
-      targetArray[i] = get(source as any);
+      targetArray[i] = (source as any).value;
     } else {
       targetArray[i] = undefined;
     }
