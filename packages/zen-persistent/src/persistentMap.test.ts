@@ -22,6 +22,7 @@ describe('persistentMap', () => {
   beforeEach(() => {
     // Assign the simple mock to globalThis for the test
     (globalThis as any).localStorage = localStorageMock;
+    (globalThis as any).window = globalThis; // Make window available
     localStorageMock.clear();
   });
 

@@ -15,7 +15,7 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "bunup src/zen.ts --format esm,cjs --dts --target node --minify && mv dist/zen.js dist/index.js && mv dist/zen.cjs dist/index.cjs && mv dist/zen.d.ts dist/index.d.ts && mv dist/zen.d.cts dist/index.d.cts",
+    "build": "bunup src/index.ts --format esm,cjs --dts --target node --minify",
     "size": "bun size-limit",
     "test": "vitest run",
     "test:watch": "vitest",

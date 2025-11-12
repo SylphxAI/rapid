@@ -1,41 +1,19 @@
 // Lightweight single-source selector implementation (like Zustand/Reselect).
 import type { AnyZen, SelectZen, Unsubscribe, ZenValue, ZenWithValue } from './types';
-import { markDirty, notifyListeners, updateIfNecessary } from './zen';
+import { notifyListeners } from './zen';
+// NOTE: markDirty and updateIfNecessary were removed in zen.ts radical optimization
+// Removed graph coloring (_color) optimization for simplicity
 
 // --- Internal Select Logic ---
 
 /**
  * Recalculates the selected value based on current source value.
  * Updates the internal `_value` and returns true if the value changed.
- * ✅ PHASE 6 OPTIMIZATION: Uses graph coloring for lazy evaluation.
  * @returns True if the value changed, false otherwise.
  * @internal
  */
 function updateSelectValue<T, S>(zen: SelectZen<T, S>): boolean {
-  // ✅ PHASE 6 OPTIMIZATION: Graph coloring check
-  // CLEAN (0) - no update needed
-  if (zen._color === 0) {
-    return false;
-  }
-
-  // GREEN (1) - need to verify if source actually changed
-  if (zen._color === 1) {
-    const source = zen._source;
-    if (source._color !== undefined) {
-      updateIfNecessary(source);
-      if (source._color === 2) {
-        // Parent is dirty - we're dirty too
-        zen._color = 2;
-      } else {
-        // Parent is clean - we're clean too
-        zen._color = 0;
-        zen._dirty = false;
-        return false;
-      }
-    }
-  }
-
-  // Now we know we're RED (2) - need to recompute
+  // Simplified: always recompute when dirty
   const source = zen._source;
 
   // Get current source value
@@ -82,7 +60,6 @@ function updateSelectValue<T, S>(zen: SelectZen<T, S>): boolean {
   // Apply selector function
   const newValue = zen._selector(sourceValue as S);
   zen._dirty = false; // Mark as clean after calculation
-  zen._color = 0; // CLEAN
 
   // Check if the value actually changed using the equality function
   if (old !== null && zen._equalityFn(newValue, old)) {
@@ -91,8 +68,6 @@ function updateSelectValue<T, S>(zen: SelectZen<T, S>): boolean {
 
   // Update internal value
   zen._value = newValue;
-  // ✅ PHASE 6 OPTIMIZATION: Mark as RED and propagate GREEN to dependents
-  markDirty(zen as AnyZen);
 
   return true; // Value changed
 }
@@ -106,8 +81,6 @@ function selectSourceChanged<T, S>(zen: SelectZen<T, S>): void {
   if (zen._dirty) return;
 
   zen._dirty = true;
-  // ✅ PHASE 6 OPTIMIZATION: Mark as RED when source changes
-  zen._color = 2;
 
   // ✅ PHASE 1 OPTIMIZATION: Array-based listeners
   if (zen._listeners?.length) {
@@ -128,10 +101,6 @@ function subscribeSelectToSource<T, S>(zen: SelectZen<T, S>): void {
 
   const source = zen._source;
   const onChangeHandler = () => selectSourceChanged(zen);
-
-  // ✅ PHASE 6 OPTIMIZATION: Attach select zen reference to handler
-  // This allows markDirty() to find the select zen and mark it GREEN
-  (onChangeHandler as any)._computedZen = zen;
 
   const baseSource = source as ZenWithValue<unknown>;
   const isFirstSourceListener = !baseSource._listeners || baseSource._listeners.length === 0;
