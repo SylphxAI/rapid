@@ -69,6 +69,7 @@ let currentListener: ComputedCore<any> | ComputedAsyncCore<any> | null = null;
 
 let batchDepth = 0;
 const pendingNotifications = new Map<AnyZen, any>();
+const pendingEffects = new Set<() => void>();
 
 function notifyListeners<T>(zen: ZenCore<T>, newValue: T, oldValue: T) {
   const listeners = zen._listeners;
@@ -83,6 +84,10 @@ function queueNotification(zen: AnyZen, oldValue: any) {
   if (!pendingNotifications.has(zen)) {
     pendingNotifications.set(zen, oldValue);
   }
+}
+
+function queueEffect(fn: () => void) {
+  pendingEffects.add(fn);
 }
 
 // ============================================================================
@@ -183,12 +188,29 @@ export function batch<T>(fn: () => T): T {
   try {
     return fn();
   } finally {
-    batchDepth--;
-    if (batchDepth === 0 && pendingNotifications.size > 0) {
-      for (const [zen, oldValue] of pendingNotifications) {
-        notifyListeners(zen, zen._value, oldValue);
+    if (batchDepth === 1) {
+      // About to exit the outermost batch - flush all pending updates
+      // Keep batchDepth = 1 so effects get queued instead of running immediately
+
+      // Flush pending notifications
+      if (pendingNotifications.size > 0) {
+        for (const [zen, oldValue] of pendingNotifications) {
+          notifyListeners(zen, zen._value, oldValue);
+        }
+        pendingNotifications.clear();
       }
-      pendingNotifications.clear();
+      // Flush pending effects (now batchDepth can be 0)
+      batchDepth--;
+      if (pendingEffects.size > 0) {
+        const effects = Array.from(pendingEffects);
+        pendingEffects.clear();
+        for (const effect of effects) {
+          effect();
+        }
+      }
+    } else {
+      // Nested batch - just decrement
+      batchDepth--;
     }
   }
 }
@@ -410,3 +432,171 @@ export function computedAsync<T>(
 }
 
 export type ComputedAsyncZen<T> = ComputedAsyncCore<T>;
+
+// ============================================================================
+// EFFECT (Side Effects with Auto-tracking)
+// ============================================================================
+
+type EffectCore = {
+  _sources: AnyZen[];
+  _unsubs?: Unsubscribe[];
+  _cleanup?: () => void;
+  _callback: () => void | (() => void);
+  _cancelled: boolean;
+  _autoTrack: boolean;
+  _queued: boolean;
+  _execute: () => void;
+};
+
+function executeEffect(e: EffectCore): void {
+  if (e._cancelled) return;
+
+  e._queued = false;
+
+  // Run previous cleanup
+  if (e._cleanup) {
+    try {
+      e._cleanup();
+    } catch (_) {}
+    e._cleanup = undefined;
+  }
+
+  // Unsubscribe and reset sources for re-tracking (only for auto-tracked effects)
+  if (e._autoTrack && e._unsubs !== undefined) {
+    for (let i = 0; i < e._unsubs.length; i++) {
+      e._unsubs[i]();
+    }
+    e._unsubs = undefined;
+    e._sources = [];
+  }
+
+  // Set as current listener for auto-tracking (only if auto-track enabled)
+  const prevListener = currentListener;
+  if (e._autoTrack) {
+    currentListener = e as any;
+  }
+
+  try {
+    const cleanup = e._callback();
+    if (cleanup) e._cleanup = cleanup;
+  } catch (err) {
+    // Swallow errors to prevent breaking the reactivity system
+    console.error('Effect error:', err);
+  } finally {
+    currentListener = prevListener;
+  }
+
+  // Subscribe to tracked sources (only if not already subscribed)
+  if (!e._unsubs && e._sources.length > 0) {
+    const unsubs: Unsubscribe[] = [];
+
+    const onSourceChange = () => runEffect(e);
+
+    for (let i = 0; i < e._sources.length; i++) {
+      const source = e._sources[i] as ZenCore<any>;
+      if (!source._listeners) source._listeners = [];
+      source._listeners.push(onSourceChange as any);
+
+      unsubs.push(() => {
+        const listeners = source._listeners;
+        if (!listeners) return;
+        const idx = listeners.indexOf(onSourceChange as any);
+        if (idx !== -1) listeners.splice(idx, 1);
+      });
+    }
+
+    e._unsubs = unsubs;
+  }
+}
+
+function runEffect(e: EffectCore): void {
+  if (e._cancelled) return;
+
+  // If already queued, skip
+  if (e._queued) return;
+
+  // If in batch, queue for later
+  if (batchDepth > 0) {
+    e._queued = true;
+    queueEffect(e._execute);
+    return;
+  }
+
+  // Execute immediately
+  executeEffect(e);
+}
+
+export function effect(
+  callback: () => void | (() => void),
+  explicitDeps?: AnyZen[],
+): Unsubscribe {
+  const e: EffectCore = {
+    _sources: explicitDeps || [],
+    _callback: callback,
+    _cancelled: false,
+    _autoTrack: !explicitDeps, // Only auto-track if no explicit deps provided
+    _queued: false,
+    _execute: null as any, // Will be set below
+  };
+
+  // Create stable reference for queuing
+  e._execute = () => executeEffect(e);
+
+  // Run effect immediately (synchronously for initial run)
+  // Set as current listener for auto-tracking (only if auto-track enabled)
+  const prevListener = currentListener;
+  if (e._autoTrack) {
+    currentListener = e as any;
+  }
+
+  try {
+    const cleanup = e._callback();
+    if (cleanup) e._cleanup = cleanup;
+  } catch (err) {
+    console.error('Effect error:', err);
+  } finally {
+    currentListener = prevListener;
+  }
+
+  // Subscribe to tracked sources after initial run
+  if (e._sources.length > 0) {
+    const unsubs: Unsubscribe[] = [];
+
+    const onSourceChange = () => runEffect(e);
+
+    for (let i = 0; i < e._sources.length; i++) {
+      const source = e._sources[i] as ZenCore<any>;
+      if (!source._listeners) source._listeners = [];
+      source._listeners.push(onSourceChange as any);
+
+      unsubs.push(() => {
+        const listeners = source._listeners;
+        if (!listeners) return;
+        const idx = listeners.indexOf(onSourceChange as any);
+        if (idx !== -1) listeners.splice(idx, 1);
+      });
+    }
+
+    e._unsubs = unsubs;
+  }
+
+  // Return unsubscribe function
+  return () => {
+    if (e._cancelled) return;
+    e._cancelled = true;
+
+    // Run final cleanup
+    if (e._cleanup) {
+      try {
+        e._cleanup();
+      } catch (_) {}
+    }
+
+    // Unsubscribe from sources
+    if (e._unsubs) {
+      for (let i = 0; i < e._unsubs.length; i++) {
+        e._unsubs[i]();
+      }
+    }
+  };
+}
