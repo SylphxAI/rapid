@@ -1,9 +1,8 @@
-import { describe, bench } from 'vitest';
-import { zen, computed, batch, subscribe } from './dist/index.js';
-import { createSignal, createEffect, createMemo, batch as solidBatch } from 'solid-js';
+import { createEffect, createMemo, createSignal, batch as solidBatch } from 'solid-js';
+import { bench, describe } from 'vitest';
+import { batch, computed, subscribe, zen } from './dist/index.js';
 
 describe('Detailed Performance Benchmark: Zen v3.2 vs SolidJS', () => {
-
   bench('Zen Signal Creation - 1M ops', () => {
     for (let i = 0; i < 1000000; i++) {
       zen(i);
@@ -38,7 +37,7 @@ describe('Detailed Performance Benchmark: Zen v3.2 vs SolidJS', () => {
   });
 
   bench('SolidJS Signal Write - 1M ops', () => {
-    const [signal, setSignal] = createSignal(0);
+    const [_signal, setSignal] = createSignal(0);
     for (let i = 0; i < 1000000; i++) {
       setSignal(() => i);
     }
@@ -104,8 +103,10 @@ describe('Detailed Performance Benchmark: Zen v3.2 vs SolidJS', () => {
     const signals = Array.from({ length: 100 }, () => zen(0));
     for (let i = 0; i < 100000; i++) {
       const idx = i % signals.length;
-      let value = 0;
-      const unsub = subscribe(signals[idx], (v) => { value = v; });
+      let _value = 0;
+      const unsub = subscribe(signals[idx], (v) => {
+        _value = v;
+      });
       signals[idx].value = i;
       unsub();
     }
@@ -115,8 +116,10 @@ describe('Detailed Performance Benchmark: Zen v3.2 vs SolidJS', () => {
     const signals = Array.from({ length: 100 }, () => createSignal(0));
     for (let i = 0; i < 100000; i++) {
       const idx = i % signals.length;
-      let value = 0;
-      const dispose = createEffect(() => { value = signals[idx][0](); });
+      let _value = 0;
+      const dispose = createEffect(() => {
+        _value = signals[idx][0]();
+      });
       signals[idx][1](() => i);
       dispose();
     }

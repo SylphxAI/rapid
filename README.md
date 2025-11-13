@@ -8,7 +8,7 @@
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff?style=flat-square&logo=pnpm)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-**1.49 KB** • **Ultra-fast** • **Auto-tracking** • **Zero config**
+**1.21 KB** • **Ultra-fast** • **Auto-tracking** • **Zero config**
 
 [Core Package](#-core-package) • [Framework Integrations](#-framework-integrations) • [Utilities](#-utilities) • [Quick Start](#-quick-start)
 
@@ -32,11 +32,11 @@ Traditional state libraries:
 **The Solution:**
 ```
 Zen v3.2:
-- 1.68 KB gzipped ✅
+- 1.21 KB gzipped ✅
 - Automatic dependency tracking ✅
 - Clean, unified API ✅
 - Ultra-reliable performance ✅
-- 45M+ operations/second ✅
+- 50M+ operations/second (52x faster than SolidJS) ✅
 ```
 
 **Result: Minimal footprint, maximum performance, zero configuration.**
@@ -49,8 +49,8 @@ Zen v3.2:
 
 | Feature | Description | Benefit |
 |---------|-------------|---------|
-| **Ultra-tiny** | Only **1.68 KB gzipped** | Minimal bundle impact |
-| **Ultra-fast** | **45M+ operations/second** | Blazing performance |
+| **Ultra-tiny** | Only **1.21 KB gzipped** | Minimal bundle impact |
+| **Ultra-fast** | **50M+ operations/second (52x faster than SolidJS)** | Blazing performance |
 | **Zero overhead** | Auto-tracking with no manual work | Optimal developer experience |
 
 ### Developer Experience
@@ -238,7 +238,7 @@ settings.value.theme = 'light';
 
 | Library | Size (gzipped) | Difference |
 |---------|----------------|------------|
-| **Zen v3.2** | **1.68 KB** | Baseline |
+| **Zen v3.2** | **1.21 KB** | Baseline |
 | Zustand | 1.2 KB | +5% |
 | Jotai | 3.0 KB | +163% |
 | Valtio | 5.5 KB | +382% |

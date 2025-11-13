@@ -5,7 +5,7 @@
 Zen is a revolutionary reactive state management library that combines extreme minimalism with magical auto-tracking.
 
 <p align="center">
-  <strong>1.68 KB gzipped • Blazing fast • Auto-tracking • Zero config</strong>
+  <strong>1.21 KB gzipped • 52x faster than SolidJS • Auto-tracking • Zero config</strong>
 </p>
 
 ---

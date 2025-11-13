@@ -1,8 +1,8 @@
-import { describe, bench } from 'vitest';
-import { zen, computed, batch, subscribe } from './dist/index.js';
+import { bench, describe } from 'vitest';
+import { batch, computed, subscribe, zen } from './dist/index.js';
 
 // SolidJS for comparison
-import { createSignal, createEffect, createMemo, batch as solidBatch } from 'solid-js';
+import { createEffect, createMemo, createSignal, batch as solidBatch } from 'solid-js';
 
 describe('Fair Dist Comparison: Zen v3.2 vs SolidJS', () => {
   // Signal Operations
@@ -96,7 +96,9 @@ describe('Fair Dist Comparison: Zen v3.2 vs SolidJS', () => {
   bench('Zen Subscribe/Unsubscribe', () => {
     const signal = zen(0);
     let value = 0;
-    const unsub = subscribe(signal, (v) => { value = v; });
+    const unsub = subscribe(signal, (v) => {
+      value = v;
+    });
     signal.value = 1;
     unsub();
     return value;
@@ -105,7 +107,9 @@ describe('Fair Dist Comparison: Zen v3.2 vs SolidJS', () => {
   bench('SolidJS Effect Creation/Cleanup', () => {
     const [signal, setSignal] = createSignal(0);
     let value = 0;
-    const dispose = createEffect(() => { value = signal(); });
+    const dispose = createEffect(() => {
+      value = signal();
+    });
     setSignal(() => 1);
     dispose();
     return value;
