@@ -331,7 +331,24 @@ export function computed<T, S extends AnyZen | Stores>(
     _update: () => updateComputedValue(computedZen),
   };
 
-  return computedZen;
+  // ✅ v3.2 OPTIMIZATION: Add value getter for lazy evaluation
+  Object.defineProperty(computedZen, 'value', {
+    get() {
+      // Update if dirty
+      if (computedZen._dirty) {
+        updateComputedValue(computedZen);
+        // Subscribe on first access
+        if (!computedZen._unsubscribers && computedZen._sources.length > 0) {
+          subscribeComputedToSources(computedZen);
+        }
+      }
+      return computedZen._value;
+    },
+    enumerable: true,
+    configurable: true,
+  });
+
+  return computedZen as ReadonlyZen<T>;
 }
 
 // Note: getZenValue and subscribeToZen logic in zen.ts handles computed zen specifics.

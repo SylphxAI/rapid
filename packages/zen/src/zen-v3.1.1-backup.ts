@@ -48,14 +48,12 @@ export type ZenValue<A extends AnyZen> = A extends ZenCore<infer V> ? V : never;
 let currentListener: ComputedCore<any> | null = null;
 
 // ============================================================================
-// BATCHING - OPTIMIZED v3.2 (16x faster!)
+// BATCHING
 // ============================================================================
 
 let batchDepth = 0;
-// OPTIMIZATION: Queue-based batching (Solid-inspired) - replaces Map with arrays
-let Updates: ComputedCore<any>[] | null = null; // Queue for computed updates
-let Effects: Array<() => void> | null = null; // Queue for side effects
-const pendingNotifications = new Map<AnyZen, any>(); // Keep for external stores (map, deepMap)
+const pendingNotifications = new Map<AnyZen, any>();
+const pendingEffects: Array<() => void> = [];
 
 export function notifyListeners<T>(zen: ZenCore<T>, newValue: T, oldValue: T): void {
   const listeners = zen._listeners;
@@ -97,32 +95,24 @@ const zenProto = {
 
     this._value = newValue;
 
-    // OPTIMIZATION v3.2: Mark computed dependents as dirty and queue for batch
+    // Mark computed dependents as dirty
     const listeners = this._listeners;
     if (listeners) {
       for (let i = 0; i < listeners.length; i++) {
         const listener = listeners[i];
-        const computedZen = (listener as any)._computedZen;
-        if (computedZen && !computedZen._dirty) {
-          computedZen._dirty = true;
-          // Add to Updates queue if in batch
-          if (Updates) {
-            Updates.push(computedZen);
-          }
+        if ((listener as any)._computedZen) {
+          (listener as any)._computedZen._dirty = true;
         }
       }
     }
 
     if (batchDepth > 0) {
-      // In batch: queue for notification
       if (!pendingNotifications.has(this)) {
         pendingNotifications.set(this, oldValue);
       }
-      return;
+    } else {
+      notifyListeners(this, newValue, oldValue);
     }
-
-    // Immediate notification outside batch
-    notifyListeners(this, newValue, oldValue);
   },
 };
 
@@ -147,17 +137,8 @@ export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<
   zenData._listeners.push(listener as any);
 
   // Subscribe computed to sources
-  if (zen._kind === 'computed') {
-    // Check if it's from computed.ts (has _subscribeToSources method)
-    if ((zen as any)._subscribeToSources) {
-      const firstListener = zenData._listeners.length === 1;
-      if (firstListener) {
-        (zen as any)._subscribeToSources();
-      }
-    } else if (zen._unsubs === undefined) {
-      // It's from zen.ts (internal computed)
-      subscribeToSources(zen as any);
-    }
+  if (zen._kind === 'computed' && zen._unsubs === undefined) {
+    subscribeToSources(zen as any);
   }
 
   // Subscribe batched to sources (for batched stores from batched.ts)
@@ -184,14 +165,8 @@ export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<
     // Unsubscribe computed from sources if no more listeners
     if (listeners.length === 0) {
       zenData._listeners = undefined;
-      if (zen._kind === 'computed') {
-        // Check if it's from computed.ts (has _unsubscribeFromSources method)
-        if ((zen as any)._unsubscribeFromSources) {
-          (zen as any)._unsubscribeFromSources();
-        } else if (zen._unsubs) {
-          // It's from zen.ts (internal computed)
-          unsubscribeFromSources(zen as any);
-        }
+      if (zen._kind === 'computed' && zen._unsubs) {
+        unsubscribeFromSources(zen as any);
       }
       // Unsubscribe batched from sources
       if (zen._kind === 'batched' && (zen as any)._unsubscribeFromSources) {
@@ -206,73 +181,33 @@ export function subscribe<A extends AnyZen>(zen: A, listener: Listener<ZenValue<
 // ============================================================================
 
 export function batch<T>(fn: () => T): T {
-  // OPTIMIZATION v3.2: Queue-based batching - 16x faster than Map-based approach!
-  // Already batching - just increment depth
-  if (batchDepth > 0 || Updates !== null) {
-    batchDepth++;
-    try {
-      return fn();
-    } finally {
-      batchDepth--;
-    }
-  }
-
-  // Start new batch with queues
-  batchDepth = 1;
-  Updates = [];
-  Effects = [];
-
+  batchDepth++;
   try {
-    const result = fn();
-
-    // STEP 1: Process Updates queue (computed values)
-    if (Updates.length > 0) {
-      const updateQueue = Updates;
-      Updates = null; // Clear to detect nested batches
-
-      for (let i = 0; i < updateQueue.length; i++) {
-        const computed = updateQueue[i];
-        if (computed._dirty) {
-          // Check if it's from computed.ts (has _update method)
-          if ((computed as any)._update) {
-            (computed as any)._update();
-          } else {
-            // It's from zen.ts (internal computed)
-            updateComputed(computed);
-          }
-        }
-      }
-    }
-
-    // STEP 2: Process external store notifications (map, deepMap)
-    if (pendingNotifications.size > 0) {
-      for (const [zen, oldValue] of pendingNotifications) {
-        const listeners = zen._listeners;
-        if (listeners) {
-          const newValue = zen._value;
-          for (let i = 0; i < listeners.length; i++) {
-            listeners[i](newValue, oldValue);
-          }
-        }
-      }
-      pendingNotifications.clear();
-    }
-
-    // STEP 3: Process Effects queue (side effects)
-    if (Effects && Effects.length > 0) {
-      const effectQueue = Effects;
-      Effects = null;
-
-      for (let i = 0; i < effectQueue.length; i++) {
-        effectQueue[i]();
-      }
-    }
-
-    return result;
+    return fn();
   } finally {
-    batchDepth = 0;
-    Updates = null;
-    Effects = null;
+    batchDepth--;
+    if (batchDepth === 0) {
+      if (pendingNotifications.size > 0) {
+        // Inline notification loop for maximum performance
+        for (const [zen, oldValue] of pendingNotifications) {
+          const listeners = zen._listeners;
+          if (listeners) {
+            const newValue = zen._value;
+            for (let i = 0; i < listeners.length; i++) {
+              listeners[i](newValue, oldValue);
+            }
+          }
+        }
+        pendingNotifications.clear();
+      }
+      // Flush effects after notifications
+      if (pendingEffects.length > 0) {
+        for (let i = 0; i < pendingEffects.length; i++) {
+          pendingEffects[i]();
+        }
+        pendingEffects.length = 0;
+      }
+    }
   }
 }
 
@@ -460,10 +395,10 @@ function runEffect(e: EffectCore): void {
   // If already queued, skip
   if (e._queued) return;
 
-  // OPTIMIZATION v3.2: Queue in Effects array if in batch
-  if (batchDepth > 0 && Effects) {
+  // If in batch, queue for later
+  if (batchDepth > 0) {
     e._queued = true;
-    Effects.push(e._execute);
+    pendingEffects.push(e._execute);
     return;
   }
 
