@@ -55,7 +55,7 @@ let batchDepth = 0;
 const pendingNotifications = new Map<AnyZen, any>();
 const pendingEffects: Array<() => void> = [];
 
-export function notifyListeners<T>(zen: ZenCore<T>, newValue: T, oldValue: T) {
+export function notifyListeners<T>(zen: ZenCore<T>, newValue: T, oldValue: T): void {
   const listeners = zen._listeners;
   if (!listeners) return;
 
@@ -116,7 +116,7 @@ const zenProto = {
   },
 };
 
-export function zen<T>(initialValue: T) {
+export function zen<T>(initialValue: T): Zen<T> {
   const signal = Object.create(zenProto) as ZenCore<T> & { value: T };
   signal._kind = 'zen';
   signal._value = initialValue;
