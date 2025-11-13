@@ -35,6 +35,7 @@ type ComputedCore<T> = ZenCore<T | null> & {
   _sources: AnyZen[];
   _calc: () => T;
   _unsubs?: Unsubscribe[];
+  _epoch?: number; // OPTIMIZATION: Track last processed epoch (instead of Set)
 };
 
 export type AnyZen = ZenCore<any> | ComputedCore<any>;
@@ -57,6 +58,7 @@ const Updates: Set<ComputedCore<any>> = new Set(); // Set for computed updates (
 const Effects: Array<() => void> = []; // Queue for side effects
 const pendingNotifications = new Map<AnyZen, any>(); // Keep for external stores (map, deepMap)
 let isProcessingUpdates = false; // Flag to indicate we're in STEP 1 (processing Updates)
+let currentEpoch = 0; // OPTIMIZATION: Epoch counter for batch processing (replaces processed Set)
 
 export function notifyListeners<T>(zen: ZenCore<T>, newValue: T, oldValue: T): void {
   const listeners = zen._listeners;
@@ -234,81 +236,114 @@ export function batch<T>(fn: () => T): T {
 
     // Only process if we're at depth 1 (outermost batch)
     if (batchDepth === 1) {
-      // STEP 1: Process Updates set (computed values)
-      // ✅ v3.3 LAZY OPTIMIZATION: Only process computed values that have active listeners
-      // This implements Solid-style pull-based evaluation for unobserved computed values
-      if (Updates.size > 0) {
-        // Keep Updates as a Set to allow new computed to be added during processing
-        // This handles dependency chains where updating A dirties B which needs processing
-        const processed = new Set<ComputedCore<any>>();
-        isProcessingUpdates = true;
+      // ✅ Phase 2 OPTIMIZATION: Unified pending work check
+      const hasWork = Updates.size > 0 || pendingNotifications.size > 0 || Effects.length > 0;
 
-        while (Updates.size > 0) {
-          // Get next unprocessed computed
-          let computed: ComputedCore<any> | undefined;
-          for (const c of Updates) {
-            if (!processed.has(c)) {
-              computed = c;
-              break;
+      if (hasWork) {
+        // STEP 1: Process Updates set (computed values)
+        // ✅ v3.3 LAZY OPTIMIZATION: Only process computed values that have active listeners
+        // This implements Solid-style pull-based evaluation for unobserved computed values
+        if (Updates.size > 0) {
+          // ✅ Phase 2 OPTIMIZATION: Use epoch counter instead of processed Set
+          // This eliminates per-batch Set allocation
+          currentEpoch++;
+          isProcessingUpdates = true;
+
+          // Keep Updates as a Set to allow new computed to be added during processing
+          // This handles dependency chains where updating A dirties B which needs processing
+          while (Updates.size > 0) {
+            // Get next unprocessed computed (epoch-based deduplication)
+            let computed: ComputedCore<any> | undefined;
+            for (const c of Updates) {
+              if (c._epoch !== currentEpoch) {
+                computed = c;
+                break;
+              }
             }
-          }
 
-          if (!computed) break; // All processed
+            if (!computed) break; // All processed
 
-          // Remove from Updates and mark as processed
-          Updates.delete(computed);
-          processed.add(computed);
+            // Remove from Updates and mark as processed (epoch-based)
+            Updates.delete(computed);
+            computed._epoch = currentEpoch;
 
-          // ✅ v3.3 LAZY: Skip computation if no listeners (will compute on next access)
-          // This is the key difference from v3.2: we don't force computation during batch
-          if (computed._dirty && computed._listeners && computed._listeners.length > 0) {
-            const oldValue = computed._value;
-            let changed = false;
+            // ✅ v3.3 LAZY: Skip computation if no listeners (will compute on next access)
+            // This is the key difference from v3.2: we don't force computation during batch
+            if (computed._dirty && computed._listeners && computed._listeners.length > 0) {
+              const oldValue = computed._value;
 
-            // Check if it's from computed.ts (has _update method)
-            if ((computed as any)._update) {
-              changed = (computed as any)._update();
-              // Send notification for computed.ts computed values
-              if (changed && computed._listeners) {
-                for (let j = 0; j < computed._listeners.length; j++) {
-                  computed._listeners[j](computed._value, oldValue);
+              // Check if it's from computed.ts (has _update method)
+              if ((computed as any)._update) {
+                const changed = (computed as any)._update();
+                // Send notification for computed.ts computed values
+                if (changed && computed._listeners) {
+                  for (let j = 0; j < computed._listeners.length; j++) {
+                    computed._listeners[j](computed._value, oldValue);
+                  }
+                }
+              } else {
+                // ✅ Phase 2 OPTIMIZATION: Inline updateComputed for zen.ts internal computed
+                // Eliminates function call overhead in hot path
+                const needsResubscribe = computed._unsubs !== undefined;
+                if (needsResubscribe) {
+                  unsubscribeFromSources(computed);
+                  computed._sources = [];
+                }
+
+                // Set as current listener for auto-tracking
+                const prevListener = currentListener;
+                currentListener = computed;
+
+                try {
+                  const newValue = computed._calc();
+                  computed._dirty = false;
+
+                  // Re-subscribe to newly tracked sources
+                  if (needsResubscribe && computed._sources.length > 0) {
+                    subscribeToSources(computed);
+                  }
+
+                  // Use Object.is for equality check
+                  if (computed._value === null || !Object.is(newValue, computed._value)) {
+                    computed._value = newValue;
+                    // In STEP 1, notify immediately (we're already in isProcessingUpdates)
+                    notifyListeners(computed, newValue, oldValue);
+                  }
+                } finally {
+                  currentListener = prevListener;
                 }
               }
-            } else {
-              // It's from zen.ts (internal computed)
-              // updateComputed will handle both update and notification
-              updateComputed(computed);
             }
+            // If no listeners, computed stays dirty and will be evaluated on next access (lazy)
           }
-          // If no listeners, computed stays dirty and will be evaluated on next access (lazy)
+
+          isProcessingUpdates = false;
+          Updates.clear(); // Clear for reuse
         }
 
-        isProcessingUpdates = false;
-        Updates.clear(); // Clear for reuse
-      }
-
-      // STEP 2: Process external store notifications (map, deepMap)
-      if (pendingNotifications.size > 0) {
-        for (const [zen, oldValue] of pendingNotifications) {
-          const listeners = zen._listeners;
-          if (listeners) {
-            const newValue = zen._value;
-            for (let i = 0; i < listeners.length; i++) {
-              listeners[i](newValue, oldValue);
+        // STEP 2: Process external store notifications (map, deepMap)
+        if (pendingNotifications.size > 0) {
+          for (const [zen, oldValue] of pendingNotifications) {
+            const listeners = zen._listeners;
+            if (listeners) {
+              const newValue = zen._value;
+              for (let i = 0; i < listeners.length; i++) {
+                listeners[i](newValue, oldValue);
+              }
             }
           }
+          pendingNotifications.clear();
         }
-        pendingNotifications.clear();
-      }
 
-      // STEP 3: Process Effects queue (side effects)
-      if (Effects.length > 0) {
-        // Copy effects to process (in case new effects are queued during execution)
-        const effectsToRun = Effects.slice();
-        Effects.length = 0; // Clear for reuse
+        // STEP 3: Process Effects queue (side effects)
+        if (Effects.length > 0) {
+          // Copy effects to process (in case new effects are queued during execution)
+          const effectsToRun = Effects.slice();
+          Effects.length = 0; // Clear for reuse
 
-        for (let i = 0; i < effectsToRun.length; i++) {
-          effectsToRun[i]();
+          for (let i = 0; i < effectsToRun.length; i++) {
+            effectsToRun[i]();
+          }
         }
       }
     }

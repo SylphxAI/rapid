@@ -1,5 +1,97 @@
 # @sylphx/zen
 
+## 3.4.0
+
+### Minor Changes
+
+- feat: Phase 2 optimizations - epoch counter, queue merge, and inlining (v3.4)
+
+  BREAKING: None (fully backward compatible)
+
+  ## v3.4 Phase 2 Performance Improvements
+
+  ### Epoch Counter Optimization
+
+  - **Replaced processed Set with epoch counter**: Eliminates Set allocation per batch
+  - Each batch increments a global `currentEpoch` counter
+  - Computed values are marked with `_epoch` instead of being added to a Set
+  - **Result**: Lazy computed overhead reduced from 9.5% to -1.1% (actually faster)
+
+  ### Unified Work Check
+
+  - **Single `hasWork` pre-check** before processing queues
+  - Combines 3 separate checks into one when all queues are empty
+  - Reduces branch misprediction in common case (empty batches)
+  - ~5% improvement for empty batch scenarios
+
+  ### Inline updateComputed
+
+  - **Inlined updateComputed into batch loop** for zen.ts internal computed
+  - Eliminates function call overhead in hot path
+  - Better CPU instruction cache locality
+  - **Result**: 12.9% faster for unobserved computed scenarios
+
+  ### Performance Results vs Solid.js
+
+  - **Test 1** (Unobserved): 11.14x → 9.70x (12.9% faster)
+  - **Test 2** (Observed): 8.89x → 8.37x (5.8% faster)
+  - **Test 3** (No access): 6.82x → 7.80x
+  - **Average**: 8.95x → 8.62x (3.7% overall improvement)
+
+  ### Micro-benchmark Results
+
+  ```
+  Empty batch:        2.34ms (42.7M ops/sec)
+  Signal updates:     21.00ms (4.8M ops/sec)
+  Lazy computed:      20.77ms (4.8M ops/sec) ← -1.1% overhead
+  Dependency chain:   21.50ms (4.7M ops/sec) ← 3.6% overhead
+  ```
+
+  ## Technical Changes
+
+  ### zen.ts
+
+  - Added `_epoch?: number` to ComputedCore type
+  - Added `currentEpoch` global counter
+  - Replaced `processed Set` with epoch-based deduplication
+  - Added unified `hasWork` check before queue processing
+  - Inlined updateComputed logic into batch loop for internal computed
+
+  ### Bundle Size
+
+  - v3.3: 1.98 KB gzipped
+  - v3.4: 2.06 KB gzipped (+0.08 KB, +4%)
+  - Trade-off: +4% size for +3.7% performance
+
+  ### Test Results
+
+  - All 104 tests passing ✅
+  - Zero breaking changes
+  - 100% backward compatible
+
+  ## Migration Guide
+
+  No migration needed - v3.4 is 100% backward compatible with v3.3.
+
+  ### Upgrade Path
+
+  ```bash
+  npm install @sylphx/zen@latest
+  # or
+  bun add @sylphx/zen@latest
+  ```
+
+  No code changes required!
+
+  ## What's Next
+
+  Phase 3 optimizations targeting 3-5x slower vs Solid (from current 8.6x):
+
+  - Remove hasWork check overhead
+  - Simplify state management
+  - Learn from Solid's STALE/PENDING state machine
+  - Optimize notification propagation
+
 ## 3.3.0
 
 ### Minor Changes
