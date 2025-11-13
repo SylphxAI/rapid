@@ -180,10 +180,9 @@ describe('effect (auto-tracking)', () => {
       b.value = 20;
     });
 
-    // Effect runs for each changed dependency within the batch
-    // Both a and b changed, so effect runs twice (but computes same value)
-    // Note: Previous implementation may have deduplicated, current doesn't
-    expect(values).toEqual([3, 30, 30]);
+    // Effect runs once at end of batch (v3.2 optimization: deduplicates effect executions)
+    // This matches Solid Signals behavior and is more efficient
+    expect(values).toEqual([3, 30]);
   });
 
   it('handles errors gracefully', () => {
