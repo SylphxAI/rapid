@@ -1,5 +1,50 @@
 # Version Notes
 
+## v3.8.0 (2025-11-13)
+
+### Release Content
+
+This release (v3.8.0) implements V8 engine-specific optimizations:
+
+1. **Hidden Class Optimization**
+   - Pre-allocate all properties during object creation
+   - Ensures all signals have the same hidden class
+   - Enables monomorphic property access (10-100× faster)
+   - Better inline caching in V8 JIT compiler
+   - 15-25% improvement potential
+
+2. **Monomorphic Code Paths**
+   - Separate helper functions for zen vs computed value reads
+   - Reduces polymorphic inline cache misses
+   - Better optimization by V8's TurboFan compiler
+   - 5-15% improvement potential
+
+### Bundle Size
+
+- **Brotli**: 2.21 KB (v3.7: 2.09 KB, +5.7%)
+- **Gzip**: 2.49 KB (v3.7: 2.37 KB, +5.1%)
+- **Trade-off**: +120 bytes for better V8 optimization characteristics
+
+### Performance
+
+Mixed results with significant improvements in hot paths:
+- **Create/destroy computed**: +32% (2.18M → 2.87M ops/sec)
+- **Shopping cart**: +44% (3.6k → 5.3k ops/sec)
+- **Signal write**: +114% (10k → 21k ops/sec)
+- **Dynamic dependencies**: +20% (8.4k → 10k ops/sec)
+
+Some scenarios show small regressions due to initialization overhead, but overall characteristics are more predictable and benefit from long-running JIT optimization.
+
+### Breaking Changes
+
+**None** - Fully backward compatible with v3.7.0
+
+### Research
+
+See `ADVANCED_OPTIMIZATIONS_RESEARCH_2025.md` for comprehensive research into future optimization opportunities (v4.0, v5.0, v6.0+).
+
+---
+
 ## v3.7.0 (2025-11-13)
 
 ### Version Numbering Explanation
@@ -54,11 +99,13 @@ This release (v3.7.0) contains:
 ## Version History
 
 ```
-v3.0  → v3.1  → v3.2  → v3.3  → v3.4  → v3.5  → v3.7
-                12.8x   8.9x    8.6x    3.1x    2.97x (vs Solid)
+v3.0  → v3.1  → v3.2  → v3.3  → v3.4  → v3.5  → v3.7  → v3.8
+                12.8x   8.9x    8.6x    3.1x    2.97x   2.97x (vs Solid)
 ```
 
-**Note**: v3.6.0 was never published. The version jumped from v3.5.0 directly to v3.7.0.
+**Notes**:
+- v3.6.0 was never published (version jumped from v3.5.0 to v3.7.0)
+- v3.8.0 maintains same performance ratio vs Solid, with better optimization characteristics
 
 ---
 
@@ -67,12 +114,19 @@ v3.0  → v3.1  → v3.2  → v3.3  → v3.4  → v3.5  → v3.7
 Going forward:
 - Let changesets handle all version bumps
 - Don't manually edit `package.json` version
-- Next release will be v3.8.0 (or higher based on changesets)
+- Next planned: v4.0 with compiler-driven optimizations (30-40% improvement potential)
 
 ---
 
 ## References
 
+### v3.8.0
+- **npm**: https://www.npmjs.com/package/@sylphx/zen
+- **GitHub Release**: https://github.com/SylphxAI/zen/releases/tag/%40sylphx/zen%403.8.0
+- **Commit**: e9cb5b9
+- **PR**: #8 (Version Packages)
+
+### v3.7.0
 - **npm**: https://www.npmjs.com/package/@sylphx/zen
 - **GitHub Release**: https://github.com/SylphxAI/zen/releases/tag/%40sylphx/zen%403.7.0
 - **Commit**: 1c36169

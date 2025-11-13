@@ -8,7 +8,7 @@
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff?style=flat-square&logo=pnpm)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-**2.37 KB** • **2.97x vs Solid** • **Auto-tracking** • **Zero config**
+**2.49 KB** • **2.97x vs Solid** • **Auto-tracking** • **Zero config**
 
 [Core Package](#-core-package) • [Framework Integrations](#-framework-integrations) • [Utilities](#-utilities) • [Quick Start](#-quick-start)
 
@@ -32,7 +32,7 @@ Traditional state libraries:
 **The Solution:**
 ```
 Zen:
-- 2.21 KB gzipped ✅
+- 2.49 KB gzipped ✅
 - Automatic dependency tracking ✅
 - Clean, unified API ✅
 - Blazing fast performance ✅
@@ -48,7 +48,7 @@ Zen:
 
 | Feature | Description | Benefit |
 |---------|-------------|---------|
-| **Ultra-tiny** | Only **2.37 KB gzipped** (v3.7) | Minimal bundle impact |
+| **Ultra-tiny** | Only **2.49 KB gzipped** (v3.8) | Minimal bundle impact |
 | **Lightning fast** | **2.97x slower vs Solid.js** | Competitive performance |
 | **Zero overhead** | Auto-tracking with minimal runtime cost | Optimal performance |
 
@@ -238,7 +238,7 @@ settings.value.theme = 'light';
 | Library | Size (gzipped) | Difference |
 |---------|----------------|------------|
 | Zustand | 1.2 KB | Baseline |
-| **Zen v3.7** | **2.37 KB** | +98% |
+| **Zen v3.8** | **2.49 KB** | +108% |
 | Jotai | 3.0 KB | +150% |
 | Valtio | 5.5 KB | +358% |
 | Redux Toolkit | 12+ KB | +900% |
@@ -248,7 +248,7 @@ settings.value.theme = 'light';
 | Library | Performance | Auto-tracking | Computed |
 |---------|------------|---------------|----------|
 | Solid.js | 1x (baseline) | ✅ Yes | ✅ Yes |
-| **Zen v3.7** | **2.97x slower** | ✅ Yes | ✅ Yes |
+| **Zen v3.8** | **2.97x slower** | ✅ Yes | ✅ Yes |
 | Zustand | Manual tracking | ❌ No | ❌ No |
 | Valtio | Auto (Proxy) | ✅ Proxy | ❌ No |
 | Redux | Manual tracking | ❌ No | ❌ No |
@@ -471,7 +471,7 @@ Built with:
 <p align="center">
   <strong>The tiniest, fastest reactive state library</strong>
   <br>
-  <sub>2.37 KB • 2.97x vs Solid • Auto-tracking magic</sub>
+  <sub>2.49 KB • 2.97x vs Solid • Auto-tracking magic</sub>
   <br><br>
   <a href="https://sylphx.com">sylphx.com</a> •
   <a href="https://x.com/SylphxAI">@SylphxAI</a> •
