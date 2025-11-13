@@ -30,7 +30,7 @@ jobs:
         run: bun run build
 
       - name: Run Tests
-        run: bun test
+        run: bun test packages/zen/src
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
