@@ -98,16 +98,22 @@ export function isInBatchProcessing(): boolean {
 // ZEN (Core Signal)
 // ============================================================================
 
+// ✅ v3.8 OPTIMIZATION: Monomorphic helper for zen signal reads
+// Separate function for better inline caching (IC)
+function readZenValue(signal: ZenCore<any>): any {
+  // Auto-tracking: register as dependency if inside computed
+  if (currentListener) {
+    const sources = currentListener._sources as AnyZen[];
+    if (!sources.includes(signal)) {
+      sources.push(signal);
+    }
+  }
+  return signal._value;
+}
+
 const zenProto = {
   get value() {
-    // Auto-tracking: register as dependency if inside computed
-    if (currentListener) {
-      const sources = currentListener._sources as AnyZen[];
-      if (!sources.includes(this)) {
-        sources.push(this);
-      }
-    }
-    return this._value;
+    return readZenValue(this);
   },
   set value(newValue: any) {
     const oldValue = this._value;
@@ -154,9 +160,15 @@ const zenProto = {
 
 export function zen<T>(initialValue: T): Zen<T> {
   const signal = Object.create(zenProto) as ZenCore<T> & { value: T };
+  // ✅ v3.8 OPTIMIZATION: Pre-allocate ALL properties for same hidden class
+  // This makes V8 create the same hidden class for all signals → monomorphic code!
   signal._kind = 'zen';
   signal._value = initialValue;
-  signal._version = 0; // ✅ v3.6 OPTIMIZATION: Initialize version
+  signal._listeners = undefined;
+  signal._pendingOldValue = undefined;
+  signal._computedListeners = undefined;
+  signal._computedSlots = undefined;
+  signal._version = 0;
   return signal;
 }
 
@@ -582,26 +594,32 @@ function unsubscribeFromSources(c: ComputedCore<any>): void {
   }
 }
 
+// ✅ v3.8 OPTIMIZATION: Monomorphic helper for computed reads
+// Separate function for better inline caching (IC)
+function readComputedValue(computed: ComputedCore<any>): any {
+  // Auto-tracking: register as dependency if inside computed
+  if (currentListener) {
+    const sources = currentListener._sources as AnyZen[];
+    if (!sources.includes(computed)) {
+      sources.push(computed);
+    }
+  }
+
+  if (computed._dirty) {
+    updateComputed(computed);
+  }
+
+  // Subscribe on first access (after updateComputed which populates _sources)
+  if (computed._unsubs === undefined && computed._sources.length > 0) {
+    subscribeToSources(computed);
+  }
+
+  return computed._value;
+}
+
 const computedProto = {
   get value() {
-    // Auto-tracking: register as dependency if inside computed
-    if (currentListener) {
-      const sources = currentListener._sources as AnyZen[];
-      if (!sources.includes(this)) {
-        sources.push(this);
-      }
-    }
-
-    if (this._dirty) {
-      updateComputed(this);
-    }
-
-    // Subscribe on first access (after updateComputed which populates _sources)
-    if (this._unsubs === undefined && this._sources.length > 0) {
-      subscribeToSources(this);
-    }
-
-    return this._value;
+    return readComputedValue(this);
   },
 };
 
@@ -610,11 +628,21 @@ export function computed<T>(
   explicitDeps?: AnyZen[],
 ): ComputedCore<T> & { value: T } {
   const c = Object.create(computedProto) as ComputedCore<T> & { value: T };
+  // ✅ v3.8 OPTIMIZATION: Pre-allocate ALL properties for same hidden class
   c._kind = 'computed';
   c._value = null;
   c._dirty = true;
-  c._sources = explicitDeps || []; // Empty array for auto-tracking
+  c._sources = explicitDeps || [];
   c._calc = calculation;
+  c._listeners = undefined;
+  c._pendingOldValue = undefined;
+  c._computedListeners = undefined;
+  c._computedSlots = undefined;
+  c._version = 0;
+  c._unsubs = undefined;
+  c._epoch = undefined;
+  c._sourceVersions = undefined;
+  c._sourceSlots = undefined;
 
   return c;
 }
