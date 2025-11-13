@@ -27,6 +27,8 @@ type ZenCore<T> = {
   _kind: 'zen' | 'computed';
   _value: T;
   _listeners?: Listener<T>[];
+  _pendingOldValue?: T; // ✅ Phase 3 OPTIMIZATION: Replace pendingNotifications Map
+  _computedListeners?: ComputedCore<any>[]; // ✅ Phase 3 OPTIMIZATION: Separate computed listeners
 };
 
 type ComputedCore<T> = ZenCore<T | null> & {
@@ -56,7 +58,7 @@ let batchDepth = 0;
 // OPTIMIZATION v3.3: Reusable global queues (reduce GC pressure)
 const Updates: Set<ComputedCore<any>> = new Set(); // Set for computed updates (deduplication)
 const Effects: Array<() => void> = []; // Queue for side effects
-const pendingNotifications = new Map<AnyZen, any>(); // Keep for external stores (map, deepMap)
+const pendingSignals: AnyZen[] = []; // ✅ Phase 3 OPTIMIZATION: Array instead of Map for pending signals
 let isProcessingUpdates = false; // Flag to indicate we're in STEP 1 (processing Updates)
 let currentEpoch = 0; // OPTIMIZATION: Epoch counter for batch processing (replaces processed Set)
 
@@ -71,8 +73,10 @@ export function notifyListeners<T>(zen: ZenCore<T>, newValue: T, oldValue: T): v
 
 // Helper for external stores (map, deepMap) to integrate with batching
 export function queueZenForBatch(zen: AnyZen, oldValue: any): void {
-  if (!pendingNotifications.has(zen)) {
-    pendingNotifications.set(zen, oldValue);
+  // ✅ Phase 3 OPTIMIZATION: Use _pendingOldValue + Array instead of Map
+  if (zen._pendingOldValue === undefined) {
+    zen._pendingOldValue = oldValue;
+    pendingSignals.push(zen);
   }
 }
 
@@ -103,17 +107,20 @@ const zenProto = {
   },
   set value(newValue: any) {
     const oldValue = this._value;
-    if (Object.is(newValue, oldValue)) return;
+    // ✅ Phase 3 OPTIMIZATION: Inline Object.is (eliminate function call)
+    // Handle NaN (NaN !== NaN but Object.is(NaN, NaN) === true)
+    // Handle +0/-0 (+0 === -0 but Object.is(+0, -0) === false)
+    if (newValue === oldValue && (newValue !== 0 || 1/newValue === 1/oldValue)) return;
+    if (newValue !== newValue && oldValue !== oldValue) return;
 
     this._value = newValue;
 
-    // OPTIMIZATION v3.2: Mark computed dependents as dirty and queue for batch
-    const listeners = this._listeners;
-    if (listeners) {
-      for (let i = 0; i < listeners.length; i++) {
-        const listener = listeners[i];
-        const computedZen = (listener as any)._computedZen;
-        if (computedZen && !computedZen._dirty) {
+    // ✅ Phase 3 OPTIMIZATION: Use _computedListeners to avoid type checking
+    const computedListeners = this._computedListeners;
+    if (computedListeners) {
+      for (let i = 0; i < computedListeners.length; i++) {
+        const computedZen = computedListeners[i];
+        if (!computedZen._dirty) {
           // ✅ v3.3 OPTIMIZATION: Only mark and queue if not already dirty
           computedZen._dirty = true;
           // Add to Updates set if in batch (Set handles deduplication)
@@ -125,9 +132,10 @@ const zenProto = {
     }
 
     if (batchDepth > 0) {
-      // In batch: queue for notification
-      if (!pendingNotifications.has(this)) {
-        pendingNotifications.set(this, oldValue);
+      // ✅ Phase 3 OPTIMIZATION: Use _pendingOldValue + Array instead of Map
+      if (this._pendingOldValue === undefined) {
+        this._pendingOldValue = oldValue;
+        pendingSignals.push(this);
       }
       return;
     }
@@ -237,7 +245,8 @@ export function batch<T>(fn: () => T): T {
     // Only process if we're at depth 1 (outermost batch)
     if (batchDepth === 1) {
       // ✅ Phase 2 OPTIMIZATION: Unified pending work check
-      const hasWork = Updates.size > 0 || pendingNotifications.size > 0 || Effects.length > 0;
+      // ✅ Phase 3 OPTIMIZATION: Use pendingSignals.length instead of Map.size
+      const hasWork = Updates.size > 0 || pendingSignals.length > 0 || Effects.length > 0;
 
       if (hasWork) {
         // STEP 1: Process Updates set (computed values)
@@ -303,8 +312,9 @@ export function batch<T>(fn: () => T): T {
                     subscribeToSources(computed);
                   }
 
-                  // Use Object.is for equality check
-                  if (computed._value === null || !Object.is(newValue, computed._value)) {
+                  // ✅ Phase 3 OPTIMIZATION: Inline Object.is for equality check
+                  const isSame = newValue === computed._value && (newValue !== 0 || 1/newValue === 1/computed._value) || (newValue !== newValue && computed._value !== computed._value);
+                  if (computed._value === null || !isSame) {
                     computed._value = newValue;
                     // In STEP 1, notify immediately (we're already in isProcessingUpdates)
                     notifyListeners(computed, newValue, oldValue);
@@ -321,18 +331,23 @@ export function batch<T>(fn: () => T): T {
           Updates.clear(); // Clear for reuse
         }
 
-        // STEP 2: Process external store notifications (map, deepMap)
-        if (pendingNotifications.size > 0) {
-          for (const [zen, oldValue] of pendingNotifications) {
+        // STEP 2: Process pending signal notifications (zen, map, deepMap)
+        // ✅ Phase 3 OPTIMIZATION: Use Array + _pendingOldValue instead of Map
+        if (pendingSignals.length > 0) {
+          for (let i = 0; i < pendingSignals.length; i++) {
+            const zen = pendingSignals[i];
+            const oldValue = zen._pendingOldValue;
+            zen._pendingOldValue = undefined; // Reset for next batch
+
             const listeners = zen._listeners;
             if (listeners) {
               const newValue = zen._value;
-              for (let i = 0; i < listeners.length; i++) {
-                listeners[i](newValue, oldValue);
+              for (let j = 0; j < listeners.length; j++) {
+                listeners[j](newValue, oldValue);
               }
             }
           }
-          pendingNotifications.clear();
+          pendingSignals.length = 0; // Clear for reuse
         }
 
         // STEP 3: Process Effects queue (side effects)
@@ -383,8 +398,9 @@ function updateComputed<T>(c: ComputedCore<T>): void {
       subscribeToSources(c);
     }
 
-    // Use Object.is for equality check
-    if (c._value !== null && Object.is(newValue, c._value)) return;
+    // ✅ Phase 3 OPTIMIZATION: Inline Object.is for equality check
+    const isSame = newValue === c._value && (newValue !== 0 || 1/newValue === 1/c._value) || (newValue !== newValue && c._value !== c._value);
+    if (c._value !== null && isSame) return;
 
     const oldValue = c._value;
     c._value = newValue;
@@ -397,9 +413,10 @@ function updateComputed<T>(c: ComputedCore<T>): void {
       // We're in STEP 1 processing Updates - notify immediately
       notifyListeners(c, newValue, oldValue);
     } else if (batchDepth > 0) {
-      // In batch but not processing Updates - queue for STEP 2
-      if (!pendingNotifications.has(c)) {
-        pendingNotifications.set(c, oldValue);
+      // ✅ Phase 3 OPTIMIZATION: Use _pendingOldValue + Array instead of Map
+      if (c._pendingOldValue === undefined) {
+        c._pendingOldValue = oldValue;
+        pendingSignals.push(c);
       }
     } else {
       // Not in batch - notify immediately
@@ -443,6 +460,17 @@ function subscribeToSources(c: ComputedCore<any>): void {
   (onSourceChange as any)._computedZen = c;
 
   c._unsubs = attachListener(c._sources, onSourceChange);
+
+  // ✅ Phase 3 OPTIMIZATION: Add to _computedListeners for fast dirty marking
+  for (let i = 0; i < c._sources.length; i++) {
+    const source = c._sources[i];
+    if (!source._computedListeners) {
+      source._computedListeners = [];
+    }
+    if (!source._computedListeners.includes(c)) {
+      source._computedListeners.push(c);
+    }
+  }
 }
 
 function unsubscribeFromSources(c: ComputedCore<any>): void {
@@ -450,6 +478,21 @@ function unsubscribeFromSources(c: ComputedCore<any>): void {
   cleanUnsubs(c._unsubs);
   c._unsubs = undefined;
   c._dirty = true;
+
+  // ✅ Phase 3 OPTIMIZATION: Remove from _computedListeners
+  for (let i = 0; i < c._sources.length; i++) {
+    const source = c._sources[i];
+    const computedListeners = source._computedListeners;
+    if (computedListeners) {
+      const idx = computedListeners.indexOf(c);
+      if (idx !== -1) {
+        computedListeners.splice(idx, 1);
+        if (computedListeners.length === 0) {
+          source._computedListeners = undefined;
+        }
+      }
+    }
+  }
 }
 
 const computedProto = {

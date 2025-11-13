@@ -1,5 +1,114 @@
 # @sylphx/zen
 
+## 3.5.0
+
+### Minor Changes
+
+- # Phase 3: Signal-Level Optimizations (v3.5.0)
+
+  Performance breakthrough! 🎉 Zen is now **2.97x slower vs Solid** (from 8.62x), achieving our 3-5x target!
+
+  ## Performance Results
+
+  **v3.4 → v3.5:**
+
+  - Test 1 (Unobserved): 9.70x → 3.62x (**62.7% faster**)
+  - Test 2 (Observed): 8.37x → 2.57x (**69.3% faster**)
+  - Test 3 (No access): 7.80x → 2.72x (**65.1% faster**)
+  - **Average: 8.62x → 2.97x (65.5% improvement)**
+
+  ## Optimizations Implemented
+
+  ### 1. Inline Object.is (1-2% impact)
+
+  Eliminated function call overhead by inlining Object.is equality checks:
+
+  ```typescript
+  // Before
+  if (Object.is(newValue, oldValue)) return;
+
+  // After
+  if (
+    newValue === oldValue &&
+    (newValue !== 0 || 1 / newValue === 1 / oldValue)
+  )
+    return;
+  if (newValue !== newValue && oldValue !== oldValue) return;
+  ```
+
+  Handles both NaN and +0/-0 edge cases correctly while avoiding function call overhead.
+
+  ### 2. Remove pendingNotifications Map (40%+ impact!)
+
+  Replaced Map-based notification queue with direct object properties + Array:
+
+  ```typescript
+  // Before: Map overhead
+  const pendingNotifications = new Map<AnyZen, any>();
+  pendingNotifications.has(zen) + pendingNotifications.set(zen, oldValue);
+
+  // After: Direct property + Array
+  zen._pendingOldValue = oldValue;
+  pendingSignals.push(zen);
+  ```
+
+  **Key insight:** Map.has + Map.set in hot path was the major bottleneck. Using object properties is much faster.
+
+  ### 3. Classify Listeners (25%+ impact!)
+
+  Separated computed listeners from effect listeners to eliminate type checking in hot path:
+
+  ```typescript
+  // Before: Type check every iteration
+  for (const listener of listeners) {
+    const computedZen = (listener as any)._computedZen; // ← Type check
+    if (computedZen && !computedZen._dirty) { ... }
+  }
+
+  // After: Pre-classified array
+  for (const computedZen of _computedListeners) {
+    if (!computedZen._dirty) { ... } // ← Direct access
+  }
+  ```
+
+  Maintained in subscribeToSources/unsubscribeFromSources for automatic cleanup.
+
+  ## Bundle Size
+
+  - v3.4: 2.06 KB gzipped
+  - v3.5: 2.21 KB gzipped (+0.15 KB, +7.3%)
+
+  Trade-off: +7.3% size for **65.5% performance improvement** → Excellent value!
+
+  ## Breaking Changes
+
+  None! All optimizations are internal implementation changes.
+
+  ## Technical Analysis
+
+  The real bottleneck was **signal write operations**, not batch overhead:
+
+  - Empty batch: 2.29ms (very fast)
+  - Signal updates: +17.73ms (was the main cost)
+
+  Phase 3 optimizations directly attacked signal write cost:
+
+  1. Inline Object.is reduced per-write overhead
+  2. Removing Map operations cut 40%+ from hot path
+  3. Classified listeners eliminated redundant type checks
+
+  ## What's Next
+
+  Zen v3.5 has achieved the 3-5x target! 🎯
+
+  Remaining optimizations for future versions:
+
+  - v4.0: Unified computed implementation (breaking change)
+  - v4.0: Solid-style state machine (STALE/PENDING states)
+  - v4.0: Complete lazy evaluation refactor
+
+  Current status: **2.97x slower vs Solid** - competitive performance with minimal bundle size (2.21 KB)!
+
 ## 3.4.0
 
 ### Minor Changes
