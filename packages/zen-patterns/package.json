@@ -34,7 +34,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@sylphx/zen": "^3.1.0"
+    "@sylphx/zen": "^3.0.0"
   },
   "devDependencies": {
     "@sylphx/zen": "workspace:*",
