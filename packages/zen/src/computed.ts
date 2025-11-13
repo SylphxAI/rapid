@@ -257,7 +257,11 @@ function subscribeComputedToSources<T>(zen: ComputedZen<T>): void {
   const onChangeHandler = () => computedSourceChanged(zen);
 
   for (let i = 0; i < sources.length; i++) {
-    const unsub = _subscribeToSingleSource(sources[i], onChangeHandler, zen as ComputedZen<unknown>);
+    const unsub = _subscribeToSingleSource(
+      sources[i],
+      onChangeHandler,
+      zen as ComputedZen<unknown>,
+    );
     if (unsub) {
       newUnsubscribers.push(unsub);
     }

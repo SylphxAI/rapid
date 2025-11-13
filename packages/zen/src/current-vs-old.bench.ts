@@ -5,11 +5,21 @@
 import { bench, describe } from 'vitest';
 
 // Current version (optimized)
-import { zen as zenNew, computed as computedNew, subscribe as subscribeNew, batch as batchNew } from './index';
+import {
+  batch as batchNew,
+  computed as computedNew,
+  subscribe as subscribeNew,
+  zen as zenNew,
+} from './index';
 
 // v3.0.0 from downloaded package
 // @ts-ignore
-import { zen as zenOld, computed as computedOld, subscribe as subscribeOld, batch as batchOld } from '../../benchmark-old-vs-new/zen-v3.0.0/dist/index.js';
+import {
+  batch as batchOld,
+  computed as computedOld,
+  subscribe as subscribeOld,
+  zen as zenOld,
+} from '../../benchmark-old-vs-new/zen-v3.0.0/dist/index.js';
 
 describe('Atom Creation', () => {
   bench('v3.0.0', () => {
