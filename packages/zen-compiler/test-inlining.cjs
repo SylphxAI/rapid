@@ -16,23 +16,17 @@ const quad = computed(() => doubled.value * 2);
 // Result: const quad = computed(() => count.value * 2 * 2);
 `;
 
-console.log('=== Input Code ===\n');
-console.log(inputCode);
-
-console.log('\n=== Running Compiler Plugin with Inlining ===\n');
-
-const result = transformSync(inputCode, {
+const _result = transformSync(inputCode, {
   plugins: [
-    [zenCompilerPlugin, {
-      staticAnalysis: true,
-      inlineComputed: true,
-      warnings: true,
-      moduleName: '@sylphx/zen',
-    }],
+    [
+      zenCompilerPlugin,
+      {
+        staticAnalysis: true,
+        inlineComputed: true,
+        warnings: true,
+        moduleName: '@sylphx/zen',
+      },
+    ],
   ],
   filename: 'test.ts',
 });
-
-console.log('\n=== Transformation Complete ===\n');
-console.log('Output code:\n');
-console.log(result.code);

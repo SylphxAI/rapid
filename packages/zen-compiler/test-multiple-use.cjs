@@ -17,23 +17,17 @@ const oct = computed(() => doubled.value * 4);
 // Should NOT inline 'doubled' (would duplicate work)
 `;
 
-console.log('=== Multiple Use Test (should NOT inline) ===\n');
-console.log(inputCode);
-
-console.log('\n=== Running Compiler Plugin ===\n');
-
-const result = transformSync(inputCode, {
+const _result = transformSync(inputCode, {
   plugins: [
-    [zenCompilerPlugin, {
-      staticAnalysis: true,
-      inlineComputed: true,
-      warnings: true,
-      moduleName: '@sylphx/zen',
-    }],
+    [
+      zenCompilerPlugin,
+      {
+        staticAnalysis: true,
+        inlineComputed: true,
+        warnings: true,
+        moduleName: '@sylphx/zen',
+      },
+    ],
   ],
   filename: 'test.ts',
 });
-
-console.log('\n=== Output Code ===\n');
-console.log(result.code);
-console.log('\n✅ Expected: "doubled" should still exist (used 2 times)');

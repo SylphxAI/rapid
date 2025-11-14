@@ -19,22 +19,17 @@ const c5 = computed(() => c4.value + 1);
 // Result: const c5 = computed(() => base.value + 5);
 `;
 
-console.log('=== Deep Chain Test (5 levels) ===\n');
-console.log(inputCode);
-
-console.log('\n=== Running Compiler Plugin ===\n');
-
-const result = transformSync(inputCode, {
+const _result = transformSync(inputCode, {
   plugins: [
-    [zenCompilerPlugin, {
-      staticAnalysis: true,
-      inlineComputed: true,
-      warnings: true,
-      moduleName: '@sylphx/zen',
-    }],
+    [
+      zenCompilerPlugin,
+      {
+        staticAnalysis: true,
+        inlineComputed: true,
+        warnings: true,
+        moduleName: '@sylphx/zen',
+      },
+    ],
   ],
   filename: 'test.ts',
 });
-
-console.log('\n=== Output Code ===\n');
-console.log(result.code);
