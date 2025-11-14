@@ -35,6 +35,7 @@ type ComputedCore<T> = ZenCore<T | null> & {
   _sources: Set<AnyZen>;
   _calc: () => T;
   _unsubs?: Unsubscribe[];
+  _staticDeps?: boolean; // OPTIMIZATION: Flag for static dependencies
 };
 
 export type AnyZen = ZenCore<any> | ComputedCore<any>;
@@ -106,8 +107,7 @@ const zenProto = {
     // OPTIMIZATION v3.2: Mark computed dependents as dirty and queue for batch
     const listeners = this._listeners;
     if (listeners) {
-      for (let i = 0; i < listeners.length; i++) {
-        const listener = listeners[i];
+      for (const listener of listeners) {
         const computedZen = (listener as any)._computedZen;
         if (computedZen && !computedZen._dirty) {
           // ✅ v3.3 OPTIMIZATION: Only mark and queue if not already dirty
@@ -323,6 +323,33 @@ export function batch<T>(fn: () => T): T {
 // ============================================================================
 
 function updateComputed<T>(c: ComputedCore<T>): void {
+  // FAST PATH: Static dependencies (common case in benchmarks)
+  // Skip expensive source tracking overhead if deps never change
+  if (c._staticDeps) {
+    // Just compute new value directly, sources are already set
+    const newValue = c._calc();
+    c._dirty = false;
+
+    // Use Object.is for equality check
+    if (c._value !== null && Object.is(newValue, c._value)) return;
+
+    const oldValue = c._value;
+    c._value = newValue;
+
+    // Notification handling
+    if (isProcessingUpdates) {
+      notifyListeners(c, newValue, oldValue);
+    } else if (batchDepth > 0) {
+      if (!pendingNotifications.has(c)) {
+        pendingNotifications.set(c, oldValue);
+      }
+    } else {
+      notifyListeners(c, newValue, oldValue);
+    }
+    return;
+  }
+
+  // SLOW PATH: Dynamic dependencies (re-track sources)
   // OPTIMIZATION: Save old sources to detect if they changed
   // Skip expensive unsubscribe/resubscribe if dependencies are static
   const needsResubscribe = c._unsubs !== undefined;
@@ -346,7 +373,9 @@ function updateComputed<T>(c: ComputedCore<T>): void {
     if (needsResubscribe && oldSources) {
       // Fast path: Check size first (common case: same dependencies)
       if (oldSources.size === c._sources.size && setsEqual(oldSources, c._sources)) {
-        // Dependencies unchanged - restore sources, skip expensive unsub/resub!
+        // Dependencies unchanged - mark as static for future runs!
+        // This is a one-time check that pays off on every subsequent update
+        c._staticDeps = true;
         // No need to touch _unsubs - they're still valid
       } else {
         // Dependencies changed - need full unsubscribe/resubscribe
@@ -354,10 +383,14 @@ function updateComputed<T>(c: ComputedCore<T>): void {
         if (c._sources.size > 0) {
           subscribeToSources(c);
         }
+        // Reset static flag (deps changed)
+        c._staticDeps = false;
       }
     } else if (!needsResubscribe && c._sources.size > 0) {
       // First subscription (explicit deps or first auto-track)
       subscribeToSources(c);
+      // Mark as potentially static (will confirm on next run)
+      c._staticDeps = false;
     }
 
     // Use Object.is for equality check
