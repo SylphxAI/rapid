@@ -1,0 +1,39 @@
+/**
+ * Test that multiple-use computed is NOT inlined
+ */
+
+const { transformSync } = require('@babel/core');
+const zenCompilerPlugin = require('./dist/index.cjs').default;
+
+const inputCode = `
+import { zen, computed } from '@sylphx/zen';
+
+const count = zen(0);
+const doubled = computed(() => count.value * 2);
+const quad = computed(() => doubled.value * 2);
+const oct = computed(() => doubled.value * 4);
+
+// 'doubled' is used by BOTH quad and oct
+// Should NOT inline 'doubled' (would duplicate work)
+`;
+
+console.log('=== Multiple Use Test (should NOT inline) ===\n');
+console.log(inputCode);
+
+console.log('\n=== Running Compiler Plugin ===\n');
+
+const result = transformSync(inputCode, {
+  plugins: [
+    [zenCompilerPlugin, {
+      staticAnalysis: true,
+      inlineComputed: true,
+      warnings: true,
+      moduleName: '@sylphx/zen',
+    }],
+  ],
+  filename: 'test.ts',
+});
+
+console.log('\n=== Output Code ===\n');
+console.log(result.code);
+console.log('\n✅ Expected: "doubled" should still exist (used 2 times)');
