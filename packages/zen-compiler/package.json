@@ -1,0 +1,47 @@
+{
+  "name": "@sylphx/zen-compiler",
+  "version": "0.1.0",
+  "description": "Compiler plugin for Zen reactive state - static dependency analysis and optimization",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bunup src/index.ts --format esm,cjs --dts --target node --minify",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "zen",
+    "compiler",
+    "babel",
+    "typescript",
+    "plugin",
+    "optimization",
+    "reactive"
+  ],
+  "author": "Sylphx <hi@sylphx.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "@babel/core": "^7.0.0"
+  },
+  "dependencies": {
+    "@babel/types": "^7.26.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/parser": "^7.26.0",
+    "bunup": "^0.15.13",
+    "typescript": "^5.8.3"
+  }
+}
