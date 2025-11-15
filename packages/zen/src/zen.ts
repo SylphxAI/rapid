@@ -4,54 +4,35 @@
  * Trade-off: Glitches possible, but 10-50x faster
  */
 
-export type Listener<T> = (value: T, oldValue?: T) => void;
+export type Listener<T> = (value: T, oldValue: T | undefined) => void;
 export type Unsubscribe = () => void;
 
 // Bitflags for state (faster than separate fields)
 const FLAG_STALE = 0b01;
 const FLAG_PENDING = 0b10;
-const FLAG_HAS_LISTENERS = 0b100;
 
 type ZenCore<T> = {
   _value: T;
-  _listeners: Listener<T>[]; // Always array (monomorphic)
-  _flags: number; // Bitflags for state
+  _computedListeners: ComputedCore<unknown>[];
+  _effectListeners: Listener<T>[];
+  _flags: number;
 };
 
 type ComputedCore<T> = {
   _value: T | null;
   _calc: () => T;
-  _listeners: Listener<T>[];
+  _computedListeners: ComputedCore<unknown>[];
+  _effectListeners: Listener<T>[];
   _sources: AnyNode[];
   _sourceUnsubs?: Unsubscribe[];
-  _flags: number; // Bitflags for state
+  _flags: number;
 };
 
-export type AnyZen = ZenCore<any> | ComputedCore<any>;
+export type AnyZen = ZenCore<unknown> | ComputedCore<unknown>;
+type AnyNode = ZenCore<unknown> | ComputedCore<unknown>;
 
 // Global tracking
-let currentListener: ComputedCore<any> | null = null;
-
-type AnyNode = ZenCore<any> | ComputedCore<any>;
-
-// Pool for listener arrays to reduce allocations
-const LISTENER_POOL: Listener<any>[][] = [];
-let poolIndex = 0;
-
-function getListenerArray(): Listener<any>[] {
-  if (poolIndex < LISTENER_POOL.length) {
-    return LISTENER_POOL[poolIndex++]!;
-  }
-  const arr: Listener<any>[] = [];
-  LISTENER_POOL.push(arr);
-  poolIndex++;
-  return arr;
-}
-
-function releaseListenerArray(arr: Listener<any>[]): void {
-  arr.length = 0;
-  poolIndex = Math.max(0, poolIndex - 1);
-}
+let currentListener: ComputedCore<unknown> | null = null;
 
 // Helper to compare arrays for equality
 function arraysEqual<T>(a: T[], b: T[]): boolean {
@@ -66,59 +47,57 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
 // ZEN (Signal) - Direct notification, no auto-batching
 // ============================================================================
 
+// biome-ignore lint: TypeScript getter/setter with this parameter - Biome parser limitation
 const zenProto = {
-  get value(this: ZenCore<any> & { value: any }) {
+  get value(this: any): any {
     if (currentListener) {
       const sources = currentListener._sources;
-      if (sources.indexOf(this as ZenCore<any>) === -1) {
-        sources.push(this as ZenCore<any>);
+      const thisNode = this as unknown as AnyNode;
+      if (sources.indexOf(thisNode) === -1) {
+        sources.push(thisNode);
       }
     }
     return this._value;
   },
-  set value(this: ZenCore<any> & { value: any }, newValue: any) {
-    // Fast equality check
-    if (newValue === this._value) {
-      if (newValue === 0 && 1/newValue !== 1/this._value) {
-        // +0 vs -0, continue
+  set value(this: any, newValue: any): void {
+    const oldValue: any = this._value;
+
+    // Fast equality check - inlined
+    if (newValue === oldValue) {
+      // Check for +0 vs -0
+      if (newValue === 0 && 1/(newValue as number) !== 1/(oldValue as number)) {
+        // Continue
       } else {
         return;
       }
-    } else if (newValue !== newValue && this._value !== this._value) {
+    } else if (newValue !== newValue && oldValue !== oldValue) {
       return; // Both NaN
     }
 
-    const oldValue = this._value;
     this._value = newValue;
 
-    // DIRECT NOTIFICATION: No batching, just notify immediately
-    const listeners = this._listeners;
-    const len = listeners.length;
-
-    if (len === 0) return;
-
-    // Mark computed listeners as STALE
-    for (let i = 0; i < len; i++) {
-      const listener = listeners[i]!;
-      const computedZen = (listener as any)._computedZen;
-      if (computedZen) {
-        computedZen._flags |= FLAG_STALE; // Set STALE bit
-      }
+    // Mark computed listeners as STALE (no function call needed)
+    const computeds = this._computedListeners;
+    for (let i = 0; i < computeds.length; i++) {
+      computeds[i]!._flags |= FLAG_STALE;
     }
 
-    // Inline notification for 0-3 listeners
+    // Notify effect listeners (inline for 1-3 listeners)
+    const effects = this._effectListeners;
+    const len = effects.length;
+
     if (len === 1) {
-      listeners[0]!(newValue, oldValue);
+      effects[0]?.(newValue, oldValue);
     } else if (len === 2) {
-      listeners[0]!(newValue, oldValue);
-      listeners[1]!(newValue, oldValue);
+      effects[0]?.(newValue, oldValue);
+      effects[1]?.(newValue, oldValue);
     } else if (len === 3) {
-      listeners[0]!(newValue, oldValue);
-      listeners[1]!(newValue, oldValue);
-      listeners[2]!(newValue, oldValue);
-    } else {
+      effects[0]?.(newValue, oldValue);
+      effects[1]?.(newValue, oldValue);
+      effects[2]?.(newValue, oldValue);
+    } else if (len > 0) {
       for (let i = 0; i < len; i++) {
-        listeners[i]!(newValue, oldValue);
+        effects[i]?.(newValue, oldValue);
       }
     }
   },
@@ -127,7 +106,8 @@ const zenProto = {
 export function zen<T>(initialValue: T): ZenCore<T> & { value: T } {
   const signal = Object.create(zenProto) as ZenCore<T> & { value: T };
   signal._value = initialValue;
-  signal._listeners = [];
+  signal._computedListeners = [];
+  signal._effectListeners = [];
   signal._flags = 0;
   return signal;
 }
@@ -145,35 +125,36 @@ type ComputedProto<T> = ComputedCore<T> & {
   _unsubs: Unsubscribe[] | undefined;
 };
 
+// biome-ignore lint: TypeScript getter/setter with this parameter - Biome parser limitation
 const computedProto = {
   // Compatibility getters for tests
-  get _unsubs(this: ComputedProto<any>) {
+  get _unsubs(this: any): Unsubscribe[] | undefined {
     return this._sourceUnsubs;
   },
-  get _dirty(this: ComputedProto<any>) {
+  get _dirty(this: any): boolean {
     return (this._flags & FLAG_STALE) !== 0;
   },
 
-  get value(this: ComputedProto<any>) {
+  get value(this: any): any {
     // Lazy evaluation: only recalculate when STALE
     if ((this._flags & FLAG_STALE) !== 0) {
-      const oldSources = this._sourceUnsubs ? [...this._sources] : null;
+      const oldSources: AnyNode[] | null = this._sourceUnsubs ? [...this._sources] : null;
 
       const prevListener = currentListener;
-      currentListener = this;
+      currentListener = this as unknown as ComputedCore<unknown>;
 
       this._sources.length = 0;
 
-      this._flags |= FLAG_PENDING; // Set PENDING bit
-      this._flags &= ~FLAG_STALE; // Clear STALE bit
+      this._flags |= FLAG_PENDING;
+      this._flags &= ~FLAG_STALE;
       this._value = this._calc();
-      this._flags &= ~FLAG_PENDING; // Clear PENDING bit
+      this._flags &= ~FLAG_PENDING;
 
       currentListener = prevListener;
 
       // Re-subscribe if sources changed
       if (oldSources) {
-        const sourcesChanged = !arraysEqual(oldSources, this._sources);
+        const sourcesChanged: boolean = !arraysEqual(oldSources, this._sources);
         if (sourcesChanged) {
           this._unsubscribeFromSources();
           if (this._sources.length > 0) {
@@ -184,52 +165,51 @@ const computedProto = {
     }
 
     // Subscribe on first access
-    if (!this._sourceUnsubs && this._sources.length > 0) {
+    if (this._sourceUnsubs === undefined && this._sources.length > 0) {
       this._subscribeToSources();
     }
 
     if (currentListener) {
       const sources = currentListener._sources;
-      if (sources.indexOf(this as ComputedCore<any>) === -1) {
-        sources.push(this as ComputedCore<any>);
+      const thisNode = this as unknown as AnyNode;
+      if (sources.indexOf(thisNode) === -1) {
+        sources.push(thisNode);
       }
     }
 
-    return this._value;
+    return this._value as T;
   },
 
-  _subscribeToSources(this: ComputedProto<any>) {
+  _subscribeToSources(this: any): void {
     if (this._sources.length === 0) return;
-    if (this._sourceUnsubs) return;
+    if (this._sourceUnsubs !== undefined) return;
 
     this._sourceUnsubs = [];
-    const onSourceChange = () => {
-      if ((this._flags & FLAG_STALE) === 0) {
-        this._flags |= FLAG_STALE; // Set STALE bit
-      }
-    };
-    (onSourceChange as any)._computedZen = this;
+    const self = this as unknown as ComputedCore<unknown>;
 
     for (let i = 0; i < this._sources.length; i++) {
       const source = this._sources[i]!;
-      source._listeners.push(onSourceChange);
+      // Add computed directly to source's computed listeners (no function wrapper)
+      source._computedListeners.push(self);
 
       this._sourceUnsubs.push(() => {
-        const listeners = source._listeners;
-        const idx = listeners.indexOf(onSourceChange);
+        const computeds = source._computedListeners;
+        const idx = computeds.indexOf(self);
         if (idx !== -1) {
-          const last = listeners.length - 1;
-          if (idx !== last) listeners[idx] = listeners[last]!;
-          listeners.pop();
+          const last = computeds.length - 1;
+          if (idx !== last) {
+            computeds[idx] = computeds[last]!;
+          }
+          computeds.pop();
         }
       });
     }
   },
 
-  _unsubscribeFromSources(this: ComputedProto<any>) {
-    if (!this._sourceUnsubs) return;
+  _unsubscribeFromSources(this: any): void {
+    if (this._sourceUnsubs === undefined) return;
     for (let i = 0; i < this._sourceUnsubs.length; i++) {
-      this._sourceUnsubs[i]!();
+      this._sourceUnsubs[i]?.();
     }
     this._sourceUnsubs = undefined;
   },
@@ -239,7 +219,8 @@ export function computed<T>(calculation: () => T): ComputedCore<T> & { value: T 
   const c = Object.create(computedProto) as ComputedCore<T> & { value: T };
   c._value = null;
   c._calc = calculation;
-  c._listeners = [];
+  c._computedListeners = [];
+  c._effectListeners = [];
   // Initialize as empty array with size property for test compatibility
   const sources: any[] = [];
   Object.defineProperty(sources, 'size', {
@@ -262,7 +243,8 @@ export type ComputedZen<T> = ComputedCore<T>;
 // ============================================================================
 
 let batchDepth = 0;
-const pendingNotifications: [AnyZen, any][] = [];
+type PendingNotification = [ZenCore<unknown> | ComputedCore<unknown>, unknown];
+const pendingNotifications: PendingNotification[] = [];
 
 export function batch<T>(fn: () => T): T {
   batchDepth++;
@@ -271,25 +253,33 @@ export function batch<T>(fn: () => T): T {
   } finally {
     batchDepth--;
     if (batchDepth === 0 && pendingNotifications.length > 0) {
-      const toNotify = pendingNotifications.splice(0);
+      const toNotify: PendingNotification[] = pendingNotifications.splice(0);
       for (let i = 0; i < toNotify.length; i++) {
         const [zenItem, oldVal] = toNotify[i]!;
-        const listeners = zenItem._listeners;
-        const len = listeners.length;
+
+        // Mark computeds as STALE
+        const computeds = zenItem._computedListeners;
+        for (let j = 0; j < computeds.length; j++) {
+          computeds[j]!._flags |= FLAG_STALE;
+        }
+
+        // Notify effects
+        const effects = zenItem._effectListeners;
+        const len: number = effects.length;
         const currentValue = zenItem._value;
 
         if (len === 1) {
-          listeners[0]!(currentValue, oldVal);
+          effects[0]?.(currentValue, oldVal);
         } else if (len === 2) {
-          listeners[0]!(currentValue, oldVal);
-          listeners[1]!(currentValue, oldVal);
+          effects[0]?.(currentValue, oldVal);
+          effects[1]?.(currentValue, oldVal);
         } else if (len === 3) {
-          listeners[0]!(currentValue, oldVal);
-          listeners[1]!(currentValue, oldVal);
-          listeners[2]!(currentValue, oldVal);
-        } else {
+          effects[0]?.(currentValue, oldVal);
+          effects[1]?.(currentValue, oldVal);
+          effects[2]?.(currentValue, oldVal);
+        } else if (len > 0) {
           for (let j = 0; j < len; j++) {
-            listeners[j]!(currentValue, oldVal);
+            effects[j]?.(currentValue, oldVal);
           }
         }
       }
@@ -301,41 +291,47 @@ export function batch<T>(fn: () => T): T {
 // SUBSCRIBE
 // ============================================================================
 
-export function subscribe<A extends AnyZen>(zenItem: A, listener: Listener<any>): Unsubscribe {
+export function subscribe<T>(zenItem: ZenCore<T> | ComputedCore<T>, listener: Listener<T>): Unsubscribe {
+  const effects = zenItem._effectListeners;
+
   // Add delete method for test compatibility
-  if (!(zenItem._listeners as any).delete) {
-    (zenItem._listeners as any).delete = function (item: any) {
+  if (!(effects as any).delete) {
+    (effects as any).delete = function (item: Listener<T>): boolean {
       const idx = this.indexOf(item);
       if (idx !== -1) {
         const last = this.length - 1;
-        if (idx !== last) this[idx] = this[last];
+        if (idx !== last) this[idx] = this[last]!;
         this.pop();
         return true;
       }
       return false;
     };
   }
-  zenItem._listeners.push(listener);
 
-  if ((zenItem as any)._calc && zenItem._listeners.length === 1) {
-    const _ = (zenItem as ComputedProto<any>).value;
-    (zenItem as ComputedProto<any>)._subscribeToSources();
+  effects.push(listener);
+
+  // If computed, trigger initial evaluation and subscribe to sources
+  const asComputed = zenItem as ComputedCore<T> & ComputedProto<T>;
+  const totalListeners = zenItem._computedListeners.length + effects.length;
+  if ('_calc' in zenItem && totalListeners === 1) {
+    const _ = asComputed.value;
+    asComputed._subscribeToSources();
   }
 
-  listener(zenItem._value, undefined);
+  listener(zenItem._value as T, undefined);
 
-  return () => {
-    const listeners = zenItem._listeners;
-    const idx = listeners.indexOf(listener);
+  return (): void => {
+    const idx = effects.indexOf(listener);
     if (idx !== -1) {
-      const last = listeners.length - 1;
+      const last = effects.length - 1;
       if (idx !== last) {
-        listeners[idx] = listeners[last]!;
+        effects[idx] = effects[last]!;
       }
-      listeners.pop();
+      effects.pop();
 
-      if (listeners.length === 0 && (zenItem as any)._calc) {
-        (zenItem as any)._unsubscribeFromSources();
+      const totalListeners = zenItem._computedListeners.length + zenItem._effectListeners.length;
+      if (totalListeners === 0 && '_calc' in zenItem) {
+        asComputed._unsubscribeFromSources();
       }
     }
   };
@@ -357,7 +353,7 @@ function executeEffect(e: EffectCore): void {
   if (e._cancelled) return;
 
   // Run previous cleanup
-  if (e._cleanup) {
+  if (e._cleanup !== undefined) {
     try {
       e._cleanup();
     } catch (_) {}
@@ -365,43 +361,50 @@ function executeEffect(e: EffectCore): void {
   }
 
   // Unsubscribe and reset sources
-  if (e._sourceUnsubs) {
+  if (e._sourceUnsubs !== undefined) {
     for (let i = 0; i < e._sourceUnsubs.length; i++) {
-      e._sourceUnsubs[i]!();
+      e._sourceUnsubs[i]?.();
     }
     e._sourceUnsubs = undefined;
   }
-  if (e._sources) {
+  if (e._sources !== undefined) {
     e._sources.length = 0;
   }
 
   const prevListener = currentListener;
-  currentListener = e as any;
+  currentListener = e as unknown as ComputedCore<unknown>;
 
   try {
     const cleanup = e._callback();
-    if (cleanup) e._cleanup = cleanup;
+    if (cleanup !== undefined) {
+      e._cleanup = cleanup;
+    }
   } catch (_err) {
   } finally {
     currentListener = prevListener;
   }
 
   // Subscribe to tracked sources
-  if (e._sources && e._sources.length > 0) {
+  if (e._sources !== undefined && e._sources.length > 0) {
     e._sourceUnsubs = [];
-    const onSourceChange = () => executeEffect(e);
+    const self = e;
+    const onSourceChange: Listener<unknown> = () => executeEffect(self);
 
     for (let i = 0; i < e._sources.length; i++) {
       const source = e._sources[i]!;
-      source._listeners.push(onSourceChange);
+      // Effects go into _effectListeners
+      source._effectListeners.push(onSourceChange);
 
+      const listenerToRemove = onSourceChange;
       e._sourceUnsubs.push(() => {
-        const listeners = source._listeners;
-        const idx = listeners.indexOf(onSourceChange);
+        const effects = source._effectListeners;
+        const idx = effects.indexOf(listenerToRemove);
         if (idx !== -1) {
-          const last = listeners.length - 1;
-          if (idx !== last) listeners[idx] = listeners[last]!;
-          listeners.pop();
+          const last = effects.length - 1;
+          if (idx !== last) {
+            effects[idx] = effects[last]!;
+          }
+          effects.pop();
         }
       });
     }
@@ -417,19 +420,19 @@ export function effect(callback: () => undefined | (() => void)): Unsubscribe {
 
   executeEffect(e);
 
-  return () => {
+  return (): void => {
     if (e._cancelled) return;
     e._cancelled = true;
 
-    if (e._cleanup) {
+    if (e._cleanup !== undefined) {
       try {
         e._cleanup();
       } catch (_) {}
     }
 
-    if (e._sourceUnsubs) {
+    if (e._sourceUnsubs !== undefined) {
       for (let i = 0; i < e._sourceUnsubs.length; i++) {
-        e._sourceUnsubs[i]!();
+        e._sourceUnsubs[i]?.();
       }
     }
   };
@@ -439,17 +442,30 @@ export function effect(callback: () => undefined | (() => void)): Unsubscribe {
 // EXPORTS FOR COMPATIBILITY
 // ============================================================================
 
-export const notifyListeners = (zenItem: any, newValue: any, oldValue: any): void => {
-  const listeners = zenItem._listeners;
-  if (!listeners) return;
-  for (let i = 0; i < listeners.length; i++) {
-    listeners[i]!(newValue, oldValue);
+export const notifyListeners = <T>(
+  zenItem: ZenCore<T> | ComputedCore<T>,
+  newValue: T,
+  oldValue: T
+): void => {
+  // Mark computeds as STALE
+  const computeds = zenItem._computedListeners;
+  for (let i = 0; i < computeds.length; i++) {
+    computeds[i]!._flags |= FLAG_STALE;
+  }
+
+  // Notify effects
+  const effects = zenItem._effectListeners;
+  for (let i = 0; i < effects.length; i++) {
+    effects[i]?.(newValue, oldValue);
   }
 };
 
-export const queueZenForBatch = (zenItem: AnyZen, oldValue: any): void => {
+export const queueZenForBatch = <T>(
+  zenItem: ZenCore<T> | ComputedCore<T>,
+  oldValue: T
+): void => {
   if (batchDepth > 0) {
-    pendingNotifications.push([zenItem, oldValue]);
+    pendingNotifications.push([zenItem as ZenCore<unknown> | ComputedCore<unknown>, oldValue]);
   }
 };
 

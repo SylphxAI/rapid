@@ -1,8 +1,8 @@
+import { createMemo, createSignal } from 'solid-js';
 /**
  * Zen Ultra vs SolidJS - Using DIST versions only
  */
 import { bench, describe } from 'vitest';
-import { createSignal, createMemo } from 'solid-js';
 
 // Import from dist
 import * as ZenUltra from '../dist/index-ultra';
@@ -62,11 +62,9 @@ describe('Zen Ultra (DIST) vs SolidJS', () => {
 
   bench('Zen Ultra DIST: 1 source -> 100 computeds', () => {
     const source = ZenUltra.zen(0);
-    const computeds = Array.from({ length: 100 }, () =>
-      ZenUltra.computed(() => source.value * 2)
-    );
+    const computeds = Array.from({ length: 100 }, () => ZenUltra.computed(() => source.value * 2));
 
-    computeds.forEach(c => ZenUltra.subscribe(c, () => {}));
+    computeds.forEach((c) => ZenUltra.subscribe(c, () => {}));
 
     for (let i = 0; i < 100; i++) {
       source.value = i;
@@ -77,7 +75,7 @@ describe('Zen Ultra (DIST) vs SolidJS', () => {
     const [source, setSource] = createSignal(0);
     const memos = Array.from({ length: 100 }, () => createMemo(() => source() * 2));
 
-    memos.forEach(m => m());
+    memos.forEach((m) => m());
 
     for (let i = 0; i < 100; i++) {
       setSource(i);
@@ -102,7 +100,7 @@ describe('Zen Ultra (DIST) vs SolidJS', () => {
     merged();
 
     for (let i = 0; i < 50; i++) {
-      sources[i]![1](i);
+      sources[i]?.[1](i);
     }
   });
 });

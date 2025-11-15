@@ -1,7 +1,17 @@
 {
   "extends": ["@sylphlab/biome-config"],
   "files": {
-    "ignore": ["**/*.js", "**/dist/**", "**/*.test.[jt]s", "**/*.spec.[jt]s"]
+    "ignore": [
+      "**/*.js",
+      "**/dist/**",
+      "**/*.test.[jt]s",
+      "**/*.spec.[jt]s",
+      "**/archive/**",
+      "benchmark-*.ts",
+      "**/*-backup.ts",
+      "**/ultra-*.ts",
+      "packages/zen/src/zen.ts"
+    ]
   },
   "linter": {
     "ignore": ["**/core.d.ts"]

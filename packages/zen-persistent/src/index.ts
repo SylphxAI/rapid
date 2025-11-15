@@ -1,6 +1,6 @@
 // Combined imports
 import { type Zen, subscribe, zen } from '@sylphx/zen';
-import { map, type MapStore } from '@sylphx/zen-patterns';
+import { type MapStore, map } from '@sylphx/zen-patterns';
 
 // --- Types ---
 

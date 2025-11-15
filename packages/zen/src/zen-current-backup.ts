@@ -30,7 +30,7 @@ type ComputedCore<T> = {
 export type AnyZen = ZenCore<any> | ComputedCore<any>;
 
 // Global tracking
-let currentListener: ComputedCore<any> | null = null;
+const currentListener: ComputedCore<any> | null = null;
 
 // Batching
 let batchDepth = 0;
