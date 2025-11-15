@@ -1,47 +1,51 @@
 /**
  * Zen Ultra - Maximum Performance Reactive Primitives
- * BREAKING: No auto-batching, bitflags for state, direct notification
- * Trade-off: Glitches possible, but 10-50x faster
+ * No auto-batching. Manual batch() only.
+ * Design: O(1) per signal update (excluding unavoidable O(n) listener iteration),
+ * lazy computeds, minimal allocations, bitflag state.
  */
 
 export type Listener<T> = (value: T, oldValue: T | undefined) => void;
 export type Unsubscribe = () => void;
 
-// Bitflags for state
+// ============================================================================
+// FLAGS
+// ============================================================================
+
 const FLAG_STALE = 0b01;
 const FLAG_PENDING = 0b10;
 
 // ============================================================================
-// CORE TYPES
+// BASE NODE
 // ============================================================================
 
-type ZenCore<T> = {
-  _value: T;
-  _computedListeners: ComputedCore<unknown>[];
-  _effectListeners: Listener<any>[];
-  _flags: number;
-  _version: number;
-};
+/**
+ * V = 真正儲存嘅 value type
+ * 例如：
+ *   ZenNode<T>       => BaseNode<T>
+ *   ComputedNode<T>  => BaseNode<T | null>
+ */
+abstract class BaseNode<V> {
+  _value: V;
+  _computedListeners: AnyNode[] = [];
+  _effectListeners: Listener<any>[] = [];
+  _flags = 0;
+  _version = 0;
 
-type ComputedCore<T> = {
-  _value: T | null;
-  _calc: () => T;
-  _computedListeners: ComputedCore<unknown>[];
-  _effectListeners: Listener<any>[];
+  constructor(initial: V) {
+    this._value = initial;
+  }
+}
+
+type AnyNode = BaseNode<unknown>;
+
+// 用來做 dependency tracking 的 interface
+interface DependencyCollector {
   _sources: AnyNode[];
-  _sourceUnsubs?: Unsubscribe[];
-  _flags: number;
-  _version: number;
-};
+}
 
-export type AnyZen = ZenCore<unknown> | ComputedCore<unknown>;
-type AnyNode = ZenCore<unknown> | ComputedCore<unknown>;
-
-// ============================================================================
-// GLOBAL TRACKING
-// ============================================================================
-
-let currentListener: { _sources?: AnyNode[] } | null = null;
+// global tracking
+let currentListener: DependencyCollector | null = null;
 
 // ============================================================================
 // HELPERS
@@ -52,17 +56,6 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
   for (let i = 0; i < a.length; i++) {
     if (a[i] !== b[i]) return false;
   }
-  return true;
-}
-
-function removeFromArray<T>(array: T[], item: T): boolean {
-  const idx = array.indexOf(item);
-  if (idx === -1) return false;
-  const last = array.length - 1;
-  if (idx !== last) {
-    array[idx] = array[last]!;
-  }
-  array.pop();
   return true;
 }
 
@@ -78,213 +71,198 @@ function createSourcesArray(): AnyNode[] {
 }
 
 // ============================================================================
-// ZEN (Signal) - Direct notification, no auto-batching by default
+// ZEN (signal)
 // ============================================================================
 
-type ZenInstance<T> = ZenCore<T> & { value: T };
-
-// biome-ignore lint: TypeScript getter/setter with this parameter - Biome parser limitation
-const zenProto = {
-  get value(): any {
-    const self = this as ZenInstance<any>;
-
-    if (currentListener && currentListener._sources) {
-      const sources = currentListener._sources;
-      const node = self as unknown as AnyNode;
-      if (sources.indexOf(node) === -1) {
-        sources.push(node);
-      }
+class ZenNode<T> extends BaseNode<T> {
+  get value(): T {
+    // dependency tracking
+    if (currentListener) {
+      const list = currentListener._sources;
+      const self = this as AnyNode;
+      if (list.indexOf(self) === -1) list.push(self);
     }
+    return this._value;
+  }
 
-    return self._value;
-  },
+  set value(next: T) {
+    const prev = this._value;
 
-  set value(newValue: any) {
-    const self = this as ZenInstance<any>;
-    const oldValue: any = self._value;
-
-    // Fast equality check (with +0/-0 & NaN handling)
-    if (newValue === oldValue) {
-      if (newValue === 0 && 1 / (newValue as number) !== 1 / (oldValue as number)) {
-        // +0 vs -0: treat as change
+    // Fast equality check with +0/-0 & NaN
+    if (next === prev) {
+      if (
+        next === 0 &&
+        1 / (next as any as number) !== 1 / (prev as any as number)
+      ) {
+        // +0 vs -0 -> treat as changed
       } else {
         return;
       }
-    } else if (newValue !== newValue && oldValue !== oldValue) {
-      // Both NaN
+    } else if ((next as any) !== (next as any) && (prev as any) !== (prev as any)) {
+      // both NaN
       return;
     }
 
-    self._value = newValue;
-    self._version++;
+    this._value = next;
+    this._version++;
 
-    // Mark computeds as STALE
-    const computeds = self._computedListeners;
+    // mark computeds as STALE
+    const computeds = this._computedListeners;
     for (let i = 0; i < computeds.length; i++) {
       computeds[i]!._flags |= FLAG_STALE;
     }
 
-    // Inside batch: defer notifications
+    // batching support
     if (batchDepth > 0) {
-      queueBatchedNotification(self as unknown as AnyNode, oldValue);
+      queueBatchedNotification(this as AnyNode, prev);
       return;
     }
 
-    notifyEffects(self as unknown as AnyNode, newValue, oldValue);
-  },
-};
+    notifyEffects(this as AnyNode, next, prev);
+  }
+}
 
-export function zen<T>(initialValue: T): ZenInstance<T> {
-  const signal = Object.create(zenProto) as ZenInstance<T>;
-  signal._value = initialValue;
-  signal._computedListeners = [];
-  signal._effectListeners = [];
-  signal._flags = 0;
-  signal._version = 0;
-  return signal;
+export function zen<T>(initial: T): ZenNode<T> {
+  return new ZenNode<T>(initial);
 }
 
 export type Zen<T> = ReturnType<typeof zen<T>>;
 
 // ============================================================================
-// COMPUTED (Auto-tracking)
+// COMPUTED
 // ============================================================================
 
-type ComputedInstance<T> = ComputedCore<T> & {
-  value: T;
-  _subscribeToSources(): void;
-  _unsubscribeFromSources(): void;
-  _unsubs: Unsubscribe[] | undefined; // compat alias
-  _dirty: boolean; // compat getter
-};
+class ComputedNode<T> extends BaseNode<T | null> {
+  _value: T | null; // 明確 override（而家 base V = T | null，所以 OK）
+  _calc: () => T;
+  _sources: AnyNode[];
+  _sourceUnsubs?: Unsubscribe[];
 
-// We keep this loosely typed to avoid fighting TS over proto types
-// biome-ignore lint: TypeScript getter/setter with this parameter - Biome parser limitation
-const computedProto: any = {
-  // Compatibility getters for tests
+  constructor(calc: () => T) {
+    super(null as T | null);
+    this._value = null;
+    this._calc = calc;
+    this._sources = createSourcesArray();
+    this._sourceUnsubs = undefined;
+    this._flags = FLAG_STALE; // start dirty
+  }
+
+  // 兼容：_unsubs / _dirty
   get _unsubs(): Unsubscribe[] | undefined {
-    const self = this as ComputedInstance<any>;
-    return self._sourceUnsubs;
-  },
-
+    return this._sourceUnsubs;
+  }
   get _dirty(): boolean {
-    const self = this as ComputedInstance<any>;
-    return (self._flags & FLAG_STALE) !== 0;
-  },
+    return (this._flags & FLAG_STALE) !== 0;
+  }
 
-  get value(): any {
-    const self = this as ComputedInstance<any>;
-
-    // Lazy evaluation: only recalc when STALE
-    if ((self._flags & FLAG_STALE) !== 0) {
-      const hadSubscriptions = self._sourceUnsubs !== undefined;
-      const oldSources = hadSubscriptions ? [...self._sources] : null;
+  get value(): T {
+    // lazy recompute only when STALE
+    if ((this._flags & FLAG_STALE) !== 0) {
+      const hadSubscriptions = this._sourceUnsubs !== undefined;
+      const oldSources = hadSubscriptions ? [...this._sources] : null;
 
       const prevListener = currentListener;
-      currentListener = self;
+      currentListener = this as unknown as DependencyCollector;
 
-      self._sources.length = 0;
+      this._sources.length = 0; // rebuild source list
 
-      self._flags |= FLAG_PENDING;
-      self._flags &= ~FLAG_STALE;
-      self._value = self._calc();
-      self._flags &= ~FLAG_PENDING;
-      self._version++;
+      this._flags |= FLAG_PENDING;
+      this._flags &= ~FLAG_STALE;
+      this._value = this._calc();
+      this._flags &= ~FLAG_PENDING;
+      this._version++;
 
       currentListener = prevListener;
 
-      // If we were already subscribed, rewire sources if changed
+      // if we were already subscribed, and source set changed -> resubscribe
       if (oldSources) {
-        const changed = !arraysEqual(oldSources, self._sources);
+        const changed = !arraysEqual(oldSources, this._sources);
         if (changed) {
-          self._unsubscribeFromSources();
-          if (self._sources.length > 0) {
-            self._subscribeToSources();
+          this._unsubscribeFromSources();
+          if (this._sources.length > 0) {
+            this._subscribeToSources();
           }
         }
       }
     }
 
-    // Subscribe on first access if we have sources but no subscriptions yet
-    if (self._sourceUnsubs === undefined && self._sources.length > 0) {
-      self._subscribeToSources();
+    // first-time subscription after tracking
+    if (this._sourceUnsubs === undefined && this._sources.length > 0) {
+      this._subscribeToSources();
     }
 
-    // Allow higher-level tracking (computed-of-computed / effect-of-computed)
-    if (currentListener && currentListener._sources) {
-      const sources = currentListener._sources;
-      const node = self as unknown as AnyNode;
-      if (sources.indexOf(node) === -1) {
-        sources.push(node);
-      }
+    // allow higher-level tracking (computed-of-computed / effect-of-computed)
+    if (currentListener) {
+      const list = currentListener._sources;
+      const self = this as AnyNode;
+      if (list.indexOf(self) === -1) list.push(self);
     }
 
-    return self._value as any;
-  },
+    return this._value as T;
+  }
 
   _subscribeToSources(): void {
-    const self = this as ComputedInstance<any>;
+    if (this._sources.length === 0) return;
+    if (this._sourceUnsubs !== undefined) return;
 
-    if (self._sources.length === 0) return;
-    if (self._sourceUnsubs !== undefined) return;
+    this._sourceUnsubs = [];
+    const self = this;
 
-    self._sourceUnsubs = [];
-    const coreSelf = self as unknown as ComputedCore<unknown>;
+    for (let i = 0; i < this._sources.length; i++) {
+      const source = this._sources[i]!;
+      source._computedListeners.push(self as unknown as AnyNode);
 
-    for (let i = 0; i < self._sources.length; i++) {
-      const source = self._sources[i]!;
-      source._computedListeners.push(coreSelf);
-
-      self._sourceUnsubs.push(() => {
-        removeFromArray(source._computedListeners, coreSelf);
-      });
+      const unsub: Unsubscribe = () => {
+        const arr = source._computedListeners;
+        const idx = arr.indexOf(self as unknown as AnyNode);
+        if (idx !== -1) {
+          const last = arr.length - 1;
+          if (idx !== last) {
+            arr[idx] = arr[last]!;
+          }
+          arr.pop();
+        }
+      };
+      this._sourceUnsubs.push(unsub);
     }
-  },
+  }
 
   _unsubscribeFromSources(): void {
-    const self = this as ComputedInstance<any>;
-    if (!self._sourceUnsubs) return;
-    for (let i = 0; i < self._sourceUnsubs.length; i++) {
-      self._sourceUnsubs[i]?.();
+    if (!this._sourceUnsubs) return;
+    for (let i = 0; i < this._sourceUnsubs.length; i++) {
+      this._sourceUnsubs[i]?.();
     }
-    self._sourceUnsubs = undefined;
-  },
-};
-
-export function computed<T>(calculation: () => T): ComputedInstance<T> {
-  const c = Object.create(computedProto) as ComputedInstance<T>;
-  c._value = null;
-  c._calc = calculation;
-  c._computedListeners = [];
-  c._effectListeners = [];
-  c._sources = createSourcesArray();
-  c._sourceUnsubs = undefined;
-  c._flags = FLAG_STALE; // start as STALE so first read computes
-  c._version = 0;
-  return c;
+    this._sourceUnsubs = undefined;
+  }
 }
 
+export function computed<T>(calculation: () => T): ComputedNode<T> {
+  return new ComputedNode<T>(calculation);
+}
+
+// ============================================================================
+// PUBLIC CORE TYPES (API 兼容)
+// ============================================================================
+
+export type ZenCore<T> = ZenNode<T>;
+export type ComputedCore<T> = ComputedNode<T>;
+
+export type AnyZen = ZenCore<unknown> | ComputedCore<unknown>;
 export type ReadonlyZen<T> = ComputedCore<T>;
 export type ComputedZen<T> = ComputedCore<T>;
 
 // ============================================================================
-// BATCH (Manual only - no auto-batching)
+// BATCH（manual only）
 // ============================================================================
 
 let batchDepth = 0;
 type PendingNotification = [AnyNode, unknown];
 const pendingNotifications: PendingNotification[] = [];
 
-/**
- * Coalesce notifications for the same node inside a batch.
- */
 function queueBatchedNotification(node: AnyNode, oldValue: unknown): void {
+  // same node only queued once per batch
   for (let i = 0; i < pendingNotifications.length; i++) {
-    const n = pendingNotifications[i]![0];
-    if (n === node) {
-      // Already queued, keep earliest oldValue
-      return;
-    }
+    if (pendingNotifications[i]![0] === node) return;
   }
   pendingNotifications.push([node, oldValue]);
 }
@@ -302,7 +280,7 @@ function notifyEffects(node: AnyNode, newValue: unknown, oldValue: unknown): voi
     effects[0]?.(newValue, oldValue);
     effects[1]?.(newValue, oldValue);
     effects[2]?.(newValue, oldValue);
-  } else if (len > 0) {
+  } else {
     for (let i = 0; i < len; i++) {
       effects[i]?.(newValue, oldValue);
     }
@@ -319,13 +297,13 @@ export function batch<T>(fn: () => T): T {
       const toNotify = pendingNotifications.splice(0);
       for (let i = 0; i < toNotify.length; i++) {
         const [node, oldVal] = toNotify[i]!;
-        // Mark computeds as STALE (cheap OR)
+        // mark computeds STALE again (cheap OR)
         const computeds = node._computedListeners;
         for (let j = 0; j < computeds.length; j++) {
           computeds[j]!._flags |= FLAG_STALE;
         }
-        const currentValue = node._value;
-        notifyEffects(node, currentValue, oldVal);
+        const curr = node._value;
+        notifyEffects(node, curr, oldVal);
       }
     }
   }
@@ -339,47 +317,44 @@ export function subscribe<T>(
   zenItem: ZenCore<T> | ComputedCore<T>,
   listener: Listener<T>,
 ): Unsubscribe {
-  const effects = zenItem._effectListeners as Listener<T>[];
-
-  // Add custom delete method once (test compatibility)
-  if (!(effects as any).delete) {
-    (effects as any).delete = function (item: Listener<T>): boolean {
-      return removeFromArray(this as Listener<T>[], item);
-    };
-  }
+  const node = zenItem as AnyNode;
+  const effects = node._effectListeners as Listener<T>[];
 
   effects.push(listener);
 
-  // If computed, trigger initial evaluation & subscriptions when first listener attaches
-  const asComputed = zenItem as unknown as ComputedInstance<T>;
-  const totalListeners = zenItem._computedListeners.length + effects.length;
-  if ('_calc' in zenItem && totalListeners === 1) {
+  // computed: first listener triggers compute & source subscription
+  const asComputed = zenItem as ComputedNode<T>;
+  const totalListeners = node._computedListeners.length + effects.length;
+  if (zenItem instanceof ComputedNode && totalListeners === 1) {
     const _ = asComputed.value; // trigger compute
     asComputed._subscribeToSources();
   }
 
-  // Immediate initial call with current value
+  // immediate initial call
   listener(zenItem._value as T, undefined);
 
   return (): void => {
-    if (!removeFromArray(effects, listener)) return;
+    const idx = effects.indexOf(listener);
+    if (idx === -1) return;
+    const last = effects.length - 1;
+    if (idx !== last) {
+      effects[idx] = effects[last]!;
+    }
+    effects.pop();
 
-    const remaining =
-      zenItem._computedListeners.length + zenItem._effectListeners.length;
+    const remaining = node._computedListeners.length + node._effectListeners.length;
 
-    // If no listeners left on a computed, drop source subscriptions
-    if (remaining === 0 && '_calc' in zenItem) {
+    if (remaining === 0 && zenItem instanceof ComputedNode) {
       asComputed._unsubscribeFromSources();
     }
   };
 }
 
 // ============================================================================
-// EFFECT (Auto-tracking)
+// EFFECT
 // ============================================================================
 
-type EffectCore = {
-  _sources?: AnyNode[];
+type EffectCore = DependencyCollector & {
   _sourceUnsubs?: Unsubscribe[];
   _cleanup?: () => void;
   _callback: () => undefined | (() => void);
@@ -389,17 +364,17 @@ type EffectCore = {
 function executeEffect(e: EffectCore): void {
   if (e._cancelled) return;
 
-  // Run previous cleanup
+  // previous cleanup
   if (e._cleanup) {
     try {
       e._cleanup();
     } catch {
-      // ignore cleanup errors
+      // ignore
     }
     e._cleanup = undefined;
   }
 
-  // Unsubscribe previous sources
+  // unsubscribe previous sources
   if (e._sourceUnsubs) {
     for (let i = 0; i < e._sourceUnsubs.length; i++) {
       e._sourceUnsubs[i]?.();
@@ -407,35 +382,39 @@ function executeEffect(e: EffectCore): void {
     e._sourceUnsubs = undefined;
   }
 
-  if (e._sources) {
-    e._sources.length = 0;
-  }
+  e._sources.length = 0;
 
   const prevListener = currentListener;
-  if (!e._sources) e._sources = [];
-  currentListener = e as unknown as { _sources?: AnyNode[] };
+  currentListener = e;
 
   try {
     const cleanup = e._callback();
     if (cleanup) e._cleanup = cleanup;
   } catch {
-    // swallow effect errors by design
+    // swallow errors by design
   } finally {
     currentListener = prevListener;
   }
 
-  // Subscribe to tracked sources
-  if (e._sources && e._sources.length > 0) {
+  // subscribe to tracked sources
+  if (e._sources.length > 0) {
     e._sourceUnsubs = [];
     const self = e;
     const onSourceChange: Listener<unknown> = () => executeEffect(self);
 
     for (let i = 0; i < e._sources.length; i++) {
-      const source = e._sources[i]!;
-      source._effectListeners.push(onSourceChange);
-
+      const src = e._sources[i]!;
+      src._effectListeners.push(onSourceChange);
       e._sourceUnsubs.push(() => {
-        removeFromArray(source._effectListeners, onSourceChange);
+        const arr = src._effectListeners;
+        const idx = arr.indexOf(onSourceChange);
+        if (idx !== -1) {
+          const last = arr.length - 1;
+          if (idx !== last) {
+            arr[idx] = arr[last]!;
+          }
+          arr.pop();
+        }
       });
     }
   }
