@@ -1,11 +1,11 @@
 /**
- * Zen Ultra - Maximum Performance Reactive Primitives
+ * Zen Ultra - High-Performance Reactive Primitives
  *
  * Design goals:
- * - No auto-batching, only manual batch()
- * - Fully lazy computed evaluation
- * - O(1) core operations per node (excluding unavoidable O(n listeners / sources))
- * - Minimal allocations, array-based fan-out
+ * - No auto-batching. Only manual batch().
+ * - Fully lazy computed evaluation.
+ * - O(1) core operations per node (excluding unavoidable O(n listeners / sources)).
+ * - Array-based fan-out, bitflags for node state, versioned change detection.
  */
 
 export type Listener<T> = (value: T, oldValue: T | undefined) => void;
@@ -23,7 +23,7 @@ const FLAG_PENDING = 0b10;
 // ============================================================================
 
 /**
- * Base node for signals and computeds.
+ * Base node for both signals and computeds.
  *
  * V is the stored value type:
  * - ZenNode<T>        -> BaseNode<T>
@@ -44,7 +44,7 @@ abstract class BaseNode<V> {
 type AnyNode = BaseNode<unknown>;
 
 /**
- * Entity participating in dependency tracking (computed/effect).
+ * Entity that participates in dependency tracking (computed/effect).
  */
 interface DependencyCollector {
   _sources: AnyNode[];
@@ -79,6 +79,26 @@ function createSourcesArray(): AnyNode[] {
   return sources;
 }
 
+/**
+ * Value equality helper with:
+ * - NaN treated as equal to NaN
+ * - +0 and -0 treated as different (so they are considered "changed")
+ */
+function valuesEqual(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    // Handle +0 vs -0
+    if (a === 0 && b === 0) {
+      return 1 / (a as number) === 1 / (b as number);
+    }
+    return true;
+  }
+  // Both NaN
+  if ((a as any) !== (a as any) && (b as any) !== (b as any)) {
+    return true;
+  }
+  return false;
+}
+
 // ============================================================================
 // ZEN (Signal)
 // ============================================================================
@@ -98,14 +118,7 @@ class ZenNode<T> extends BaseNode<T> {
     const prev = this._value;
 
     // Fast equality check with +0 / -0 and NaN handling
-    if (next === prev) {
-      if (next === 0 && 1 / (next as any as number) !== 1 / (prev as any as number)) {
-        // +0 vs -0 -> treat as changed
-      } else {
-        return;
-      }
-    } else if ((next as any) !== (next as any) && (prev as any) !== (prev as any)) {
-      // Both NaN
+    if (valuesEqual(next, prev)) {
       return;
     }
 
@@ -139,10 +152,13 @@ export type Zen<T> = ReturnType<typeof zen<T>>;
 // ============================================================================
 
 class ComputedNode<T> extends BaseNode<T | null> {
-  _value: T | null; // Explicit for clarity; base uses V = T | null
+  _value: T | null;
   _calc: () => T;
   _sources: AnyNode[];
   _sourceUnsubs?: Unsubscribe[];
+
+  // Version snapshot for each source at last evaluation
+  _sourceVersions: number[] = [];
 
   constructor(calc: () => T) {
     super(null as T | null);
@@ -162,47 +178,87 @@ class ComputedNode<T> extends BaseNode<T | null> {
     return (this._flags & FLAG_STALE) !== 0;
   }
 
-  get value(): T {
-    // Lazy evaluation: only recompute if STALE
-    if ((this._flags & FLAG_STALE) !== 0) {
-      const hadSubscriptions = this._sourceUnsubs !== undefined;
-      const oldSources = hadSubscriptions ? [...this._sources] : null;
+  /**
+   * Internal recompute function used by .value.
+   * Fully lazy, version-aware, and updates dependency subscriptions.
+   */
+  private _recomputeIfNeeded(): void {
+    let isStale = (this._flags & FLAG_STALE) !== 0;
 
-      const prevListener = currentListener;
-      currentListener = this as unknown as DependencyCollector;
-
-      this._sources.length = 0; // Rebuild sources
-
-      this._flags |= FLAG_PENDING;
-      this._flags &= ~FLAG_STALE;
-      this._value = this._calc();
-      this._flags &= ~FLAG_PENDING;
-      this._version++;
-
-      currentListener = prevListener;
-
-      // If we were already subscribed, and the source set changed, rewire
-      if (oldSources) {
-        const changed = !arraysEqual(oldSources, this._sources);
-        if (changed) {
-          this._unsubscribeFromSources();
-          if (this._sources.length > 0) {
-            this._subscribeToSources();
-          }
+    // Version-based check: if any source version changed, treat as stale
+    if (!isStale && this._sources.length > 0 && this._sourceVersions.length === this._sources.length) {
+      const srcs = this._sources;
+      const vers = this._sourceVersions;
+      for (let i = 0; i < srcs.length; i++) {
+        if (srcs[i]!._version !== vers[i]!) {
+          isStale = true;
+          break;
         }
       }
     }
 
-    // First-time subscription to sources after tracking
-    if (this._sourceUnsubs === undefined && this._sources.length > 0) {
-      this._subscribeToSources();
+    if (!isStale) {
+      return;
     }
+
+    const hadSubscriptions = this._sourceUnsubs !== undefined;
+    const oldSources = hadSubscriptions ? [...this._sources] : null;
+
+    const prevListener = currentListener;
+    currentListener = this as unknown as DependencyCollector;
+
+    this._sources.length = 0; // Rebuild sources
+
+    this._flags |= FLAG_PENDING;
+    this._flags &= ~FLAG_STALE;
+
+    const oldValue = this._value;
+    const newValue = this._calc();
+    this._value = newValue;
+    this._flags &= ~FLAG_PENDING;
+    this._version++;
+
+    // Snapshot source versions for future checks
+    const len = this._sources.length;
+    if (this._sourceVersions.length !== len) {
+      this._sourceVersions = new Array(len);
+    }
+    for (let i = 0; i < len; i++) {
+      this._sourceVersions[i] = this._sources[i]!._version;
+    }
+
+    currentListener = prevListener;
+
+    // If we were already subscribed and the source set changed, rewire
+    if (oldSources) {
+      const changed = !arraysEqual(oldSources, this._sources);
+      if (changed) {
+        this._unsubscribeFromSources();
+        if (this._sources.length > 0) {
+          this._subscribeToSources();
+        }
+      }
+    }
+
+    // Note: we intentionally do NOT notify listeners here.
+    // Computeds are lazy: they recompute when read.
+    // Notifications are driven by signals and effects via their own tracking.
+  }
+
+  get value(): T {
+    // Lazy evaluation with version-based skipping
+    this._recomputeIfNeeded();
 
     // Allow higher-level tracking (computed-of-computed / effect-of-computed)
     if (currentListener) {
       const list = currentListener._sources;
       const self = this as AnyNode;
       if (list.indexOf(self) === -1) list.push(self);
+    }
+
+    // First-time subscription to sources after tracking
+    if (this._sourceUnsubs === undefined && this._sources.length > 0) {
+      this._subscribeToSources();
     }
 
     return this._value as T;
@@ -270,7 +326,7 @@ const pendingNotifications: PendingNotification[] = [];
 
 /**
  * Queue a node for batched notification.
- * A given node is only queued once per batch; the earliest oldValue wins.
+ * A given node is only queued once per change event; the earliest oldValue wins.
  */
 function queueBatchedNotification(node: AnyNode, oldValue: unknown): void {
   for (let i = 0; i < pendingNotifications.length; i++) {
@@ -299,10 +355,21 @@ function notifyEffects(node: AnyNode, newValue: unknown, oldValue: unknown): voi
   }
 }
 
+function flushPendingNotifications(): void {
+  if (pendingNotifications.length === 0) return;
+
+  const toNotify = pendingNotifications.splice(0);
+  for (let i = 0; i < toNotify.length; i++) {
+    const [node, oldVal] = toNotify[i]!;
+    const curr = node._value;
+    notifyEffects(node, curr, oldVal);
+  }
+}
+
 /**
  * Run fn in a manual batch.
- * All signal writes inside are applied immediately, but effect notifications
- * are deferred and coalesced until the outermost batch completes.
+ * All signal writes inside update synchronously, but listener notifications
+ * are coalesced and flushed at the end of the outermost batch.
  */
 export function batch<T>(fn: () => T): T {
   batchDepth++;
@@ -310,18 +377,8 @@ export function batch<T>(fn: () => T): T {
     return fn();
   } finally {
     batchDepth--;
-    if (batchDepth === 0 && pendingNotifications.length > 0) {
-      const toNotify = pendingNotifications.splice(0);
-      for (let i = 0; i < toNotify.length; i++) {
-        const [node, oldVal] = toNotify[i]!;
-        // Ensure dependent computeds are marked STALE (cheap OR)
-        const computeds = node._computedListeners;
-        for (let j = 0; j < computeds.length; j++) {
-          computeds[j]!._flags |= FLAG_STALE;
-        }
-        const curr = node._value;
-        notifyEffects(node, curr, oldVal);
-      }
+    if (batchDepth === 0) {
+      flushPendingNotifications();
     }
   }
 }
@@ -332,10 +389,14 @@ export function batch<T>(fn: () => T): T {
 
 /**
  * Subscribe to a signal or computed.
+ *
  * - Immediately calls listener with the current value (lazy eval via .value).
  * - Returns an unsubscribe function (O(1) swap-pop removal).
  * - For computeds, if no listeners (effects or other computeds) remain,
  *   it unsubscribes from all sources.
+ *
+ * Note: For computeds, notifications are still driven by their underlying
+ * sources and effects; this subscribe is primarily designed for signals.
  */
 export function subscribe<T>(
   node: ZenCore<T> | ComputedCore<T>,
@@ -349,7 +410,7 @@ export function subscribe<T>(
 
   // Lazy initial evaluation:
   // - zen: direct read
-  // - computed: recompute if STALE, track sources, subscribe as needed
+  // - computed: recompute if needed, track sources, subscribe as needed
   listener((node as any).value as T, undefined);
 
   return (): void => {
@@ -422,7 +483,10 @@ function executeEffect(e: EffectCore): void {
   if (e._sources.length > 0) {
     e._sourceUnsubs = [];
     const self = e;
-    const onSourceChange: Listener<unknown> = () => executeEffect(self);
+    const onSourceChange: Listener<unknown> = (value, oldValue) => {
+      // Re-run the effect when any source changes
+      executeEffect(self);
+    };
 
     for (let i = 0; i < e._sources.length; i++) {
       const src = e._sources[i]!;
