@@ -5,15 +5,30 @@
 fix(zen): critical bug fixes and code improvements
 
 **Critical Fixes:**
-- Fixed computed chain stale propagation bug where downstream computeds weren't marked stale
-- Added cyclic dependency detection by checking FLAG_PENDING before computation
+
+**Bug 1.1 - Computed Dependency Rewire:**
+- Fixed computed dependency tracking to compare ALL sources, not just first 2
+- Example: `[a,b,c] → [a,b,d]` now correctly unsubscribes from `c` and subscribes to `d`
+
+**Bug 1.2 - Error Handling:**
+- Added try/finally to `_recomputeIfNeeded()` to ensure FLAG_PENDING is cleared on errors
+- Prevents computed nodes from getting "stuck" after exceptions
+
+**Bug 1.3 - Batched Flush:**
+- Fixed flush logic to preserve notifications added during flush
+- Changed from clearing entire queue to `splice(0, len)` to avoid losing updates
+
+**Bug 1.4 - Computed Subscribe:**
+- Fixed `subscribe(computed, listener)` to properly notify when upstream changes
+- Added recursive recomputation for multi-level computed chains with subscribers
+- Cleared stale pending notifications from initial subscription to avoid wrong oldValue
+- Added 3 new tests to verify computed subscribe behavior
+
+**Code Quality:**
 - Removed dead code (arraysEqual, createSourcesArray)
 - Fixed misleading O(1) unsubscribe documentation (actually O(n))
 
-**Performance Impact:**
-- ✅ Computed operations: +218% to +375% improvement
-- ✅ Batch operations: +78% to +444% improvement
-- ✅ Single subscriber notifications: +351% improvement
-- ⚠️ Multi-subscriber notifications: -51% to -66% (now correctly propagates stale flags)
+**Tests:**
+- All 40 tests passing (37 existing + 3 new for Bug 1.4)
 
-The multi-subscriber performance decrease is expected and acceptable - the previous version was skipping necessary cascade updates due to the bug. Correctness > Performance.
+**Principle:** Correctness > Performance. All fixes prioritize correct behavior.

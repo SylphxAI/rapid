@@ -270,6 +270,52 @@ describe('subscribe', () => {
 
     expect(doubled._sourceUnsubs).toBeUndefined();
   });
+
+  it('should notify computed subscribers when upstream signal changes (Bug 1.4)', () => {
+    const count = zen(1);
+    const doubled = computed(() => count.value * 2);
+    const listener = vi.fn();
+
+    subscribe(doubled, listener);
+    listener.mockClear();
+
+    // Change upstream signal - computed should recompute and notify
+    count.value = 5;
+    expect(listener).toHaveBeenCalledWith(10, 2);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('should notify computed subscribers in batched mode (Bug 1.4)', () => {
+    const count = zen(1);
+    const doubled = computed(() => count.value * 2);
+    const listener = vi.fn();
+
+    subscribe(doubled, listener);
+    listener.mockClear();
+
+    // Change in batch - computed should recompute and notify after batch
+    batch(() => {
+      count.value = 5;
+    });
+
+    expect(listener).toHaveBeenCalledWith(10, 2);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('should notify computed subscribers in multi-level chains (Bug 1.4)', () => {
+    const count = zen(1);
+    const doubled = computed(() => count.value * 2);
+    const quadrupled = computed(() => doubled.value * 2);
+    const listener = vi.fn();
+
+    subscribe(quadrupled, listener);
+    listener.mockClear();
+
+    // Change source - all downstream computeds should update
+    count.value = 3;
+    expect(listener).toHaveBeenCalledWith(12, 4);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('effect', () => {

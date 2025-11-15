@@ -157,17 +157,31 @@ class ZenNode<T> extends BaseNode<T> {
 
     // Direct propagation for maximum performance
     if (batchDepth === 0 && !isFlushing) {
-      // Mark computed listeners dirty
+      // Mark computed listeners stale
       const computed = this._computedListeners;
       const computedLen = computed.length;
       for (let i = 0; i < computedLen; i++) {
-        computed[i]!._flags |= FLAG_STALE;
+        const c = computed[i]!;
+        c._flags |= FLAG_STALE;
+        // BUG FIX 1.4: If computed has effect listeners (or downstream computeds with effect listeners),
+        // trigger recompute + notify (recursively)
+        if (hasDownstreamEffectListeners(c)) {
+          (c as ComputedNode<any>)._recomputeIfNeeded();
+          // Recursively trigger downstream computeds that also have effect listeners
+          recomputeDownstreamWithListeners(c);
+        }
       }
 
       // Notify effects immediately
       const effects = this._effectListeners;
       const len = effects.length;
-      if (len === 0) return;
+      if (len === 0) {
+        // Flush any queued computed notifications
+        if (pendingNotifications.length > 0) {
+          flushPendingNotifications();
+        }
+        return;
+      }
 
       // Unrolled for 1-3 listeners (common cases)
       if (len === 1) {
@@ -184,12 +198,27 @@ class ZenNode<T> extends BaseNode<T> {
           effects[i]!(next, prev);
         }
       }
+
+      // Flush any queued computed notifications after signal effects
+      if (pendingNotifications.length > 0) {
+        flushPendingNotifications();
+      }
       return;
     }
 
     // Batched path: queue for later
     markNodeDirty(this as AnyNode);
     queueBatchedNotification(this as AnyNode, prev);
+
+    // BUG FIX 1.4: Also mark computed listeners dirty if they have subscribers (or downstream subscribers)
+    const computed = this._computedListeners;
+    for (let i = 0; i < computed.length; i++) {
+      const c = computed[i]!;
+      c._flags |= FLAG_STALE;
+      if (hasDownstreamEffectListeners(c)) {
+        markNodeDirty(c);
+      }
+    }
 
     if (batchDepth === 0 && !isFlushing) {
       flushBatchedUpdates();
@@ -362,6 +391,37 @@ export type ComputedZen<T> = ComputedCore<T>;
 // BATCHING & NOTIFICATIONS
 // ============================================================================
 
+/**
+ * BUG FIX 1.4: Check if a node has effect listeners downstream (recursively).
+ * This is needed for multi-level computed chains with subscribers.
+ */
+function hasDownstreamEffectListeners(node: AnyNode): boolean {
+  if (node._effectListeners.length > 0) return true;
+
+  const computed = node._computedListeners;
+  for (let i = 0; i < computed.length; i++) {
+    if (hasDownstreamEffectListeners(computed[i]!)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * BUG FIX 1.4: Recursively recompute downstream computeds that have effect listeners.
+ * This ensures multi-level computed chains update correctly.
+ */
+function recomputeDownstreamWithListeners(node: AnyNode): void {
+  const computed = node._computedListeners;
+  for (let i = 0; i < computed.length; i++) {
+    const c = computed[i]!;
+    if (hasDownstreamEffectListeners(c)) {
+      (c as ComputedNode<any>)._recomputeIfNeeded();
+      // Recursively process this computed's downstream
+      recomputeDownstreamWithListeners(c);
+    }
+  }
+}
+
 let batchDepth = 0;
 
 type PendingNotification = [AnyNode, unknown];
@@ -429,6 +489,7 @@ let isFlushing = false;
 /**
  * Flush batched updates - mark computeds dirty and notify effects.
  * BUG FIX 1.3: Handle dirty nodes added during flush.
+ * BUG FIX 1.4: Trigger recompute for computed nodes with subscribers.
  */
 function flushBatchedUpdates(): void {
   if (isFlushing) return;
@@ -436,16 +497,22 @@ function flushBatchedUpdates(): void {
 
   try {
     while (dirtyNodes.length > 0) {
-      // Mark all dirty nodes' computed listeners as stale
+      // Process all dirty nodes
       const dirtyLen = dirtyNodes.length;
       for (let i = 0; i < dirtyLen; i++) {
         const node = dirtyNodes[i]!;
         node._flags &= ~FLAG_IN_DIRTY_QUEUE;
 
-        const computed = node._computedListeners;
-        const computedLen = computed.length;
-        for (let j = 0; j < computedLen; j++) {
-          computed[j]!._flags |= FLAG_STALE;
+        // BUG FIX 1.4: If node is computed with subscribers, recompute it
+        if (node instanceof ComputedNode) {
+          (node as ComputedNode<any>)._recomputeIfNeeded();
+        } else {
+          // For signals, mark downstream computeds as stale
+          const computed = node._computedListeners;
+          const computedLen = computed.length;
+          for (let j = 0; j < computedLen; j++) {
+            computed[j]!._flags |= FLAG_STALE;
+          }
         }
       }
 
@@ -495,6 +562,17 @@ export function subscribe<T>(
 
   // Immediate call with current value (triggers lazy eval for computeds)
   listener((node as any).value as T, undefined);
+
+  // BUG FIX 1.4: Clear any queued notifications from initial computation
+  // The listener was already called directly above, so we don't need the queued notification
+  if ((n._flags & FLAG_PENDING_NOTIFY) !== 0) {
+    n._flags &= ~FLAG_PENDING_NOTIFY;
+    // Remove this node from pending notifications
+    const idx = pendingNotifications.findIndex(entry => entry[0] === n);
+    if (idx !== -1) {
+      pendingNotifications.splice(idx, 1);
+    }
+  }
 
   return (): void => {
     unsubEffect();
