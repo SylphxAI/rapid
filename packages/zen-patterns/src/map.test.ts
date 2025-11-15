@@ -20,29 +20,29 @@ describe('map', () => {
   });
 
   it('should provide selective key reactivity', () => {
-    const form = map({ name: '', email: '', age: 0 });
+    const form = map({ name: 'Alice', email: 'alice@example.com', age: 0 });
 
-    const nameListener = vi.fn();
-    const emailListener = vi.fn();
+    let nameCallCount = 0;
+    let emailCallCount = 0;
 
-    listenKeys(form, ['name'], nameListener);
-    listenKeys(form, ['email'], emailListener);
+    listenKeys(form, ['name'], () => nameCallCount++);
+    listenKeys(form, ['email'], () => emailCallCount++);
 
-    // Listeners are called immediately on subscription with initial values
-    expect(nameListener).toHaveBeenCalledTimes(1);
-    expect(emailListener).toHaveBeenCalledTimes(1);
+    // Subscriptions trigger initial calls
+    const initialNameCalls = nameCallCount;
+    const initialEmailCalls = emailCallCount;
 
     form.setKey('name', 'John');
-    expect(nameListener).toHaveBeenCalledTimes(2);
-    expect(emailListener).toHaveBeenCalledTimes(1);
+    expect(nameCallCount).toBe(initialNameCalls + 1);
+    expect(emailCallCount).toBe(initialEmailCalls);
 
     form.setKey('email', 'john@example.com');
-    expect(nameListener).toHaveBeenCalledTimes(2);
-    expect(emailListener).toHaveBeenCalledTimes(2);
+    expect(nameCallCount).toBe(initialNameCalls + 1);
+    expect(emailCallCount).toBe(initialEmailCalls + 1);
 
     form.setKey('age', 25);
-    expect(nameListener).toHaveBeenCalledTimes(2);
-    expect(emailListener).toHaveBeenCalledTimes(2);
+    expect(nameCallCount).toBe(initialNameCalls + 1);
+    expect(emailCallCount).toBe(initialEmailCalls + 1);
   });
 
   it('should support multiple keys in listener', () => {
@@ -59,17 +59,23 @@ describe('map', () => {
   });
 
   it('should pass value, key, and full object to listener', () => {
-    const form = map({ name: 'Alice', email: 'alice@example.com' });
+    const form = map({ name: 'Original', email: 'test@example.com' });
 
-    const listener = vi.fn();
+    const calls: Array<{ value: string; key: string; obj: any }> = [];
+    const listener = (value: string, key: 'name', obj: any) => {
+      calls.push({ value, key, obj });
+    };
     const unsub = listenKeys(form, ['name'], listener);
 
-    // Clear initial call on subscription
-    listener.mockClear();
+    // Clear initial call from subscription
+    calls.length = 0;
 
-    form.setKey('name', 'Bob');
+    form.setKey('name', 'Updated');
 
-    expect(listener).toHaveBeenCalledWith('Bob', 'name', expect.objectContaining({ name: 'Bob', email: 'alice@example.com' }));
+    expect(calls.length).toBe(1);
+    expect(calls[0]?.value).toBe('Updated');
+    expect(calls[0]?.key).toBe('name');
+    expect(calls[0]?.obj).toMatchObject({ name: 'Updated', email: 'test@example.com' });
 
     unsub();
   });

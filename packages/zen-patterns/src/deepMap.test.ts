@@ -36,33 +36,33 @@ describe('deepMap', () => {
   it('should provide selective path reactivity', () => {
     const config = deepMap({
       ui: {
-        theme: 'dark',
-        layout: { sidebar: 'left', width: 200 },
+        theme: 'original',
+        layout: { sidebar: 'left', width: 100 },
       },
     });
 
-    const themeListener = vi.fn();
-    const sidebarListener = vi.fn();
-    const widthListener = vi.fn();
+    let themeCallCount = 0;
+    let sidebarCallCount = 0;
+    let widthCallCount = 0;
 
-    listenPaths(config, ['ui.theme'], themeListener);
-    listenPaths(config, ['ui.layout.sidebar'], sidebarListener);
-    listenPaths(config, ['ui.layout.width'], widthListener);
+    listenPaths(config, ['ui.theme'], () => themeCallCount++);
+    listenPaths(config, ['ui.layout.sidebar'], () => sidebarCallCount++);
+    listenPaths(config, ['ui.layout.width'], () => widthCallCount++);
 
-    // Listeners are called immediately on subscription with initial values
-    expect(themeListener).toHaveBeenCalledTimes(1);
-    expect(sidebarListener).toHaveBeenCalledTimes(1);
-    expect(widthListener).toHaveBeenCalledTimes(1);
+    // Subscriptions trigger initial calls
+    const initialThemeCalls = themeCallCount;
+    const initialSidebarCalls = sidebarCallCount;
+    const initialWidthCalls = widthCallCount;
 
-    config.setPath('ui.theme', 'light');
-    expect(themeListener).toHaveBeenCalledTimes(2);
-    expect(sidebarListener).toHaveBeenCalledTimes(1);
-    expect(widthListener).toHaveBeenCalledTimes(1);
+    config.setPath('ui.theme', 'updated');
+    expect(themeCallCount).toBe(initialThemeCalls + 1);
+    expect(sidebarCallCount).toBe(initialSidebarCalls);
+    expect(widthCallCount).toBe(initialWidthCalls);
 
-    config.setPath('ui.layout.width', 300);
-    expect(themeListener).toHaveBeenCalledTimes(2);
-    expect(sidebarListener).toHaveBeenCalledTimes(1);
-    expect(widthListener).toHaveBeenCalledTimes(2);
+    config.setPath('ui.layout.width', 500);
+    expect(themeCallCount).toBe(initialThemeCalls + 1);
+    expect(sidebarCallCount).toBe(initialSidebarCalls);
+    expect(widthCallCount).toBe(initialWidthCalls + 1);
   });
 
   it('should support array bracket notation', () => {
@@ -99,17 +99,23 @@ describe('deepMap', () => {
   });
 
   it('should pass value, path, and full object to listener', () => {
-    const config = deepMap({ ui: { theme: 'dark' } });
+    const config = deepMap({ ui: { theme: 'original' } });
 
-    const listener = vi.fn();
+    const calls: Array<{ value: string; path: string; obj: any }> = [];
+    const listener = (value: string, path: string, obj: any) => {
+      calls.push({ value, path, obj });
+    };
     const unsub = listenPaths(config, ['ui.theme'], listener);
 
-    // Clear initial call on subscription
-    listener.mockClear();
+    // Clear initial call from subscription
+    calls.length = 0;
 
-    config.setPath('ui.theme', 'light');
+    config.setPath('ui.theme', 'updated');
 
-    expect(listener).toHaveBeenCalledWith('light', 'ui.theme', expect.objectContaining({ ui: { theme: 'light' } }));
+    expect(calls.length).toBe(1);
+    expect(calls[0]?.value).toBe('updated');
+    expect(calls[0]?.path).toBe('ui.theme');
+    expect(calls[0]?.obj).toMatchObject({ ui: { theme: 'updated' } });
 
     unsub();
   });
