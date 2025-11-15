@@ -21,13 +21,12 @@
   "scripts": {
     "build": "bunup --format esm,cjs --dts --target node --minify"
   },
-  "dependencies": {
-    "@sylphx/zen": "workspace:*"
-  },
   "peerDependencies": {
+    "@sylphx/zen": "^3.0.0",
     "preact": "^10.0.0"
   },
   "devDependencies": {
+    "@sylphx/zen": "workspace:*",
     "bunup": "^0.15.13",
     "typescript": "^5.4.5",
     "preact": "^10.24.3"

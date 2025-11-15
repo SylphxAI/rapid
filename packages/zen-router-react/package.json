@@ -39,14 +39,14 @@
     "build": "bunup --format esm,cjs --dts --target node --minify",
     "clean": "bun rimraf dist .turbo"
   },
-  "dependencies": {
-    "@sylphx/zen": "workspace:*",
-    "@sylphx/zen-router": "workspace:*"
-  },
   "peerDependencies": {
+    "@sylphx/zen": "^3.0.0",
+    "@sylphx/zen-router": "^3.0.0",
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@sylphx/zen": "workspace:*",
+    "@sylphx/zen-router": "workspace:*",
     "bunup": "^0.15.13",
     "@testing-library/react": "latest",
     "@types/node": "^22.14.1",
