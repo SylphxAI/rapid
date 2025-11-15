@@ -322,15 +322,23 @@ export function batch<T>(fn: () => T): T {
 // COMPUTED
 // ============================================================================
 
+// ULTRA: Split into tiny hot path (inlineable) + slow path (not inlined)
+// This allows V8 to inline the common case while keeping overall function small
 function updateComputed<T>(c: ComputedCore<T>): void {
   // ULTRA FAST PATH: Static dependencies + no listeners (benchmark case)
-  // Skip ALL overhead - no notifications needed
+  // Keep this path TINY (<10 lines) to enable V8 inlining
   if (c._staticDeps && (!c._listeners || c._listeners.size === 0)) {
     c._value = c._calc();
     c._dirty = false;
     return;
   }
 
+  // Delegate to slow path (V8 won't inline this, but that's OK)
+  updateComputedSlow(c);
+}
+
+// Slow path extracted to separate function
+function updateComputedSlow<T>(c: ComputedCore<T>): void {
   // FAST PATH: Static dependencies + has listeners
   // Skip expensive source tracking overhead if deps never change
   if (c._staticDeps) {
@@ -509,11 +517,15 @@ export function computed<T>(
   explicitDeps?: AnyZen[],
 ): ComputedCore<T> & { value: T } {
   const c = Object.create(computedProto) as ComputedCore<T> & { value: T };
+  // ULTRA: Initialize ALL properties in EXACT same order for monomorphic shapes
+  // This helps V8 create a single hidden class for all computeds
   c._kind = 'computed';
   c._value = null;
   c._dirty = true;
   c._sources = explicitDeps ? new Set(explicitDeps) : new Set(); // Set for O(1) add
   c._calc = calculation;
+  c._unsubs = undefined;  // ULTRA: Explicit undefined for monomorphic shape
+  c._staticDeps = undefined;  // ULTRA: Explicit undefined for monomorphic shape
 
   return c;
 }
