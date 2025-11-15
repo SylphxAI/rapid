@@ -374,7 +374,7 @@ class ComputedNode<T> extends BaseNode<T | null> {
 
     const len = unsubs.length;
     for (let i = 0; i < len; i++) {
-      unsubs[i]?.();
+      unsubs[i]!();
     }
     this._sourceUnsubs = undefined;
   }
@@ -660,7 +660,7 @@ function executeEffect(e: EffectCore): void {
   if (unsubs) {
     const len = unsubs.length;
     for (let i = 0; i < len; i++) {
-      unsubs[i]?.();
+      unsubs[i]!();
     }
     e._sourceUnsubs = undefined;
   }
