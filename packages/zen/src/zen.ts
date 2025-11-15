@@ -4,8 +4,9 @@
  * Design goals:
  * - No auto-batching. Only manual batch().
  * - Fully lazy computed evaluation.
- * - O(1) core operations per node (excluding unavoidable O(n listeners / sources)).
+ * - O(1)-per-node/edge core operations (excluding unavoidable O(n listeners / sources)).
  * - Array-based fan-out, bitflags for node state, versioned change detection.
+ * - Topological scheduling for glitch-free, globally stable updates.
  */
 
 export type Listener<T> = (value: T, oldValue: T | undefined) => void;
@@ -15,9 +16,10 @@ export type Unsubscribe = () => void;
 // FLAGS
 // ============================================================================
 
-const FLAG_STALE = 0b001;
-const FLAG_PENDING = 0b010;
-const FLAG_PENDING_NOTIFY = 0b100;
+const FLAG_STALE = 0b0001;
+const FLAG_PENDING = 0b0010;
+const FLAG_PENDING_NOTIFY = 0b0100;
+const FLAG_IN_DIRTY_QUEUE = 0b1000;
 
 // ============================================================================
 // INTERNAL SLOTS
@@ -50,6 +52,11 @@ abstract class BaseNode<V> {
   _effectListeners: EffectSlot[] = [];
   _flags = 0;
   _version = 0;
+
+  // Topological level:
+  // - 0 for signals
+  // - 1 + max(source.level) for computeds
+  _level = 0;
 
   constructor(initial: V) {
     this._value = initial;
@@ -163,6 +170,22 @@ function addComputedListener(source: AnyNode, node: AnyNode): Unsubscribe {
 }
 
 // ============================================================================
+// DIRTY GRAPH QUEUE (for topo scheduling)
+// ============================================================================
+
+const dirtyNodes: AnyNode[] = [];
+
+/**
+ * Mark node as dirty (for topo processing) in O(1),
+ * deduped via FLAG_IN_DIRTY_QUEUE.
+ */
+function markNodeDirty(node: AnyNode): void {
+  if ((node._flags & FLAG_IN_DIRTY_QUEUE) !== 0) return;
+  node._flags |= FLAG_IN_DIRTY_QUEUE;
+  dirtyNodes.push(node);
+}
+
+// ============================================================================
 // ZEN (Signal)
 // ============================================================================
 
@@ -188,19 +211,16 @@ class ZenNode<T> extends BaseNode<T> {
     this._value = next;
     this._version++;
 
-    // Mark dependent computeds as STALE
-    const computeds = this._computedListeners;
-    for (let i = 0; i < computeds.length; i++) {
-      computeds[i]!.node._flags |= FLAG_STALE;
-    }
+    // Mark this node dirty for topo processing
+    markNodeDirty(this as AnyNode);
 
-    // Inside a batch: defer notifications
-    if (batchDepth > 0) {
-      queueBatchedNotification(this as AnyNode, prev);
-      return;
-    }
+    // Queue batched notification for this signal
+    queueBatchedNotification(this as AnyNode, prev);
 
-    notifyEffects(this as AnyNode, next, prev);
+    // If not in a batch, process graph immediately (glitch-free single update)
+    if (batchDepth === 0) {
+      processDirtyNodesAndFlush();
+    }
   }
 }
 
@@ -279,10 +299,20 @@ class ComputedNode<T> extends BaseNode<T | null> {
     this._flags |= FLAG_PENDING;
     this._flags &= ~FLAG_STALE;
 
+    const oldValue = this._value;
     const newValue = this._calc();
     this._value = newValue;
     this._flags &= ~FLAG_PENDING;
     this._version++;
+
+    // Compute topological level: 1 + max(source.level)
+    let level = 0;
+    for (let i = 0; i < this._sources.length; i++) {
+      const src = this._sources[i]!;
+      const candidate = src._level + 1;
+      if (candidate > level) level = candidate;
+    }
+    this._level = level;
 
     // Snapshot source versions for future checks
     const len = this._sources.length;
@@ -306,9 +336,12 @@ class ComputedNode<T> extends BaseNode<T | null> {
       }
     }
 
-    // Note: we intentionally do NOT notify listeners here.
-    // Computeds are lazy: they recompute when read.
-    // Notifications are driven by signals and effects via their own tracking.
+    // If this computed is directly observed by effects/subscribers, we must
+    // notify them when its value changes. We use the same batched notification
+    // mechanism as signals.
+    if (!valuesEqual(oldValue, newValue)) {
+      queueBatchedNotification(this as AnyNode, oldValue);
+    }
   }
 
   get value(): T {
@@ -421,9 +454,66 @@ function flushPendingNotifications(): void {
 }
 
 /**
+ * Process dirty graph (signals + dependent computeds) in topological order
+ * and then flush all pending notifications. This ensures a glitch-free,
+ * globally stable state after each update or batch.
+ */
+function processDirtyNodesAndFlush(): void {
+  if (dirtyNodes.length > 0) {
+    // Collect initial dirty roots and clear their queue flag.
+    const queue: AnyNode[] = dirtyNodes.splice(0);
+    for (let i = 0; i < queue.length; i++) {
+      queue[i]!._flags &= ~FLAG_IN_DIRTY_QUEUE;
+    }
+
+    const seen = new Set<AnyNode>();
+    const affected: AnyNode[] = [];
+
+    // BFS/DFS from dirty roots through computed listeners
+    while (queue.length > 0) {
+      const node = queue.pop()!;
+      if (seen.has(node)) continue;
+      seen.add(node);
+      affected.push(node);
+
+      const dependents = node._computedListeners;
+      for (let i = 0; i < dependents.length; i++) {
+        const depNode = dependents[i]!.node;
+        if (!seen.has(depNode)) {
+          queue.push(depNode);
+        }
+      }
+    }
+
+    // Extract computeds and sort by level (topological order)
+    const computedNodes: ComputedNode<unknown>[] = [];
+    for (let i = 0; i < affected.length; i++) {
+      const n = affected[i]!;
+      if (n instanceof ComputedNode) {
+        computedNodes.push(n as ComputedNode<unknown>);
+      }
+    }
+
+    computedNodes.sort((a, b) => a._level - b._level);
+
+    // Recompute all computeds in topo order (lazy internals + version check)
+    for (let i = 0; i < computedNodes.length; i++) {
+      const c = computedNodes[i]!;
+      // Accessing value triggers recompute if needed and queues notifications
+      // when the value actually changes.
+      c.value;
+    }
+  }
+
+  // After the graph is stable, flush all effect notifications
+  flushPendingNotifications();
+}
+
+/**
  * Run fn in a manual batch.
- * All signal writes inside update synchronously, but listener notifications
- * are coalesced and flushed at the end of the outermost batch.
+ * All signal writes inside update synchronously, but graph stabilization
+ * and listener notifications are coalesced and processed once at the end of
+ * the outermost batch in topological order.
  */
 export function batch<T>(fn: () => T): T {
   batchDepth++;
@@ -432,7 +522,7 @@ export function batch<T>(fn: () => T): T {
   } finally {
     batchDepth--;
     if (batchDepth === 0) {
-      flushPendingNotifications();
+      processDirtyNodesAndFlush();
     }
   }
 }
