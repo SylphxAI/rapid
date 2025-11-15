@@ -31,13 +31,10 @@
     "clean": "bun rimraf dist"
   },
   "dependencies": {
-    "@sylphx/craft": "^1.0.0"
-  },
-  "peerDependencies": {
-    "@sylphx/zen": "^3.12.0"
+    "@sylphx/craft": "^1.0.0",
+    "@sylphx/zen": "workspace:*"
   },
   "devDependencies": {
-    "@sylphx/zen": "workspace:*",
     "bunup": "^0.15.13",
     "@types/node": "^20.12.12",
     "typescript": "^5.4.5",

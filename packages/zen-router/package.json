@@ -40,13 +40,11 @@
   "bugs": {
     "url": "https://github.com/SylphxAI/zen/issues"
   },
-  "peerDependencies": {
-    "@sylphx/zen": "^3.12.0",
-    "@sylphx/zen-patterns": "^12.0.0"
+  "dependencies": {
+    "@sylphx/zen": "workspace:*",
+    "@sylphx/zen-patterns": "workspace:*"
   },
   "devDependencies": {
-    "@sylphx/zen": "workspace:*",
-    "@sylphx/zen-patterns": "workspace:*",
     "bunup": "^0.15.13",
     "vite-tsconfig-paths": "^5.1.4"
   },

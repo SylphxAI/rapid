@@ -41,11 +41,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "peerDependencies": {
-    "@sylphx/zen": "^3.12.0"
+  "dependencies": {
+    "@sylphx/zen": "workspace:*"
   },
   "devDependencies": {
-    "@sylphx/zen": "workspace:*",
     "bunup": "^0.15.13",
     "typescript": "^5.8.3"
   }

@@ -22,13 +22,11 @@
     "build": "bunup --format esm,cjs --dts --target node --minify",
     "validate": "bun run check-format && bun run lint && bun run typecheck && bun run test"
   },
-  "peerDependencies": {
-    "@sylphx/zen": "^3.12.0",
-    "@sylphx/zen-patterns": "^12.0.0"
+  "dependencies": {
+    "@sylphx/zen": "workspace:*",
+    "@sylphx/zen-patterns": "workspace:*"
   },
   "devDependencies": {
-    "@sylphx/zen": "workspace:*",
-    "@sylphx/zen-patterns": "workspace:*",
     "bunup": "^0.15.13",
     "typescript": "^5.5.3"
   },
