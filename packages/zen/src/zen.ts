@@ -10,6 +10,7 @@ type ZenCore<T> = {
   _kind: 'zen';
   _value: T;
   _listeners?: Listener<T>[];
+  _queued?: boolean; // Transient flag for deduplication
 };
 
 // State flags for computed values (inspired by SolidJS)
@@ -25,6 +26,7 @@ type ComputedCore<T> = {
   _listeners?: Listener<T>[];
   _sources?: ZenCore<any>[];
   _sourceUnsubs?: Unsubscribe[];
+  _queued?: boolean; // Transient flag for deduplication
 };
 
 export type AnyZen = ZenCore<any> | ComputedCore<any>;
@@ -46,30 +48,104 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
   return true;
 }
 
-// Helper to propagate STALE state to downstream computeds
+// Helper to propagate STALE state to downstream computeds (iterative to avoid recursion overhead)
 function markDownstreamStale(computed: ComputedCore<any>): void {
-  const listeners = computed._listeners;
-  if (!listeners) return;
+  const queue: ComputedCore<any>[] = [computed];
 
-  // Check if this computed has non-computed listeners (leaf computed)
-  let hasNonComputedListeners = false;
-  for (let i = 0; i < listeners.length; i++) {
-    const listener = listeners[i];
-    const downstreamComputed = (listener as any)._computedZen;
-    if (downstreamComputed) {
-      if (downstreamComputed._state === CLEAN) {
-        downstreamComputed._state = STALE;
-        // Recursively propagate
-        markDownstreamStale(downstreamComputed);
+  for (let i = 0; i < queue.length; i++) {
+    const current = queue[i]!;
+    const listeners = current._listeners;
+    if (!listeners) continue;
+
+    // Check if this computed has non-computed listeners (leaf computed)
+    let hasNonComputedListeners = false;
+    for (let j = 0; j < listeners.length; j++) {
+      const listener = listeners[j]!;
+      const downstreamComputed = (listener as any)._computedZen;
+      if (downstreamComputed) {
+        if (downstreamComputed._state === CLEAN) {
+          downstreamComputed._state = STALE;
+          // Add to queue for processing
+          queue.push(downstreamComputed);
+        }
+      } else {
+        hasNonComputedListeners = true;
+      }
+    }
+
+    // Only queue if this is a leaf computed (has non-computed listeners), in batch, and not already queued
+    if (hasNonComputedListeners && batchDepth > 0 && !current._queued) {
+      current._queued = true;
+      pendingNotifications.push([current, current._value]);
+    }
+  }
+}
+
+// Shared flush function to avoid duplication
+function flushBatch(): void {
+  if (pendingNotifications.length === 0) {
+    if (pendingEffects.size > 0) {
+      const effects = Array.from(pendingEffects);
+      pendingEffects.clear();
+      for (let i = 0; i < effects.length; i++) {
+        executeEffectImmediate(effects[i]!);
+      }
+    }
+    return;
+  }
+
+  const toNotify = pendingNotifications.splice(0);
+
+  // Process all queued items (no deduplication needed - _queued flag prevents duplicates)
+  for (let i = 0; i < toNotify.length; i++) {
+    const [zenItem, oldVal] = toNotify[i]!;
+    zenItem._queued = false; // Clear flag
+
+    // If it's a computed, recalculate it first
+    if (zenItem._kind === 'computed' && zenItem._state !== CLEAN) {
+      const prevListener = currentListener;
+      currentListener = zenItem as any;
+
+      if ((zenItem as any)._sources) {
+        (zenItem as any)._sources.length = 0;
+      }
+
+      (zenItem as any)._state = PENDING;
+      const newVal = (zenItem as any)._calc();
+      const oldComputedVal = (zenItem as any)._value;
+      (zenItem as any)._value = newVal;
+      (zenItem as any)._state = CLEAN;
+
+      currentListener = prevListener;
+
+      // Inline listener notification (avoid function call overhead)
+      if (!Object.is(newVal, oldComputedVal)) {
+        const zenListeners = zenItem._listeners;
+        if (zenListeners) {
+          for (let j = 0; j < zenListeners.length; j++) {
+            zenListeners[j]!(newVal, oldComputedVal);
+          }
+        }
       }
     } else {
-      hasNonComputedListeners = true;
+      // For zen signals, always notify
+      const zenListeners = zenItem._listeners;
+      if (zenListeners) {
+        const currentValue = zenItem._value;
+        for (let j = 0; j < zenListeners.length; j++) {
+          zenListeners[j]!(currentValue, oldVal);
+        }
+      }
     }
   }
 
-  // Only queue if this is a leaf computed (has non-computed listeners) and in batch
-  if (hasNonComputedListeners && batchDepth > 0) {
-    pendingNotifications.push([computed, computed._value]);
+  // Flush pending effects
+  if (pendingEffects.size > 0) {
+    const effects = Array.from(pendingEffects);
+    pendingEffects.clear();
+    for (let i = 0; i < effects.length; i++) {
+      executeEffectImmediate(effects[i]!);
+    }
   }
 }
 
@@ -92,119 +168,81 @@ const zenProto = {
     return this._value;
   },
   set value(this: ZenCore<any> & { value: any }, newValue: any) {
-    if (Object.is(newValue, this._value)) return;
+    // Fast equality check: === covers most cases, Object.is for edge cases (+0/-0, NaN)
+    // Check === first (fast path), then Object.is only if needed
+    if (newValue === this._value) {
+      // Same value, but need to check for +0/-0 edge case
+      if (newValue === 0 && 1/newValue !== 1/this._value) {
+        // +0 vs -0, continue to update
+      } else {
+        return; // Truly equal
+      }
+    } else if (newValue !== newValue && this._value !== this._value) {
+      // Both NaN
+      return;
+    }
 
     const oldValue = this._value;
     this._value = newValue;
 
     const listeners = this._listeners;
 
-    // Auto-batch to prevent glitches when multiple computeds notify the same effect
-    const wasTopLevel = batchDepth === 0;
-    if (wasTopLevel) batchDepth++;
-
-    try {
-      if (batchDepth > 0) {
-        // Mark computed dependents as STALE and queue them
-        let hasNonComputedListeners = false;
-        if (listeners) {
-          for (let i = 0; i < listeners.length; i++) {
-            const listener = listeners[i];
-            const computedZen = (listener as any)._computedZen;
-            if (computedZen) {
-              if (computedZen._state === CLEAN) {
-                computedZen._state = STALE;
-                // Propagate STALE to downstream computeds and queue leaf computeds
-                markDownstreamStale(computedZen);
-              }
-            } else {
-              hasNonComputedListeners = true;
+    // Fast path: already in batch, just queue and return
+    if (batchDepth > 0) {
+      // Mark computed dependents as STALE and queue them
+      let hasNonComputedListeners = false;
+      if (listeners) {
+        for (let i = 0; i < listeners.length; i++) {
+          const listener = listeners[i];
+          const computedZen = (listener as any)._computedZen;
+          if (computedZen) {
+            if (computedZen._state === CLEAN) {
+              computedZen._state = STALE;
+              // Propagate STALE to downstream computeds and queue leaf computeds
+              markDownstreamStale(computedZen);
             }
+          } else {
+            hasNonComputedListeners = true;
           }
         }
-        // Only queue signal if it has non-computed listeners
-        if (hasNonComputedListeners) {
-          pendingNotifications.push([this as ZenCore<any>, oldValue]);
-        }
-        return;
       }
+      // Only queue signal if it has non-computed listeners and not already queued
+      if (hasNonComputedListeners && !this._queued) {
+        this._queued = true;
+        pendingNotifications.push([this as ZenCore<any>, oldValue]);
+      }
+      return;
+    }
 
-      // Not in batch - notify all listeners normally
-      if (!listeners) return;
+    // Not in batch - auto-batch this update
+    batchDepth = 1;
 
+    // Mark computed dependents as STALE and queue them
+    let hasNonComputedListeners = false;
+    if (listeners) {
       for (let i = 0; i < listeners.length; i++) {
-        listeners[i](newValue, oldValue);
-      }
-    } finally {
-      if (wasTopLevel) {
-        if (pendingNotifications.length > 0) {
-          const toNotify = pendingNotifications.splice(0);
-
-          // Deduplicate notifications (same item may be queued multiple times)
-          const seen = new Set<AnyZen>();
-          const unique: [AnyZen, any][] = [];
-          for (let i = 0; i < toNotify.length; i++) {
-            const [zenItem] = toNotify[i]!;
-            if (!seen.has(zenItem)) {
-              seen.add(zenItem);
-              unique.push(toNotify[i]!);
-            }
+        const listener = listeners[i];
+        const computedZen = (listener as any)._computedZen;
+        if (computedZen) {
+          if (computedZen._state === CLEAN) {
+            computedZen._state = STALE;
+            // Propagate STALE to downstream computeds and queue leaf computeds
+            markDownstreamStale(computedZen);
           }
-
-          for (let i = 0; i < unique.length; i++) {
-            const [zenItem, oldVal] = unique[i]!;
-
-            // If it's a computed, recalculate it first
-            if (zenItem._kind === 'computed' && zenItem._state !== CLEAN) {
-              const prevListener = currentListener;
-              currentListener = zenItem as any;
-
-              if ((zenItem as any)._sources) {
-                (zenItem as any)._sources.length = 0;
-              }
-
-              (zenItem as any)._state = PENDING;
-              const newVal = (zenItem as any)._calc();
-              const oldComputedVal = (zenItem as any)._value;
-              (zenItem as any)._value = newVal;
-              (zenItem as any)._state = CLEAN;
-
-              currentListener = prevListener;
-
-              // Notify listeners only if value changed
-              if (!Object.is(newVal, oldComputedVal)) {
-                const zenListeners = zenItem._listeners;
-                if (zenListeners) {
-                  for (let j = 0; j < zenListeners.length; j++) {
-                    zenListeners[j](newVal, oldComputedVal);
-                  }
-                }
-              }
-            } else {
-              // For zen signals, always notify
-              const zenListeners = zenItem._listeners;
-              if (zenListeners) {
-                const currentValue = zenItem._value;
-                for (let j = 0; j < zenListeners.length; j++) {
-                  zenListeners[j](currentValue, oldVal);
-                }
-              }
-            }
-          }
+        } else {
+          hasNonComputedListeners = true;
         }
-
-        // Flush pending effects
-        if (pendingEffects.size > 0) {
-          const effects = Array.from(pendingEffects);
-          pendingEffects.clear();
-          for (let i = 0; i < effects.length; i++) {
-            executeEffectImmediate(effects[i]!);
-          }
-        }
-
-        batchDepth--;
       }
     }
+    // Queue signal if it has non-computed listeners
+    if (hasNonComputedListeners) {
+      this._queued = true;
+      pendingNotifications.push([this as ZenCore<any>, oldValue]);
+    }
+
+    // Flush and clear batch (keep batchDepth > 0 during flush)
+    flushBatch();
+    batchDepth = 0;
   },
 };
 
@@ -413,74 +451,11 @@ export function batch<T>(fn: () => T): T {
   try {
     return fn();
   } finally {
-    if (batchDepth === 1 && pendingNotifications.length > 0) {
-      const toNotify = pendingNotifications.splice(0);
-
-      // Deduplicate notifications (same item may be queued multiple times)
-      const seen = new Set<AnyZen>();
-      const unique: [AnyZen, any][] = [];
-      for (let i = 0; i < toNotify.length; i++) {
-        const [zenItem] = toNotify[i]!;
-        if (!seen.has(zenItem)) {
-          seen.add(zenItem);
-          unique.push(toNotify[i]!);
-        }
-      }
-
-      for (let i = 0; i < unique.length; i++) {
-        const [zenItem, oldValue] = unique[i]!;
-
-        // If it's a computed, recalculate it first
-        if (zenItem._kind === 'computed' && zenItem._state !== CLEAN) {
-          const prevListener = currentListener;
-          currentListener = zenItem as any;
-
-          if ((zenItem as any)._sources) {
-            (zenItem as any)._sources.length = 0;
-          }
-
-          (zenItem as any)._state = PENDING;
-          const newValue = (zenItem as any)._calc();
-          const oldComputedValue = (zenItem as any)._value;
-          (zenItem as any)._value = newValue;
-          (zenItem as any)._state = CLEAN;
-
-          currentListener = prevListener;
-
-          // Notify listeners only if value changed
-          if (!Object.is(newValue, oldComputedValue)) {
-            const listeners = zenItem._listeners;
-            if (listeners) {
-              for (let j = 0; j < listeners.length; j++) {
-                listeners[j](newValue, oldComputedValue);
-              }
-            }
-          }
-        } else {
-          // For zen signals, always notify
-          const listeners = zenItem._listeners;
-          if (listeners) {
-            const newValue = zenItem._value;
-            for (let j = 0; j < listeners.length; j++) {
-              listeners[j](newValue, oldValue);
-            }
-          }
-        }
-      }
-
-      // Flush pending effects
-      if (pendingEffects.size > 0) {
-        const effects = Array.from(pendingEffects);
-        pendingEffects.clear();
-        for (let i = 0; i < effects.length; i++) {
-          executeEffectImmediate(effects[i]!);
-        }
-      }
-
-      batchDepth--;
-    } else {
-      batchDepth--;
+    if (batchDepth === 1) {
+      // Keep batchDepth > 0 during flush to ensure effects are queued
+      flushBatch();
     }
+    batchDepth--;
   }
 }
 
