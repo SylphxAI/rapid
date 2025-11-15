@@ -11,6 +11,8 @@ type ZenCore<T> = {
   _value: T;
   _listeners?: Listener<T>[];
   _queued?: boolean; // Transient flag for deduplication
+  _owner: AnyNode | null;
+  _updatedAt?: number;
 };
 
 // State flags for computed values (inspired by SolidJS)
@@ -24,15 +26,29 @@ type ComputedCore<T> = {
   _state: 0 | 1 | 2; // CLEAN, STALE, or PENDING
   _calc: () => T;
   _listeners?: Listener<T>[];
-  _sources?: ZenCore<any>[];
+  _sources?: AnyNode[];
   _sourceUnsubs?: Unsubscribe[];
   _queued?: boolean; // Transient flag for deduplication
+  _owner: AnyNode | null;
+  _updatedAt?: number;
 };
 
 export type AnyZen = ZenCore<any> | ComputedCore<any>;
 
 // Global tracking
 let currentListener: ComputedCore<any> | null = null;
+let currentOwner: AnyNode | null = null;
+
+// Global execution counter for deduplication
+let ExecCount = 0;
+
+// Base node type with owner hierarchy
+type BaseNode = {
+  _owner: AnyNode | null;
+  _updatedAt?: number;
+};
+
+type AnyNode = (ZenCore<any> | ComputedCore<any> | EffectCore) & BaseNode;
 
 // Batching
 let batchDepth = 0;
@@ -81,8 +97,64 @@ function markDownstreamStale(computed: ComputedCore<any>): void {
   }
 }
 
-// Shared flush function to avoid duplication
+// runTop algorithm: Execute node and all dirty ancestors from root to leaf
+function runTop(node: AnyNode): void {
+  // Skip if already clean or pending
+  if ((node as any)._state === CLEAN) return;
+  if ((node as any)._state === PENDING) return;
+
+  const ancestors: AnyNode[] = [node];
+  let current = node._owner;
+
+  // Collect dirty ancestors walking up the owner chain
+  while (current && (!current._updatedAt || current._updatedAt < ExecCount)) {
+    if ((current as any)._state && (current as any)._state !== CLEAN) {
+      ancestors.push(current);
+    }
+    current = current._owner;
+  }
+
+  // Execute from root to leaf (reverse order)
+  for (let i = ancestors.length - 1; i >= 0; i--) {
+    const n = ancestors[i]!;
+
+    // Only update if still dirty and not updated this cycle
+    if ((n as any)._state === STALE && (!n._updatedAt || n._updatedAt < ExecCount)) {
+      if ((n as any)._kind === 'computed') {
+        updateComputed(n as any);
+      }
+    }
+  }
+}
+
+// Helper to update a computed node (doesn't notify listeners - caller handles that)
+function updateComputed(c: ComputedCore<any>): void {
+  if (c._state === CLEAN) return;
+  if (c._updatedAt === ExecCount) return; // Already updated this cycle
+
+  const prevListener = currentListener;
+  const prevOwner = currentOwner;
+  currentListener = c;
+  currentOwner = c as any;
+
+  if (c._sources) {
+    c._sources.length = 0;
+  }
+
+  c._state = PENDING;
+  const newValue = c._calc();
+  c._value = newValue;
+  c._state = CLEAN;
+  c._updatedAt = ExecCount;
+
+  currentListener = prevListener;
+  currentOwner = prevOwner;
+}
+
+// Shared flush function using runTop algorithm
 function flushBatch(): void {
+  ExecCount++; // Increment execution counter for this batch
+
   if (pendingNotifications.length === 0) {
     if (pendingEffects.size > 0) {
       const effects = Array.from(pendingEffects);
@@ -96,44 +168,32 @@ function flushBatch(): void {
 
   const toNotify = pendingNotifications.splice(0);
 
-  // Process all queued items (no deduplication needed - _queued flag prevents duplicates)
+  // Process all queued items using runTop for correct ordering
   for (let i = 0; i < toNotify.length; i++) {
     const [zenItem, oldVal] = toNotify[i]!;
     zenItem._queued = false; // Clear flag
 
-    // If it's a computed, recalculate it first
+    // If it's a computed, use runTop to ensure correct ordering
     if (zenItem._kind === 'computed' && zenItem._state !== CLEAN) {
-      const prevListener = currentListener;
-      currentListener = zenItem as any;
+      const computedOldVal = zenItem._value;
+      runTop(zenItem as any);
 
-      if ((zenItem as any)._sources) {
-        (zenItem as any)._sources.length = 0;
-      }
-
-      (zenItem as any)._state = PENDING;
-      const newVal = (zenItem as any)._calc();
-      const oldComputedVal = (zenItem as any)._value;
-      (zenItem as any)._value = newVal;
-      (zenItem as any)._state = CLEAN;
-
-      currentListener = prevListener;
-
-      // Inline listener notification (avoid function call overhead)
-      if (!Object.is(newVal, oldComputedVal)) {
-        const zenListeners = zenItem._listeners;
-        if (zenListeners) {
-          for (let j = 0; j < zenListeners.length; j++) {
-            zenListeners[j]!(newVal, oldComputedVal);
+      // Notify listeners only if value changed after runTop
+      if (!Object.is(zenItem._value, computedOldVal)) {
+        const listeners = zenItem._listeners;
+        if (listeners) {
+          for (let j = 0; j < listeners.length; j++) {
+            listeners[j](zenItem._value, computedOldVal);
           }
         }
       }
     } else {
       // For zen signals, always notify
-      const zenListeners = zenItem._listeners;
-      if (zenListeners) {
+      const listeners = zenItem._listeners;
+      if (listeners) {
         const currentValue = zenItem._value;
-        for (let j = 0; j < zenListeners.length; j++) {
-          zenListeners[j]!(currentValue, oldVal);
+        for (let j = 0; j < listeners.length; j++) {
+          listeners[j](currentValue, oldVal);
         }
       }
     }
@@ -251,6 +311,8 @@ export function zen<T>(initialValue: T): ZenCore<T> & { value: T } {
   signal._kind = 'zen';
   signal._value = initialValue;
   signal._listeners = undefined;
+  signal._owner = currentOwner;
+  signal._updatedAt = undefined;
   return signal;
 }
 
@@ -283,7 +345,9 @@ const computedProto = {
       const oldSources = this._sources && this._sourceUnsubs ? [...this._sources] : null;
 
       const prevListener = currentListener;
+      const prevOwner = currentOwner;
       currentListener = this;
+      currentOwner = this as any;
 
       if (this._sources) {
         this._sources.length = 0;
@@ -292,8 +356,10 @@ const computedProto = {
       this._state = PENDING;
       this._value = this._calc();
       this._state = CLEAN;
+      this._updatedAt = ExecCount;
 
       currentListener = prevListener;
+      currentOwner = prevOwner;
 
       // Check if sources changed and re-subscribe if needed
       if (oldSources && this._sources) {
@@ -349,7 +415,9 @@ const computedProto = {
         const oldUnsubs = this._sourceUnsubs;
 
         const prevListener = currentListener;
+        const prevOwner = currentOwner;
         currentListener = this;
+        currentOwner = this as any;
 
         // Re-track sources
         if (this._sources) {
@@ -360,8 +428,10 @@ const computedProto = {
         this._state = PENDING;
         this._value = this._calc();
         this._state = CLEAN;
+        this._updatedAt = ExecCount;
 
         currentListener = prevListener;
+        currentOwner = prevOwner;
 
         // Check if sources changed and re-subscribe if needed
         const sourcesChanged = !arraysEqual(oldSources, this._sources || []);
@@ -436,6 +506,8 @@ export function computed<T>(calculation: () => T): ComputedCore<T> & { value: T 
   });
   c._sources = sources;
   c._sourceUnsubs = undefined;
+  c._owner = currentOwner;
+  c._updatedAt = undefined;
   return c;
 }
 
@@ -516,11 +588,14 @@ export function subscribe<A extends AnyZen>(zenItem: A, listener: Listener<any>)
 // ============================================================================
 
 type EffectCore = {
-  _sources?: AnyZen[];
+  _kind: 'effect';
+  _sources?: AnyNode[];
   _sourceUnsubs?: Unsubscribe[];
   _cleanup?: () => void;
   _callback: () => undefined | (() => void);
   _cancelled: boolean;
+  _owner: AnyNode | null;
+  _updatedAt?: number;
 };
 
 function executeEffect(e: EffectCore): void {
@@ -557,9 +632,11 @@ function executeEffectImmediate(e: EffectCore): void {
     e._sources.length = 0;
   }
 
-  // Set as current listener for auto-tracking
+  // Set as current listener and owner for auto-tracking
   const prevListener = currentListener;
+  const prevOwner = currentOwner;
   currentListener = e as any;
+  currentOwner = e as any;
 
   try {
     const cleanup = e._callback();
@@ -567,6 +644,7 @@ function executeEffectImmediate(e: EffectCore): void {
   } catch (_err) {
   } finally {
     currentListener = prevListener;
+    currentOwner = prevOwner;
   }
 
   // Subscribe to tracked sources
@@ -593,9 +671,12 @@ function executeEffectImmediate(e: EffectCore): void {
 
 export function effect(callback: () => undefined | (() => void)): Unsubscribe {
   const e: EffectCore = {
+    _kind: 'effect',
     _sources: [],
     _callback: callback,
     _cancelled: false,
+    _owner: currentOwner,
+    _updatedAt: undefined,
   };
 
   // Run effect immediately
