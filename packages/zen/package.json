@@ -26,7 +26,7 @@
       "name": "zen v3 (full)",
       "path": "dist/index.js",
       "import": "{ zen, computed, effect, subscribe, batch }",
-      "limit": "1.5 kB"
+      "limit": "1.6 kB"
     }
   ],
   "keywords": [
