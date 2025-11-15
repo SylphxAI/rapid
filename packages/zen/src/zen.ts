@@ -1,8 +1,8 @@
 /**
  * Zen Ultra - Maximum Performance Reactive Primitives
- * No auto-batching. Manual batch() only.
- * Design: O(1) per signal update (excluding unavoidable O(n) listener iteration),
- * lazy computeds, minimal allocations, bitflag state.
+ * - No auto-batching. Manual batch() only.
+ * - Lazy computed/effect tracking.
+ * - O(1) core ops per node (excluding unavoidable O(n listeners / sources)).
  */
 
 export type Listener<T> = (value: T, oldValue: T | undefined) => void;
@@ -21,9 +21,8 @@ const FLAG_PENDING = 0b10;
 
 /**
  * V = 真正儲存嘅 value type
- * 例如：
- *   ZenNode<T>       => BaseNode<T>
- *   ComputedNode<T>  => BaseNode<T | null>
+ *   - ZenNode<T>      => BaseNode<T>
+ *   - ComputedNode<T> => BaseNode<T | null>
  */
 abstract class BaseNode<V> {
   _value: V;
@@ -39,12 +38,12 @@ abstract class BaseNode<V> {
 
 type AnyNode = BaseNode<unknown>;
 
-// 用來做 dependency tracking 的 interface
+// 用來做依賴追蹤嘅 listener 介面（computed / effect）
 interface DependencyCollector {
   _sources: AnyNode[];
 }
 
-// global tracking
+// Global tracking context
 let currentListener: DependencyCollector | null = null;
 
 // ============================================================================
@@ -59,6 +58,9 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
   return true;
 }
 
+/**
+ * 建立 `_sources` array，附加 `.size` getter（兼容舊 tests）
+ */
 function createSourcesArray(): AnyNode[] {
   const sources: AnyNode[] = [];
   Object.defineProperty(sources, 'size', {
@@ -71,12 +73,12 @@ function createSourcesArray(): AnyNode[] {
 }
 
 // ============================================================================
-// ZEN (signal)
+// ZEN (Signal)
 // ============================================================================
 
 class ZenNode<T> extends BaseNode<T> {
   get value(): T {
-    // dependency tracking
+    // 依賴追蹤：如果而家有 listener（computed / effect）就記錄來源
     if (currentListener) {
       const list = currentListener._sources;
       const self = this as AnyNode;
@@ -90,10 +92,7 @@ class ZenNode<T> extends BaseNode<T> {
 
     // Fast equality check with +0/-0 & NaN
     if (next === prev) {
-      if (
-        next === 0 &&
-        1 / (next as any as number) !== 1 / (prev as any as number)
-      ) {
+      if (next === 0 && 1 / (next as any as number) !== 1 / (prev as any as number)) {
         // +0 vs -0 -> treat as changed
       } else {
         return;
@@ -106,13 +105,13 @@ class ZenNode<T> extends BaseNode<T> {
     this._value = next;
     this._version++;
 
-    // mark computeds as STALE
+    // 標記所有 dependent computed 為 STALE
     const computeds = this._computedListeners;
     for (let i = 0; i < computeds.length; i++) {
       computeds[i]!._flags |= FLAG_STALE;
     }
 
-    // batching support
+    // 如果喺 batch 入面 -> 延遲通知
     if (batchDepth > 0) {
       queueBatchedNotification(this as AnyNode, prev);
       return;
@@ -133,7 +132,7 @@ export type Zen<T> = ReturnType<typeof zen<T>>;
 // ============================================================================
 
 class ComputedNode<T> extends BaseNode<T | null> {
-  _value: T | null; // 明確 override（而家 base V = T | null，所以 OK）
+  _value: T | null; // override（BaseNode<V> 用 V = T | null）
   _calc: () => T;
   _sources: AnyNode[];
   _sourceUnsubs?: Unsubscribe[];
@@ -144,10 +143,10 @@ class ComputedNode<T> extends BaseNode<T | null> {
     this._calc = calc;
     this._sources = createSourcesArray();
     this._sourceUnsubs = undefined;
-    this._flags = FLAG_STALE; // start dirty
+    this._flags = FLAG_STALE; // 一開始一定要計
   }
 
-  // 兼容：_unsubs / _dirty
+  // === 兼容舊 API / tests ===
   get _unsubs(): Unsubscribe[] | undefined {
     return this._sourceUnsubs;
   }
@@ -156,7 +155,7 @@ class ComputedNode<T> extends BaseNode<T | null> {
   }
 
   get value(): T {
-    // lazy recompute only when STALE
+    // Lazy eval：只有 STALE 先重算
     if ((this._flags & FLAG_STALE) !== 0) {
       const hadSubscriptions = this._sourceUnsubs !== undefined;
       const oldSources = hadSubscriptions ? [...this._sources] : null;
@@ -164,7 +163,8 @@ class ComputedNode<T> extends BaseNode<T | null> {
       const prevListener = currentListener;
       currentListener = this as unknown as DependencyCollector;
 
-      this._sources.length = 0; // rebuild source list
+      // 重建 sources
+      this._sources.length = 0;
 
       this._flags |= FLAG_PENDING;
       this._flags &= ~FLAG_STALE;
@@ -174,7 +174,7 @@ class ComputedNode<T> extends BaseNode<T | null> {
 
       currentListener = prevListener;
 
-      // if we were already subscribed, and source set changed -> resubscribe
+      // 如果之前已經 subscribe 過，source set 改變咗 -> 要 resubscribe
       if (oldSources) {
         const changed = !arraysEqual(oldSources, this._sources);
         if (changed) {
@@ -186,12 +186,12 @@ class ComputedNode<T> extends BaseNode<T | null> {
       }
     }
 
-    // first-time subscription after tracking
+    // 第一次真正需要連接 sources -> subscribe
     if (this._sourceUnsubs === undefined && this._sources.length > 0) {
       this._subscribeToSources();
     }
 
-    // allow higher-level tracking (computed-of-computed / effect-of-computed)
+    // computed-of-computed / effect-of-computed 依賴追蹤
     if (currentListener) {
       const list = currentListener._sources;
       const self = this as AnyNode;
@@ -241,7 +241,7 @@ export function computed<T>(calculation: () => T): ComputedNode<T> {
 }
 
 // ============================================================================
-// PUBLIC CORE TYPES (API 兼容)
+// PUBLIC CORE TYPES（API 兼容）
 // ============================================================================
 
 export type ZenCore<T> = ZenNode<T>;
@@ -259,8 +259,11 @@ let batchDepth = 0;
 type PendingNotification = [AnyNode, unknown];
 const pendingNotifications: PendingNotification[] = [];
 
+/**
+ * 同一個 node 喺同一個 batch 入面只會 queue 一次，
+ * 保留最早嘅 oldValue。
+ */
 function queueBatchedNotification(node: AnyNode, oldValue: unknown): void {
-  // same node only queued once per batch
   for (let i = 0; i < pendingNotifications.length; i++) {
     if (pendingNotifications[i]![0] === node) return;
   }
@@ -297,7 +300,7 @@ export function batch<T>(fn: () => T): T {
       const toNotify = pendingNotifications.splice(0);
       for (let i = 0; i < toNotify.length; i++) {
         const [node, oldVal] = toNotify[i]!;
-        // mark computeds STALE again (cheap OR)
+        // 多一次 OR 保證 dependent computeds 係 STALE（極平）
         const computeds = node._computedListeners;
         for (let j = 0; j < computeds.length; j++) {
           computeds[j]!._flags |= FLAG_STALE;
@@ -320,18 +323,26 @@ export function subscribe<T>(
   const node = zenItem as AnyNode;
   const effects = node._effectListeners as Listener<T>[];
 
-  effects.push(listener);
-
-  // computed: first listener triggers compute & source subscription
-  const asComputed = zenItem as ComputedNode<T>;
-  const totalListeners = node._computedListeners.length + effects.length;
-  if (zenItem instanceof ComputedNode && totalListeners === 1) {
-    const _ = asComputed.value; // trigger compute
-    asComputed._subscribeToSources();
+  // for 兼容舊 tests，可以加 delete() helper（可選）：
+  if (!(effects as any).delete) {
+    (effects as any).delete = function (l: Listener<T>): boolean {
+      const arr = this as Listener<T>[];
+      const idx = arr.indexOf(l);
+      if (idx === -1) return false;
+      const last = arr.length - 1;
+      if (idx !== last) arr[idx] = arr[last]!;
+      arr.pop();
+      return true;
+    };
   }
 
-  // immediate initial call
-  listener(zenItem._value as T, undefined);
+  effects.push(listener);
+
+  // *** 重要：lazy 初始值 ***
+  // 透過 .value getter：
+  //  - 如果係 zen：直接讀 _value（O(1)）
+  //  - 如果係 computed：會按 FLAG_STALE lazy 計算，再 auto subscribe sources
+  listener((zenItem as any).value as T, undefined);
 
   return (): void => {
     const idx = effects.indexOf(listener);
@@ -344,8 +355,9 @@ export function subscribe<T>(
 
     const remaining = node._computedListeners.length + node._effectListeners.length;
 
+    // computed 冇任何 listener -> 可以完全 detach sources
     if (remaining === 0 && zenItem instanceof ComputedNode) {
-      asComputed._unsubscribeFromSources();
+      (zenItem as ComputedNode<T>)._unsubscribeFromSources();
     }
   };
 }
@@ -364,7 +376,7 @@ type EffectCore = DependencyCollector & {
 function executeEffect(e: EffectCore): void {
   if (e._cancelled) return;
 
-  // previous cleanup
+  // 先跑上一次 cleanup
   if (e._cleanup) {
     try {
       e._cleanup();
@@ -374,7 +386,7 @@ function executeEffect(e: EffectCore): void {
     e._cleanup = undefined;
   }
 
-  // unsubscribe previous sources
+  // 清除舊 subscriptions
   if (e._sourceUnsubs) {
     for (let i = 0; i < e._sourceUnsubs.length; i++) {
       e._sourceUnsubs[i]?.();
@@ -391,12 +403,12 @@ function executeEffect(e: EffectCore): void {
     const cleanup = e._callback();
     if (cleanup) e._cleanup = cleanup;
   } catch {
-    // swallow errors by design
+    // by design：effect error 唔會冒泡
   } finally {
     currentListener = prevListener;
   }
 
-  // subscribe to tracked sources
+  // 根據 tracking 結果 subscribe 去 sources
   if (e._sources.length > 0) {
     e._sourceUnsubs = [];
     const self = e;
