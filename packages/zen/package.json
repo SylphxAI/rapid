@@ -11,11 +11,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./ultra": {
+      "types": "./dist/index-ultra.d.ts",
+      "import": "./dist/index-ultra.js",
+      "require": "./dist/index-ultra.cjs"
     }
   },
   "files": ["dist"],
   "scripts": {
-    "build": "bunup src/index.ts --format esm,cjs --dts --target node --minify",
+    "build": "bunup src/index.ts src/index-ultra.ts --format esm,cjs --dts --target node --minify",
     "size": "bun size-limit",
     "test": "vitest run",
     "test:watch": "vitest",
