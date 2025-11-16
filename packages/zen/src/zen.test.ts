@@ -811,16 +811,16 @@ describe('utility helpers', () => {
     // Verify all are subscribed
     expect(source._computedListeners.length).toBe(5);
 
-    // Unsubscribe B (index 1)
+    // Unsubscribe B (index 1) by calling its first unsub
     // This should swap E (index 4) to index 1, then pop
-    computedB._unsubscribeFromSources();
+    computedB._sourceUnsubs![0]!();
     expect(source._computedListeners.length).toBe(4);
     expect(source._computedListeners[1]).toBe(computedE); // E moved to index 1
 
     // Unsubscribe E
     // BUG: If using captured sourceSlot=4, this would try to remove index 4 (D)
     // FIX: Should use observer._sourceSlots to find current index (1)
-    computedE._unsubscribeFromSources();
+    computedE._sourceUnsubs![0]!();
     expect(source._computedListeners.length).toBe(3);
 
     // Verify E was actually removed, not D

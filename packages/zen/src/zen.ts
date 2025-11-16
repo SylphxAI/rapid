@@ -425,8 +425,8 @@ class ComputedNode<T> extends Computation<T> {
 
   /**
    * Lazy recompute - only when stale.
-   * Simple dirty flag check (v3.11-style) for maximum performance.
-   * Protected to allow safe access from batching system.
+   * OPTIMIZATION: Incremental dependency tracking (Solid.js-style).
+   * Reuses prefix-matching subscriptions to avoid O(n) unsub+sub on stable deps.
    */
   protected _recomputeIfNeeded(): void {
     // Simple dirty flag check (faster than version checking)
@@ -437,31 +437,62 @@ class ComputedNode<T> extends Computation<T> {
       throw new Error('[Zen] Cyclic dependency detected in computed');
     }
 
-    const hadSubscriptions = this._sourceUnsubs !== undefined;
-    const prevListener = currentListener;
-
     this._flags |= FLAG_PENDING;
     this._flags &= ~FLAG_STALE;
 
     const oldValue = this._value;
 
-    // Full unsubscribe (safe approach - ensures correctness)
-    if (hadSubscriptions) {
-      this._unsubscribeFromSources();
-    }
-    this._sources.length = 0;
+    // Preserve old sources for incremental diffing
+    const prevSources = this._sources;
+    const prevUnsubs = this._sourceUnsubs;
+
+    // Track into new arrays
+    this._sources = [];
     this._sourceSlots.length = 0;
+    this._sourceUnsubs = undefined;
 
     // Track new dependencies
+    const prevListener = currentListener;
     currentListener = this as unknown as DependencyCollector;
     this._epoch = ++TRACKING_EPOCH;
     const newValue = this._fn();
     currentListener = prevListener;
     this._value = newValue;
 
-    // Subscribe to new sources
-    if (this._sources.length > 0) {
-      this._subscribeToSources();
+    // Incremental dependency diffing
+    const newSources = this._sources;
+    const newLen = newSources.length;
+    const oldLen = prevSources ? prevSources.length : 0;
+
+    // Find divergence point (prefix matching)
+    let diverge = 0;
+    if (prevSources && prevUnsubs) {
+      const minLen = newLen < oldLen ? newLen : oldLen;
+      // Reuse prefix where sources match
+      while (diverge < minLen && prevSources[diverge] === newSources[diverge]) {
+        diverge++;
+      }
+      // Unsubscribe from removed/changed sources
+      for (let i = diverge; i < oldLen; i++) {
+        prevUnsubs[i]!();
+      }
+    }
+
+    // Build new unsubs array
+    if (newLen > 0) {
+      const newUnsubs: Unsubscribe[] = new Array(newLen);
+
+      // Reuse prefix subscriptions (no unsub/resub needed)
+      for (let i = 0; i < diverge; i++) {
+        newUnsubs[i] = prevUnsubs![i]!;
+      }
+
+      // Subscribe to new/changed sources
+      for (let i = diverge; i < newLen; i++) {
+        newUnsubs[i] = addComputedListener(newSources[i]!, this as unknown as AnyNode & DependencyCollector, i);
+      }
+
+      this._sourceUnsubs = newUnsubs;
     }
 
     this._flags &= ~FLAG_PENDING;
@@ -486,36 +517,21 @@ class ComputedNode<T> extends Computation<T> {
     // Allow tracking by parent computeds/effects (unified epoch-based dedup)
     trackSource(this as AnyNode);
 
-    // First-time subscription to sources
+    // First-time subscription to sources (lazy computed path)
+    // After first recompute, subscriptions are managed incrementally
     if (this._sourceUnsubs === undefined && this._sources.length > 0) {
-      this._subscribeToSources();
+      const len = this._sources.length;
+      this._sourceUnsubs = new Array(len);
+      for (let i = 0; i < len; i++) {
+        this._sourceUnsubs[i] = addComputedListener(
+          this._sources[i]!,
+          this as unknown as AnyNode & DependencyCollector,
+          i
+        );
+      }
     }
 
     return this._value as T;
-  }
-
-  _subscribeToSources(): void {
-    const srcs = this._sources;
-    const len = srcs.length;
-    if (len === 0 || this._sourceUnsubs !== undefined) return;
-
-    this._sourceUnsubs = [];
-    for (let i = 0; i < len; i++) {
-      const unsub = addComputedListener(srcs[i]!, this as unknown as AnyNode & DependencyCollector, i);
-      this._sourceUnsubs.push(unsub);
-    }
-  }
-
-  _unsubscribeFromSources(): void {
-    const unsubs = this._sourceUnsubs;
-    if (!unsubs) return;
-
-    const len = unsubs.length;
-    for (let i = 0; i < len; i++) {
-      unsubs[i]!();
-    }
-    this._sourceUnsubs = undefined;
-    this._sourceSlots.length = 0;
   }
 }
 
