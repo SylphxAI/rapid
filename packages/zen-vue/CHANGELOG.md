@@ -1,5 +1,12 @@
 # @sylphx/zen-vue
 
+## 5.0.21
+
+### Patch Changes
+
+- Updated dependencies [0397292]
+  - @sylphx/zen@3.27.0
+
 ## 5.0.20
 
 ### Patch Changes
