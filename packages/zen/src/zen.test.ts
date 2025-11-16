@@ -682,6 +682,37 @@ describe('integration', () => {
     expect(doubled._effectListener2).toBeUndefined();
     expect(doubled._sourceUnsubs).toBeUndefined();
   });
+
+  it('should handle 3+ listeners without double-calling (Bug: inline → array transition)', () => {
+    const signal = zen(0);
+    const calls: number[][] = [[], [], []];
+
+    const unsub1 = subscribe(signal, (v) => calls[0]!.push(v));
+    const unsub2 = subscribe(signal, (v) => calls[1]!.push(v));
+    const unsub3 = subscribe(signal, (v) => calls[2]!.push(v));
+
+    // After 3rd subscriber, should transition to array mode
+    expect(signal._effectListeners).toBeDefined();
+    expect(signal._effectListeners?.length).toBe(3);
+    expect(signal._effectListener1).toBeUndefined();
+    expect(signal._effectListener2).toBeUndefined();
+
+    // Clear initial calls
+    calls[0]!.length = 0;
+    calls[1]!.length = 0;
+    calls[2]!.length = 0;
+
+    signal.value = 10;
+
+    // Each listener should be called exactly once
+    expect(calls[0]).toEqual([10]);
+    expect(calls[1]).toEqual([10]);
+    expect(calls[2]).toEqual([10]);
+
+    unsub1();
+    unsub2();
+    unsub3();
+  });
 });
 
 describe('utility helpers', () => {

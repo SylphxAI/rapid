@@ -116,23 +116,27 @@ function markHasEffectUpstream(node: AnyNode): void {
 /**
  * Add effect listener.
  * Subscribe: O(1)
- * Unsubscribe: O(1) or O(n) depending on listener count
+ * Unsubscribe: O(1) for inline, O(n) for array
  * Optimization 2.1: Propagates FLAG_HAD_EFFECT_DOWNSTREAM upward on subscription.
  * Optimization 2.3: Inline storage for 1-2 listeners, array for 3+.
+ * BUG FIX: When transitioning to array mode, clear inline slots to prevent double-call.
  */
 function addEffectListener(node: AnyNode, cb: Listener<any>): Unsubscribe {
-  // Inline storage for first 2 listeners
-  if (node._effectListener1 === undefined) {
+  // Already in array mode - just push
+  if (node._effectListeners !== undefined) {
+    node._effectListeners.push(cb);
+  } else if (node._effectListener1 === undefined) {
+    // First listener - use inline slot 1
     node._effectListener1 = cb;
   } else if (node._effectListener2 === undefined) {
+    // Second listener - use inline slot 2
     node._effectListener2 = cb;
   } else {
-    // Allocate array for 3+ listeners
-    if (node._effectListeners === undefined) {
-      node._effectListeners = [node._effectListener1, node._effectListener2, cb];
-    } else {
-      node._effectListeners.push(cb);
-    }
+    // Third listener - transition to array mode
+    // Move inline listeners to array and clear inline slots
+    node._effectListeners = [node._effectListener1, node._effectListener2, cb];
+    node._effectListener1 = undefined;
+    node._effectListener2 = undefined;
   }
 
   // Mark that effects exist + increment global count
@@ -143,7 +147,18 @@ function addEffectListener(node: AnyNode, cb: Listener<any>): Unsubscribe {
   markHasEffectUpstream(node);
 
   return (): void => {
-    // Handle inline storage
+    // Handle array storage first (3+ listeners)
+    if (node._effectListeners !== undefined) {
+      const list = node._effectListeners;
+      const idx = list.indexOf(cb);
+      if (idx >= 0) {
+        list.splice(idx, 1);
+        GLOBAL_EFFECT_COUNT--;
+      }
+      return;
+    }
+
+    // Handle inline storage (1-2 listeners)
     if (node._effectListener1 === cb) {
       node._effectListener1 = node._effectListener2;
       node._effectListener2 = undefined;
@@ -153,17 +168,6 @@ function addEffectListener(node: AnyNode, cb: Listener<any>): Unsubscribe {
     if (node._effectListener2 === cb) {
       node._effectListener2 = undefined;
       GLOBAL_EFFECT_COUNT--;
-      return;
-    }
-
-    // Handle array storage
-    if (node._effectListeners !== undefined) {
-      const list = node._effectListeners;
-      const idx = list.indexOf(cb);
-      if (idx >= 0) {
-        list.splice(idx, 1);
-        GLOBAL_EFFECT_COUNT--;
-      }
     }
   };
 }
@@ -440,15 +444,10 @@ export type ComputedZen<T> = ComputedCore<T>;
  * Check if a node has effect listeners downstream.
  * Conservative cache: FLAG_HAD_EFFECT_DOWNSTREAM is eagerly set during subscription.
  * Optimization 2.1: No DFS - flag is propagated upward during effect subscription.
- * Optimization 2.3: Check inline listeners + array.
  * Trade-off: Flag never clears, may over-trigger after unsubscribe, but eliminates hot-path DFS.
  */
 function hasDownstreamEffectListeners(node: AnyNode): boolean {
-  return (
-    (node._flags & FLAG_HAD_EFFECT_DOWNSTREAM) !== 0 ||
-    node._effectListener1 !== undefined ||
-    (node._effectListeners !== undefined && node._effectListeners.length > 0)
-  );
+  return (node._flags & FLAG_HAD_EFFECT_DOWNSTREAM) !== 0;
 }
 
 /**
@@ -521,23 +520,26 @@ function queueBatchedNotification(node: AnyNode, oldValue: unknown): void {
 /**
  * Notify all effect listeners (micro-optimized for common cases).
  * Optimization 2.3: Handle inline listeners + array storage.
+ * BUG FIX: Check array mode first to prevent double-call.
  */
 function notifyEffects(node: AnyNode, newValue: unknown, oldValue: unknown): void {
-  // Handle inline listeners (optimization 2.3)
-  if (node._effectListener1 !== undefined) {
-    node._effectListener1(newValue, oldValue);
-    if (node._effectListener2 !== undefined) {
-      node._effectListener2(newValue, oldValue);
+  // Array mode (3+ listeners) - inline slots are undefined
+  const arr = node._effectListeners;
+  if (arr !== undefined) {
+    for (let i = 0; i < arr.length; i++) {
+      arr[i]!(newValue, oldValue);
     }
+    return;
   }
 
-  // Handle array storage (3+ listeners)
-  if (node._effectListeners !== undefined) {
-    const effects = node._effectListeners;
-    const len = effects.length;
-    for (let i = 0; i < len; i++) {
-      effects[i]!(newValue, oldValue);
-    }
+  // Inline mode (1-2 listeners)
+  const l1 = node._effectListener1;
+  if (l1 === undefined) return;
+  l1(newValue, oldValue);
+
+  const l2 = node._effectListener2;
+  if (l2 !== undefined) {
+    l2(newValue, oldValue);
   }
 }
 
