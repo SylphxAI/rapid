@@ -8,14 +8,19 @@
 - [ADR-004: Bitflag Pending State (v3.26.0)](#004-bitflag-pending-state)
 - [ADR-005: Zero-Allocation Flush (v3.26.0)](#005-zero-allocation-flush)
 - [ADR-006: Inline Critical Functions (v3.26.0)](#006-inline-critical-functions)
+- [ADR-007: Reject Lazy Array Allocation](#007-reject-lazy-array-allocation) ❌ Rejected
 
 ---
 
 ## Quick Links
 
+### Accepted
 - [001-unified-scheduler.md](001-unified-scheduler.md) - Consolidate 3 queues into 1
 - [002-reject-duplicate-checking.md](002-reject-duplicate-checking.md) - Why duplicate check hurts performance
 - [003-keep-auto-batching.md](003-keep-auto-batching.md) - Why V3 without batching failed
 - [004-bitflag-pending-state.md](004-bitflag-pending-state.md) - O(1) schedule check
 - [005-zero-allocation-flush.md](005-zero-allocation-flush.md) - Eliminate slice() in hot path
 - [006-inline-critical-functions.md](006-inline-critical-functions.md) - Remove function call overhead
+
+### Rejected
+- [007-reject-lazy-allocation.md](007-reject-lazy-allocation.md) - Why lazy allocation failed (-9.3% read regression)
