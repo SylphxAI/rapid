@@ -1,5 +1,108 @@
 # @sylphx/zen
 
+## 3.18.0
+
+### Minor Changes
+
+- perf(zen): slot-based reactive graph (Solid-style O(1) unsubscribe)
+
+  **Optimization 3.2: Slot-based Graph**
+
+  Implemented Solid.js-style slot-based reactive graph with O(1) unsubscribe operations via swap-and-pop.
+
+  **Before:**
+
+  ```typescript
+  // O(n) unsubscribe using indexOf + splice
+  function addComputedListener(source, observer) {
+    source._computedListeners.push(observer);
+    return () => {
+      const idx = source._computedListeners.indexOf(observer);
+      if (idx >= 0) source._computedListeners.splice(idx, 1);
+    };
+  }
+  ```
+
+  **After:**
+
+  ```typescript
+  // O(1) unsubscribe using slot tracking + swap-and-pop
+  function addComputedListener(source, observer, observerSourceIndex) {
+    const sourceSlot = source._computedListeners.length;
+    source._computedListeners.push(observer);
+    source._computedListenerSlots.push(observerSourceIndex);
+
+    return () => {
+      const lastIdx = listeners.length - 1;
+      if (sourceSlot < lastIdx) {
+        // Swap with last
+        const lastObserver = listeners[lastIdx];
+        listeners[sourceSlot] = lastObserver;
+        slots[sourceSlot] = slots[lastIdx];
+        // Update moved observer's slot reference
+        lastObserver._sourceSlots[slots[lastIdx]] = sourceSlot;
+      }
+      // Pop last (O(1))
+      listeners.pop();
+      slots.pop();
+    };
+  }
+  ```
+
+  **Changes:**
+
+  - Added `_computedListenerSlots: number[]` to BaseNode
+  - Added `_sourceSlots: number[]` to DependencyCollector interface
+  - Rewrote `addComputedListener` with slot-based swap-and-pop
+  - Updated dependency tracking in ZenNode and ComputedNode to record slots
+  - Updated `_subscribeToSources` and `_unsubscribeFromSources` for slot management
+  - Updated EffectCore with `_sourceSlots` array (effects still use effect listeners)
+
+  **Impact**:
+
+  - Unsubscribe operations now O(1) instead of O(n)
+  - Eliminates `indexOf` + `splice` calls in computed listener removal
+  - Matches Solid.js reactive graph architecture for optimal performance
+  - Critical for large reactive graphs with frequent subscribe/unsubscribe
+
+  All 46 tests passing.
+
+### Patch Changes
+
+- 870d92b: perf(zen): index-based pendingNotifications processing (no splice)
+
+  **Optimization 3.1: Index-based pendingNotifications**
+
+  Replaced `splice(0, len)` with head index tracking in `flushPendingNotifications()`.
+
+  **Before:**
+
+  ```typescript
+  while (pending.length > 0) {
+    const len = pending.length;
+    for (let i = 0; i < len; i++) { ... }
+    pending.splice(0, len); // O(n) array copy
+  }
+  ```
+
+  **After:**
+
+  ```typescript
+  while (pendingNotificationsHead < pendingNotifications.length) {
+    const startHead = pendingNotificationsHead;
+    const endHead = pendingNotifications.length;
+    for (let i = startHead; i < endHead; i++) { ... }
+    pendingNotificationsHead = endHead; // O(1) index update
+  }
+  // Reset after full flush
+  pendingNotifications.length = 0;
+  pendingNotificationsHead = 0;
+  ```
+
+  **Impact**: Eliminates last remaining `splice()` call in hot path. All queue processing now uses index-based iteration (dirtyNodes, dirtyComputeds, pendingNotifications).
+
+  All 46 tests passing.
+
 ## 3.17.1
 
 ### Patch Changes
