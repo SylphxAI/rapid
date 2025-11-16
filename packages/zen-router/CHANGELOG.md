@@ -1,5 +1,13 @@
 # @sylph/router
 
+## 5.0.19
+
+### Patch Changes
+
+- Updated dependencies [ca01755]
+  - @sylphx/zen@3.22.0
+  - @sylphx/zen-patterns@12.0.19
+
 ## 5.0.18
 
 ### Patch Changes
