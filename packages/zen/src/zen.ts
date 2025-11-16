@@ -425,23 +425,66 @@ class ComputedNode<T> extends Computation<T> {
 
     const oldValue = this._value;
 
-    // 1) Unsubscribe from old sources first (using old _sourceSlots mapping)
-    if (hadSubscriptions) {
-      this._unsubscribeFromSources(); // This clears _sourceSlots internally
-    }
-    // Clear _sources after unsubscribing (safe since unsubs don't need it)
-    this._sources.length = 0;
+    // Save old sources for diffing (dependency diffing optimization)
+    const oldSources = this._sources.slice();
+    const oldSourceSlots = this._sourceSlots.slice();
 
-    // 2) Track new dependencies
+    // Clear for tracking new dependencies
+    this._sources.length = 0;
+    this._sourceSlots.length = 0;
+
+    // Track new dependencies
     currentListener = this as unknown as DependencyCollector;
     (currentListener as any)._epoch = ++TRACKING_EPOCH;
     const newValue = this._fn();
     currentListener = prevListener;
     this._value = newValue;
 
-    // 3) Subscribe to new sources
-    if (this._sources.length > 0) {
-      this._subscribeToSources();
+    // Dependency diffing: only update changed sources
+    if (hadSubscriptions) {
+      const newSources = this._sources;
+
+      // Find common prefix (sources that haven't changed)
+      let commonPrefix = 0;
+      while (
+        commonPrefix < newSources.length &&
+        commonPrefix < oldSources.length &&
+        newSources[commonPrefix] === oldSources[commonPrefix]
+      ) {
+        commonPrefix++;
+      }
+
+      // Restore slots for common prefix (no need to re-subscribe)
+      for (let i = 0; i < commonPrefix; i++) {
+        this._sourceSlots[i] = oldSourceSlots[i];
+      }
+
+      // Unsubscribe from removed sources (old[commonPrefix..])
+      if (this._sourceUnsubs) {
+        for (let i = commonPrefix; i < oldSources.length; i++) {
+          const unsub = this._sourceUnsubs[i];
+          if (unsub) unsub();
+        }
+        // Truncate unsubs array to common prefix
+        this._sourceUnsubs.length = commonPrefix;
+      }
+
+      // Subscribe to new sources (new[commonPrefix..])
+      if (newSources.length > commonPrefix) {
+        if (!this._sourceUnsubs) {
+          this._sourceUnsubs = [];
+        }
+        for (let i = commonPrefix; i < newSources.length; i++) {
+          const source = newSources[i]!;
+          const unsub = addComputedListener(source, this, i);
+          this._sourceUnsubs[i] = unsub;
+        }
+      }
+    } else {
+      // First subscription: subscribe to all sources
+      if (this._sources.length > 0) {
+        this._subscribeToSources();
+      }
     }
 
     this._flags &= ~FLAG_PENDING;
