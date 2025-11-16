@@ -241,8 +241,9 @@ class ComputedNode<T> extends BaseNode<T | null> {
   /**
    * Lazy recompute - only when stale.
    * Simple dirty flag check (v3.11-style) for maximum performance.
+   * Protected to allow safe access from batching system.
    */
-  private _recomputeIfNeeded(): void {
+  protected _recomputeIfNeeded(): void {
     // Simple dirty flag check (faster than version checking)
     if ((this._flags & FLAG_STALE) === 0) return;
 
@@ -253,9 +254,6 @@ class ComputedNode<T> extends BaseNode<T | null> {
 
     const hadSubscriptions = this._sourceUnsubs !== undefined;
     const prevListener = currentListener;
-
-    // BUG FIX 1.1: Store complete old sources for full comparison
-    const oldSources = hadSubscriptions ? this._sources.slice() : null;
 
     this._sources.length = 0;
 
@@ -273,25 +271,11 @@ class ComputedNode<T> extends BaseNode<T | null> {
       newValue = this._calc();
       this._value = newValue;
 
-      // BUG FIX 1.1: Full dependency comparison
-      if (hadSubscriptions && oldSources) {
-        const srcs = this._sources;
-        let depsChanged = oldSources.length !== srcs.length;
-
-        if (!depsChanged) {
-          for (let i = 0; i < srcs.length; i++) {
-            if (oldSources[i] !== srcs[i]) {
-              depsChanged = true;
-              break;
-            }
-          }
-        }
-
-        if (depsChanged) {
-          this._unsubscribeFromSources();
-          if (srcs.length > 0) {
-            this._subscribeToSources();
-          }
+      // Always rewire subscriptions (simpler, fewer edge cases than diff)
+      if (hadSubscriptions) {
+        this._unsubscribeFromSources();
+        if (this._sources.length > 0) {
+          this._subscribeToSources();
         }
       }
 
@@ -707,4 +691,35 @@ export function effect(callback: () => undefined | (() => void)): Unsubscribe {
       }
     }
   };
+}
+// ============================================================================
+// UTILITY HELPERS
+// ============================================================================
+
+/**
+ * Run a function without tracking dependencies.
+ * Useful for reading values inside effects without creating dependencies.
+ */
+export function untrack<T>(fn: () => T): T {
+  const prev = currentListener;
+  currentListener = null;
+  try {
+    return fn();
+  } finally {
+    currentListener = prev;
+  }
+}
+
+/**
+ * Read a signal/computed value without tracking it as a dependency.
+ * Faster than untrack(() => signal.value) for single reads.
+ */
+export function peek<T>(node: ZenCore<T> | ComputedCore<T>): T {
+  const prev = currentListener;
+  currentListener = null;
+  try {
+    return node.value;
+  } finally {
+    currentListener = prev;
+  }
 }

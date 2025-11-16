@@ -594,3 +594,51 @@ describe('integration', () => {
     expect(doubled._sourceUnsubs).toBeUndefined();
   });
 });
+
+describe('utility helpers', () => {
+  it('untrack should prevent dependency tracking', () => {
+    const count = zen(0);
+    let runs = 0;
+
+    effect(() => {
+      runs++;
+      untrack(() => count.value); // Should not track
+    });
+
+    expect(runs).toBe(1);
+    count.value = 1;
+    expect(runs).toBe(1); // Should not re-run
+  });
+
+  it('peek should read without tracking', () => {
+    const count = zen(0);
+    let runs = 0;
+
+    effect(() => {
+      runs++;
+      peek(count); // Should not track
+    });
+
+    expect(runs).toBe(1);
+    count.value = 1;
+    expect(runs).toBe(1); // Should not re-run
+  });
+
+  it('untrack should allow normal tracking outside', () => {
+    const a = zen(1);
+    const b = zen(2);
+    let runs = 0;
+
+    effect(() => {
+      runs++;
+      a.value; // Track a
+      untrack(() => b.value); // Don't track b
+    });
+
+    expect(runs).toBe(1);
+    b.value = 3;
+    expect(runs).toBe(1); // b not tracked
+    a.value = 2;
+    expect(runs).toBe(2); // a tracked
+  });
+});
