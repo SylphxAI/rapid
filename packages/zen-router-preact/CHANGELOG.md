@@ -1,5 +1,13 @@
 # @sylphlab/zen-router-preact
 
+## 5.0.9
+
+### Patch Changes
+
+- Updated dependencies [82c266d]
+  - @sylphx/zen@3.17.1
+  - @sylphx/zen-router@5.0.9
+
 ## 5.0.8
 
 ### Patch Changes
