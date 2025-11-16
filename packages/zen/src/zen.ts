@@ -413,8 +413,10 @@ class Computation<T> implements SourceType, ObserverType, Owner {
       scheduleEffect(this, this._effectType);
     }
 
-    // 傳播 CHECK 到深層觀察者
-    if (state === STATE_DIRTY) {
+    // 傳播到觀察者
+    // DIRTY 傳播為 CHECK（子節點需要檢查是否真的變了）
+    // CHECK 也需要傳播（多層計算鏈需要）
+    if (state === STATE_DIRTY || state === STATE_CHECK) {
       this._notifyObservers(STATE_CHECK);
     }
   }
@@ -424,8 +426,12 @@ class Computation<T> implements SourceType, ObserverType, Owner {
 
     for (let i = 0; i < observers.length; i++) {
       const observer = observers[i];
-      // Skip notifying the observer that triggered this update to prevent double-execution
-      if (observer && observer !== skipObserver) {
+      if (observer) {
+        // Only skip if this observer is the one that triggered the update
+        // AND it's a direct observer of this computation
+        if (skipObserver && observer === skipObserver) {
+          continue;
+        }
         observer.notify(state);
       }
     }
