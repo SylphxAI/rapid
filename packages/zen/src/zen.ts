@@ -280,14 +280,14 @@ function markComputedDirty(c: AnyNode): void {
 
 class ZenNode<T> extends BaseNode<T> {
   get value(): T {
-    // Runtime dependency tracking with O(1) epoch-based deduplication
+    // Runtime dependency tracking
     if (currentListener) {
       const list = currentListener._sources;
       const self = this as AnyNode;
 
-      // Only add if not seen in this tracking session (O(1) check)
-      if (self._lastSeenEpoch !== currentListener._epoch) {
-        self._lastSeenEpoch = currentListener._epoch;
+      // Fast path: check last source to handle consecutive duplicate reads
+      const last = list[list.length - 1];
+      if (last !== self) {
         list.push(self);
         // _sourceSlots will be filled by addComputedListener during _subscribeToSources
       }
@@ -413,42 +413,38 @@ class ComputedNode<T> extends Computation<T> {
     this._flags &= ~FLAG_STALE;
 
     const oldValue = this._value;
-    let newValue: T | null;
 
-    // BUG FIX 1.2: try/finally to ensure cleanup on error
-    try {
-      // 1) Unsubscribe from old sources first (using old _sourceSlots mapping)
-      if (hadSubscriptions) {
-        this._unsubscribeFromSources(); // This clears _sourceSlots internally
+    // 1) Unsubscribe from old sources first (using old _sourceSlots mapping)
+    if (hadSubscriptions) {
+      this._unsubscribeFromSources(); // This clears _sourceSlots internally
+    }
+    // Clear _sources after unsubscribing (safe since unsubs don't need it)
+    this._sources.length = 0;
+
+    // 2) Track new dependencies
+    currentListener = this as unknown as DependencyCollector;
+    (currentListener as any)._epoch = ++TRACKING_EPOCH;
+    const newValue = this._fn();
+    currentListener = prevListener;
+    this._value = newValue;
+
+    // 3) Subscribe to new sources
+    if (this._sources.length > 0) {
+      this._subscribeToSources();
+    }
+
+    this._flags &= ~FLAG_PENDING;
+
+    // Queue notification if value changed
+    if (!valuesEqual(oldValue, newValue)) {
+      // CRITICAL: Mark downstream computeds as stale (fixes computed chain bug)
+      const downstream = this._computedListeners;
+      const downLen = downstream.length;
+      for (let i = 0; i < downLen; i++) {
+        downstream[i]!._flags |= FLAG_STALE;
       }
-      // Clear _sources after unsubscribing (safe since unsubs don't need it)
-      this._sources.length = 0;
 
-      // 2) Track new dependencies
-      currentListener = this as unknown as DependencyCollector;
-      (currentListener as any)._epoch = ++TRACKING_EPOCH;
-      newValue = this._fn();
-      this._value = newValue;
-
-      // 3) Subscribe to new sources
-      if (this._sources.length > 0) {
-        this._subscribeToSources();
-      }
-
-      // Queue notification if value changed
-      if (!valuesEqual(oldValue, newValue)) {
-        // CRITICAL: Mark downstream computeds as stale (fixes computed chain bug)
-        const downstream = this._computedListeners;
-        const downLen = downstream.length;
-        for (let i = 0; i < downLen; i++) {
-          downstream[i]!._flags |= FLAG_STALE;
-        }
-
-        queueBatchedNotification(this as AnyNode, oldValue);
-      }
-    } finally {
-      currentListener = prevListener;
-      this._flags &= ~FLAG_PENDING;
+      queueBatchedNotification(this as AnyNode, oldValue);
     }
   }
 
@@ -456,14 +452,14 @@ class ComputedNode<T> extends Computation<T> {
     // Lazy evaluation
     this._recomputeIfNeeded();
 
-    // Allow tracking by parent computeds/effects with O(1) epoch-based deduplication
+    // Allow tracking by parent computeds/effects
     if (currentListener) {
       const list = currentListener._sources;
       const self = this as AnyNode;
 
-      // Only add if not seen in this tracking session (O(1) check)
-      if (self._lastSeenEpoch !== currentListener._epoch) {
-        self._lastSeenEpoch = currentListener._epoch;
+      // Fast path: check last source to handle consecutive duplicate reads
+      const last = list[list.length - 1];
+      if (last !== self) {
         list.push(self);
         // _sourceSlots will be filled by addComputedListener during _subscribeToSources
       }
@@ -816,7 +812,7 @@ class EffectNode extends Computation<void | (() => void)> {
       try {
         this._cleanup();
       } catch {
-        // Swallow cleanup errors
+        // Swallow cleanup errors (rare, minimal perf impact)
       }
       this._cleanup = undefined;
     }
@@ -839,14 +835,15 @@ class EffectNode extends Computation<void | (() => void)> {
     currentListener = this;
     this._epoch = ++TRACKING_EPOCH;
 
+    let cleanup: void | (() => void);
     try {
-      const cleanup = this._fn();
-      if (cleanup) this._cleanup = cleanup;
+      cleanup = this._fn();
     } catch {
-      // Swallow effect errors
-    } finally {
-      currentListener = prevListener;
+      // Swallow effect errors (rare, minimal perf impact)
     }
+    currentListener = prevListener;
+
+    if (cleanup) this._cleanup = cleanup;
 
     // Subscribe to tracked sources
     const srcs = this._sources;

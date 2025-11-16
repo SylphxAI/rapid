@@ -13,6 +13,8 @@ export {
   batch,
   subscribe,
   effect,
+  untrack,
+  peek,
 } from './zen';
 
 export type { Zen, ReadonlyZen, ComputedZen } from './zen';
