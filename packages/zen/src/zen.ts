@@ -242,16 +242,15 @@ class Computation<T> implements SourceType, ObserverType, Owner {
   }
 
   read(): T {
-    // Track this source in current observer
+    // OPTIMIZATION: Fast path for CLEAN state
+    const state = this._state & 3;
+
     if (currentObserver) {
       track(this);
-
-      // OPTIMIZATION: Only check if necessary
-      if (this._state & 3) {
+      if (state !== STATE_CLEAN) {
         this._updateIfNecessary();
       }
-    } else if (this._state & 3) {
-      // No observer - still need to update if dirty
+    } else if (state !== STATE_CLEAN && state !== STATE_DISPOSED) {
       this._updateIfNecessary();
     }
 
@@ -485,8 +484,20 @@ class Signal<T> implements SourceType {
   }
 
   get value(): T {
+    // OPTIMIZATION: Inline track check
     if (currentObserver) {
-      track(this);
+      // OPTIMIZATION: Compare with old sources first
+      if (
+        !newSources &&
+        currentObserver._sources &&
+        currentObserver._sources[newSourcesIndex] === this
+      ) {
+        newSourcesIndex++;
+      } else if (!newSources) {
+        newSources = [this];
+      } else if (this !== newSources[newSources.length - 1]) {
+        newSources.push(this);
+      }
     }
     return this._value;
   }
