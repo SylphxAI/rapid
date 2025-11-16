@@ -51,6 +51,7 @@ abstract class BaseNode<V> {
   _computedListenerSlots: number[] = []; // Parallel array: observer's slot in their _sources
   _flags = 0;
   _lastSeenEpoch = 0; // Epoch-based deduplication: O(1) tracking check
+  _writeEpoch = 0; // Write epoch: when was this node last written?
 
   // Inline effect listeners (optimization 2.3)
   _effectListener1?: Listener<any>;
@@ -79,6 +80,10 @@ let currentListener: DependencyCollector | null = null;
 
 // Global tracking epoch counter for O(1) dependency deduplication
 let TRACKING_EPOCH = 1;
+
+// Global write epoch: tracks when signals/computeds are written
+// Used for epoch-based lazy invalidation in massive fanout scenarios
+let WRITE_EPOCH = 0;
 
 // Global effect count: tracks active effect→source edges (NOT legacy listeners)
 // GLOBAL_EFFECT_COUNT = active effect edges managed by trackEffectEdge
@@ -435,8 +440,25 @@ class ComputedNode<T> extends Computation<T> {
    * FAST PATH: Optimized for single stable source (most common case in deep chains).
    */
   protected _recomputeIfNeeded(): void {
-    // Simple dirty flag check (faster than version checking)
-    if ((this._flags & FLAG_STALE) === 0) return;
+    // OPTIMIZATION v3.25.0: Epoch-based staleness check for single-source computeds
+    // Check epochs BEFORE FLAG_STALE to prevent mid-batch recomputation
+    const sources = this._sources;
+    const len = sources.length;
+
+    // Fast path: single source epoch check (common in deep chains)
+    if (len === 1) {
+      if (sources[0]!._writeEpoch <= this._writeEpoch) {
+        // Source hasn't changed since last recompute, clear stale flag and skip
+        this._flags &= ~FLAG_STALE;
+        return;
+      }
+      // Source changed, mark stale and continue
+      this._flags |= FLAG_STALE;
+    } else if (len > 1 && (this._flags & FLAG_STALE) === 0) {
+      // Multi-source: rely on FLAG_STALE only (avoid epoch checking overhead)
+      return;
+    }
+    // len === 0 (first run) or len > 1 with FLAG_STALE set: proceed to recompute
 
     // Prevent re-entry during computation (detect cyclic dependencies)
     if ((this._flags & FLAG_PENDING) !== 0) {
@@ -471,6 +493,9 @@ class ComputedNode<T> extends Computation<T> {
       if (this._sources.length === 1 && this._sources[0] === prevSource) {
         // Perfect stability - no unsub/resub needed, subscriptions already correct
         this._flags &= ~FLAG_PENDING;
+
+        // Update write epoch to mark this computed as fresh
+        this._writeEpoch = WRITE_EPOCH;
 
         // Propagate changes (inlined for performance)
         if (!valuesEqual(oldValue, newValue)) {
@@ -550,6 +575,9 @@ class ComputedNode<T> extends Computation<T> {
     this._sourceSlots.length = newLen;
 
     this._flags &= ~FLAG_PENDING;
+
+    // Update write epoch to mark this computed as fresh
+    this._writeEpoch = WRITE_EPOCH;
 
     // Queue notification if value changed
     if (!valuesEqual(oldValue, newValue)) {
@@ -642,25 +670,40 @@ function propagateToComputeds(node: AnyNode): void {
 
   // Global shortcut: no effects exist, just mark stale (lazy evaluation only)
   if (GLOBAL_EFFECT_COUNT === 0) {
-    // Unrolled for small lengths (most common case)
+    // OPTIMIZATION v3.25.0: Update node write epoch first
+    node._writeEpoch = ++WRITE_EPOCH;
+
+    // Mark all downstream computeds stale and update their epochs
+    // This prevents mid-batch recomputation when new subscribers access the computed
     if (len === 1) {
       computed[0]!._flags |= FLAG_STALE;
+      computed[0]!._writeEpoch = WRITE_EPOCH;
     } else if (len === 2) {
       computed[0]!._flags |= FLAG_STALE;
+      computed[0]!._writeEpoch = WRITE_EPOCH;
       computed[1]!._flags |= FLAG_STALE;
+      computed[1]!._writeEpoch = WRITE_EPOCH;
     } else if (len === 3) {
       computed[0]!._flags |= FLAG_STALE;
+      computed[0]!._writeEpoch = WRITE_EPOCH;
       computed[1]!._flags |= FLAG_STALE;
+      computed[1]!._writeEpoch = WRITE_EPOCH;
       computed[2]!._flags |= FLAG_STALE;
+      computed[2]!._writeEpoch = WRITE_EPOCH;
     } else {
       for (let i = 0; i < len; i++) {
-        computed[i]!._flags |= FLAG_STALE;
+        const c = computed[i]!;
+        c._flags |= FLAG_STALE;
+        c._writeEpoch = WRITE_EPOCH;
       }
     }
     return;
   }
 
   // SCHEDULER REWRITE: Unified queue-only path (inlined markComputedDirty/markEffectDirty)
+  // OPTIMIZATION v3.24.0: Update node write epoch once for eager path
+  node._writeEpoch = ++WRITE_EPOCH;
+
   for (let i = 0; i < len; i++) {
     const c = computed[i]!;
     const flags = c._flags;

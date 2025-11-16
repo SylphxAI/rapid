@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/zen",
-  "version": "3.22.0",
+  "version": "3.25.0",
   "description": "Zen state management library - extreme minimalism, extreme speed. V3: Auto-tracking reactivity.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -13,9 +13,7 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "bunup src/index.ts --format esm,cjs --dts --target node --minify",
     "size": "bun size-limit",
