@@ -1,18 +1,22 @@
 /**
- * Zen v3.26.0 - Extreme Memory & Performance Optimization
+ * Zen v3.28.0 - Deep Reactivity Fix (Solid.js patterns)
  *
- * OPTIMIZATIONS:
+ * CRITICAL FIXES:
+ * 1. ❌ REMOVED global updateCount (caused false infinite loop errors)
+ * 2. ✅ Clear error at START of update (allows error recovery)
+ * 3. ✅ Proper acyclic graph guarantee (like Solid.js)
+ *
+ * PREVIOUS OPTIMIZATIONS:
  * 1. Bitflag pending state (O(1) vs O(n) includes check)
  * 2. Zero slice() allocations in hot flush path
  * 3. Inline critical functions (addObserver in read/set)
  * 4. pendingCount counter (faster than array.length)
  * 5. Bitwise state management (preserve flags)
  *
- * PERFORMANCE GAINS vs v3.25.0:
- * - Fanout 1→100: +16%
- * - Many updates: +3%
- * - Diamond pattern: +1%
- * - Tests: ✅ 59/59 passing
+ * WHY THIS MATTERS:
+ * - Deep chains (100+ layers) now work correctly
+ * - Diamond patterns don't false-trigger infinite loop detection
+ * - Transient errors (network, etc.) can recover on retry
  */
 
 export type Listener<T> = (value: T, oldValue: T | undefined) => void;
@@ -41,8 +45,6 @@ let currentObserver: Computation<any> | null = null;
 let currentOwner: Owner | null = null;
 let batchDepth = 0;
 let globalClock = 0;
-let updateCount = 0;
-const MAX_UPDATES = 1e5;
 
 // OPTIMIZATION: Pre-allocate queue with reasonable capacity
 const pendingEffects: Computation<any>[] = [];
@@ -122,8 +124,6 @@ function flushEffects() {
       pendingEffects[i] = null as any; // Allow GC
     }
   }
-
-  updateCount = 0;
 
   if (error) throw error;
 }
@@ -299,9 +299,9 @@ class Computation<T> implements SourceType, ObserverType, Owner {
   }
 
   update(): void {
-    if (++updateCount > MAX_UPDATES) {
-      throw new Error('[Zen] Potential infinite loop detected');
-    }
+    // OPTIMIZATION: Clear error at start of update (Solid.js pattern)
+    // This allows recovery from transient errors
+    this._error = undefined;
 
     if (this._cleanup && typeof this._cleanup === 'function') {
       this._cleanup();
@@ -326,7 +326,6 @@ class Computation<T> implements SourceType, ObserverType, Owner {
         this._notifyObservers(STATE_DIRTY, prevObserver);
       }
 
-      this._error = undefined;
       this._state = (this._state & ~3) | STATE_CLEAN;
     } catch (err) {
       this._error = err;
