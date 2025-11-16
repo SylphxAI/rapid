@@ -92,6 +92,7 @@ function scheduleEffect(effect: Computation<any>, queueType: number) {
   if (effect._queueSlot === -1) {
     effect._queueSlot = queue._effects.length;
     queue._effects.push(effect);
+    // console.log('[scheduleEffect] Added to queue, slot=', effect._queueSlot, 'queueType=', queueType, 'isFlushing=', isFlushing);
   }
 
   if (!queue._scheduled && !isFlushing) {
@@ -120,6 +121,7 @@ function flushQueue(queue: EffectQueue, queueType: number) {
     let iteration = 0;
     while (queue._effects.length > 0) {
       iteration++;
+      // console.log('[flushQueue] Iteration', iteration, 'effects.length=', queue._effects.length, 'queueType=', queueType);
       const effects = queue._effects.slice();
       queue._effects.length = 0;
 
@@ -281,6 +283,7 @@ class Computation<T> implements SourceType, ObserverType, Owner {
   // Computation
   _fn: () => T;
   _value: T;
+  _oldValue: T | undefined = undefined;
   _error: any = undefined;
 
   // Effect queue
@@ -386,6 +389,7 @@ class Computation<T> implements SourceType, ObserverType, Owner {
 
       // 更新值和 epoch
       if (!Object.is(this._value, newValue)) {
+        this._oldValue = this._value;
         this._value = newValue;
         this._epoch = ++globalClock;
 
@@ -411,8 +415,9 @@ class Computation<T> implements SourceType, ObserverType, Owner {
     const isExecutingSelf = currentObserver === this;
 
     if (this._state >= state || this._state === STATE_DISPOSED) {
-      // 但如果正在執行且收到 DIRTY，仍然調度
-      if (isExecutingSelf && state === STATE_DIRTY && this._effectType !== EFFECT_PURE) {
+      // 但如果正在執行且收到 DIRTY 或 CHECK，仍然調度
+      // 這支持 effect 執行期間修改依賴的情況
+      if (isExecutingSelf && (state === STATE_DIRTY || state === STATE_CHECK) && this._effectType !== EFFECT_PURE) {
         scheduleEffect(this, this._effectType);
       }
       return;
@@ -576,7 +581,12 @@ export function effect(fn: () => undefined | (() => void)): Unsubscribe {
   );
 
   // Effect 立即執行一次
-  e.update();
+  // 但如果在 batch 中創建，延遲到 batch 結束
+  if (batchDepth > 0) {
+    scheduleEffect(e, EFFECT_USER);
+  } else {
+    e.update();
+  }
 
   return () => e.dispose();
 }
@@ -587,6 +597,30 @@ export function subscribe<T>(
 ): Unsubscribe {
   let hasValue = false;
   let previousValue!: T;
+
+  // 如果在 batch 中創建 subscribe，嘗試獲取 oldValue
+  // 這樣當 batch 完成後，listener 會收到正確的新舊值
+  if (batchDepth > 0) {
+    const computation = (node as any)._computation;
+    if (computation) {
+      // Computed node: if DIRTY, current _value is the old value
+      // If already updated, use _oldValue
+      if (computation._state === STATE_DIRTY || computation._state === STATE_CHECK) {
+        previousValue = computation._value;
+        hasValue = true;
+      } else if (computation._oldValue !== undefined) {
+        previousValue = computation._oldValue;
+        hasValue = true;
+      } else {
+        previousValue = untrack(() => (node as any).value);
+        hasValue = true;
+      }
+    } else {
+      // Signal, read current value
+      previousValue = untrack(() => (node as any).value);
+      hasValue = true;
+    }
+  }
 
   return effect(() => {
     const currentValue = (node as any).value;
