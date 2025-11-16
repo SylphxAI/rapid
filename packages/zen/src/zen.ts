@@ -41,10 +41,12 @@ const FLAG_IN_COMPUTED_QUEUE = 0b1000000; // In dirty computeds queue (batch ded
  * Base class for all reactive nodes (signals and computeds).
  * Unified structure for the reactive graph.
  * Optimization 2.3: Inline small-N effect listeners (1-2) for memory efficiency.
+ * Optimization 3.2: Slot-based graph for O(1) unsubscribe (Solid-style).
  */
 abstract class BaseNode<V> {
   _value: V;
   _computedListeners: AnyNode[] = [];
+  _computedListenerSlots: number[] = []; // Parallel array: observer's slot in their _sources
   _flags = 0;
   _lastSeenEpoch = 0; // Epoch-based deduplication: O(1) tracking check
 
@@ -62,9 +64,11 @@ type AnyNode = BaseNode<unknown>;
 
 /**
  * Dependency collector interface (for runtime tracking).
+ * Optimization 3.2: Added _sourceSlots for slot-based graph.
  */
 interface DependencyCollector {
   _sources: AnyNode[];
+  _sourceSlots: number[]; // Parallel array: this observer's slot in source's _computedListeners
   _epoch: number; // Current tracking epoch for O(1) deduplication
 }
 
@@ -173,25 +177,46 @@ function addEffectListener(node: AnyNode, cb: Listener<any>): Unsubscribe {
 }
 
 /**
- * Add computed listener.
- * Subscribe: O(1) push
- * Unsubscribe: O(n) indexOf + splice
+ * Add computed listener with slot tracking.
+ * Subscribe: O(1) push + slot recording
+ * Unsubscribe: O(1) swap-and-pop using slots
  * Optimization 2.1: Propagate FLAG_HAD_EFFECT_DOWNSTREAM upward during subscription.
+ * Optimization 3.2: Slot-based O(1) unsubscribe (Solid-style).
  */
-function addComputedListener(source: AnyNode, node: AnyNode): Unsubscribe {
-  source._computedListeners.push(node);
+function addComputedListener(
+  source: AnyNode,
+  observer: AnyNode & DependencyCollector,
+  observerSourceIndex: number
+): Unsubscribe {
+  const sourceSlot = source._computedListeners.length;
+  source._computedListeners.push(observer);
+  source._computedListenerSlots.push(observerSourceIndex);
 
   // Propagate effect flag upward if child has effects
-  if ((node._flags & FLAG_HAD_EFFECT_DOWNSTREAM) !== 0) {
+  if ((observer._flags & FLAG_HAD_EFFECT_DOWNSTREAM) !== 0) {
     markHasEffectUpstream(source);
   }
 
   return (): void => {
-    const list = source._computedListeners;
-    const idx = list.indexOf(node);
-    if (idx >= 0) {
-      list.splice(idx, 1);
+    const listeners = source._computedListeners;
+    const slots = source._computedListenerSlots;
+    const lastIdx = listeners.length - 1;
+
+    if (sourceSlot < lastIdx) {
+      // Swap with last element
+      const lastObserver = listeners[lastIdx]! as AnyNode & DependencyCollector;
+      const lastObserverSourceIdx = slots[lastIdx]!;
+
+      listeners[sourceSlot] = lastObserver;
+      slots[sourceSlot] = lastObserverSourceIdx;
+
+      // Update the moved observer's slot reference
+      lastObserver._sourceSlots[lastObserverSourceIdx] = sourceSlot;
     }
+
+    // Pop last element
+    listeners.pop();
+    slots.pop();
   };
 }
 
@@ -246,7 +271,9 @@ class ZenNode<T> extends BaseNode<T> {
       // Only add if not seen in this tracking session (O(1) check)
       if (self._lastSeenEpoch !== currentListener._epoch) {
         self._lastSeenEpoch = currentListener._epoch;
+        const slot = list.length;
         list.push(self);
+        currentListener._sourceSlots.push(slot);
       }
     }
     return this._value;
@@ -295,15 +322,18 @@ export type Zen<T> = ReturnType<typeof zen<T>>;
 // COMPUTED
 // ============================================================================
 
-class ComputedNode<T> extends BaseNode<T | null> {
+class ComputedNode<T> extends BaseNode<T | null> implements DependencyCollector {
   _calc: () => T;
   _sources: AnyNode[];
+  _sourceSlots: number[]; // Optimization 3.2: Slot tracking for O(1) unsubscribe
   _sourceUnsubs?: Unsubscribe[];
+  _epoch = 0; // DependencyCollector interface requirement
 
   constructor(calc: () => T) {
     super(null as T | null);
     this._calc = calc;
     this._sources = [];
+    this._sourceSlots = [];
     this._flags = FLAG_STALE | FLAG_IS_COMPUTED; // Start dirty + mark as computed
   }
 
@@ -334,6 +364,7 @@ class ComputedNode<T> extends BaseNode<T | null> {
     const prevListener = currentListener;
 
     this._sources.length = 0;
+    this._sourceSlots.length = 0;
 
     this._flags |= FLAG_PENDING;
     this._flags &= ~FLAG_STALE;
@@ -386,7 +417,9 @@ class ComputedNode<T> extends BaseNode<T | null> {
       // Only add if not seen in this tracking session (O(1) check)
       if (self._lastSeenEpoch !== currentListener._epoch) {
         self._lastSeenEpoch = currentListener._epoch;
+        const slot = list.length;
         list.push(self);
+        currentListener._sourceSlots.push(slot);
       }
     }
 
@@ -405,7 +438,7 @@ class ComputedNode<T> extends BaseNode<T | null> {
 
     this._sourceUnsubs = [];
     for (let i = 0; i < len; i++) {
-      const unsub = addComputedListener(srcs[i]!, this as unknown as AnyNode);
+      const unsub = addComputedListener(srcs[i]!, this as unknown as AnyNode & DependencyCollector, i);
       this._sourceUnsubs.push(unsub);
     }
   }
@@ -419,6 +452,7 @@ class ComputedNode<T> extends BaseNode<T | null> {
       unsubs[i]!();
     }
     this._sourceUnsubs = undefined;
+    this._sourceSlots.length = 0;
   }
 }
 
@@ -710,6 +744,7 @@ export function subscribe<T>(
 // ============================================================================
 
 type EffectCore = DependencyCollector & {
+  _sourceSlots: number[]; // Explicitly declare for type safety
   _sourceUnsubs?: Unsubscribe[];
   _cleanup?: () => void;
   _callback: () => undefined | (() => void);
@@ -744,6 +779,7 @@ function executeEffect(e: EffectCore): void {
   }
 
   e._sources.length = 0;
+  e._sourceSlots.length = 0;
 
   // Track dependencies with new tracking epoch for O(1) deduplication
   const prevListener = currentListener;
@@ -770,6 +806,7 @@ function executeEffect(e: EffectCore): void {
     const onSourceChange = e._onSourceChange!;
 
     for (let i = 0; i < srcLen; i++) {
+      // Effects use effect listeners, not computed listeners (no slot tracking needed for effects)
       const unsub = addEffectListener(srcs[i]!, onSourceChange as Listener<any>);
       e._sourceUnsubs.push(unsub);
     }
@@ -784,6 +821,7 @@ export function effect(callback: () => undefined | (() => void)): Unsubscribe {
   // Define all properties upfront for V8 optimization (stable hidden class)
   const e: EffectCore = {
     _sources: [],
+    _sourceSlots: [],
     _epoch: 0,
     _sourceUnsubs: undefined,
     _cleanup: undefined,
