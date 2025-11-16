@@ -90,6 +90,24 @@ let GLOBAL_EFFECT_COUNT = 0;
 // ============================================================================
 
 /**
+ * Track an effect edge (subscription) with automatic GLOBAL_EFFECT_COUNT management.
+ * Encapsulates increment/decrement to maintain invariant: count = active edges.
+ * Guards against double-unsubscribe to prevent count corruption.
+ */
+function trackEffectEdge(subscribe: () => Unsubscribe): Unsubscribe {
+  GLOBAL_EFFECT_COUNT++;
+  let active = true;
+  const unsub = subscribe();
+
+  return (): void => {
+    if (!active) return; // Guard against double-unsubscribe
+    active = false;
+    unsub();
+    GLOBAL_EFFECT_COUNT--;
+  };
+}
+
+/**
  * Value equality check using Object.is (handles NaN and +0/-0 correctly).
  * Object.is is optimized by V8 and handles edge cases natively.
  */
@@ -523,10 +541,12 @@ export type ComputedZen<T> = ComputedCore<T>;
  * Check if a node has effect listeners downstream.
  * Conservative cache: FLAG_HAD_EFFECT_DOWNSTREAM is eagerly set during subscription.
  * Optimization 2.1: No DFS - flag is propagated upward during effect subscription.
- * Trade-off: Flag never clears, may over-trigger after unsubscribe, but eliminates hot-path DFS.
+ * Optimization 3.20: Check GLOBAL_EFFECT_COUNT to avoid unnecessary recomputes when all effects unsubscribed.
+ * Trade-off: Flag never clears, but global count allows skipping when no effects exist anywhere.
  */
 function hasDownstreamEffectListeners(node: AnyNode): boolean {
-  return (node._flags & FLAG_HAD_EFFECT_DOWNSTREAM) !== 0;
+  // If no effects exist globally, skip regardless of flag (all effects have unsubscribed)
+  return GLOBAL_EFFECT_COUNT > 0 && (node._flags & FLAG_HAD_EFFECT_DOWNSTREAM) !== 0;
 }
 
 /**
@@ -836,11 +856,14 @@ class EffectNode extends Computation<void | (() => void)> {
   _execute(): void {
     if (this._cancelled) return;
 
-    // Run previous cleanup (direct call - errors propagate to app)
-    if (this._cleanup) {
-      this._cleanup();
-      this._cleanup = undefined;
-    }
+    // Run previous cleanup in untracked context
+    // Safety: Prevents cleanup from creating new dependencies if it reads signals
+    untrack(() => {
+      if (this._cleanup) {
+        this._cleanup();
+        this._cleanup = undefined;
+      }
+    });
 
     // Unsubscribe from previous sources
     const unsubs = this._sourceUnsubs;
@@ -876,18 +899,12 @@ class EffectNode extends Computation<void | (() => void)> {
       for (let i = 0; i < srcLen; i++) {
         // SCHEDULER REWRITE: Subscribe using computed listener (slot-based)
         // When source changes, mark this effect dirty (scheduler queues it)
-        const unsub = addComputedListener(srcs[i]!, this as unknown as AnyNode & DependencyCollector, i);
+        // Use trackEffectEdge to encapsulate GLOBAL_EFFECT_COUNT management
+        const trackedUnsub = trackEffectEdge(() =>
+          addComputedListener(srcs[i]!, this as unknown as AnyNode & DependencyCollector, i)
+        );
 
-        // Increment GLOBAL_EFFECT_COUNT for each subscription
-        GLOBAL_EFFECT_COUNT++;
-
-        // Wrap unsub to decrement count on unsubscribe
-        const wrappedUnsub = (): void => {
-          unsub();
-          GLOBAL_EFFECT_COUNT--;
-        };
-
-        this._sourceUnsubs.push(wrappedUnsub);
+        this._sourceUnsubs.push(trackedUnsub);
       }
     }
   }
