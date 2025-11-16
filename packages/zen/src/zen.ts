@@ -19,16 +19,15 @@ export type Unsubscribe = () => void;
 // FLAGS
 // ============================================================================
 
-const FLAG_STALE = 0b0000000001;           // Computed is dirty, needs recompute
-const FLAG_PENDING = 0b0000000010;         // Currently computing (prevent re-entry)
-const FLAG_PENDING_NOTIFY = 0b0000000100;  // Queued for notification
-const FLAG_IN_DIRTY_QUEUE = 0b0000001000;  // In dirty nodes queue
-const FLAG_IS_COMPUTED = 0b0000010000;     // Node is a ComputedNode (avoid instanceof)
-const FLAG_HAD_EFFECT_DOWNSTREAM = 0b0000100000; // Had effect listeners downstream (conservative cache)
-const FLAG_IN_COMPUTED_QUEUE = 0b0001000000; // In dirty computeds queue (batch dedup)
-const FLAG_IN_SUBSCRIBE_CALL = 0b0010000000; // Currently in subscribe initial call
-const FLAG_IN_EFFECT_QUEUE = 0b0100000000; // In dirty effects queue (scheduler dedup)
-const FLAG_IS_EFFECT = 0b1000000000; // Node is an EffectNode (avoid instanceof)
+const FLAG_STALE = 0b000000001;           // Computed is dirty, needs recompute
+const FLAG_PENDING = 0b000000010;         // Currently computing (prevent re-entry)
+const FLAG_PENDING_NOTIFY = 0b000000100;  // Queued for notification
+const FLAG_IN_DIRTY_QUEUE = 0b000001000;  // In dirty nodes queue
+const FLAG_IS_COMPUTED = 0b000010000;     // Node is a ComputedNode (avoid instanceof)
+const FLAG_HAD_EFFECT_DOWNSTREAM = 0b000100000; // Had effect listeners downstream (conservative cache)
+const FLAG_IN_COMPUTED_QUEUE = 0b001000000; // In dirty computeds queue (batch dedup)
+const FLAG_IN_EFFECT_QUEUE = 0b010000000; // In dirty effects queue (scheduler dedup)
+const FLAG_IS_EFFECT = 0b100000000; // Node is an EffectNode (avoid instanceof)
 
 // ============================================================================
 // LISTENER TYPES
@@ -575,14 +574,8 @@ let pendingNotificationsHead = 0;
 /**
  * Queue node for batched notification (deduped via FLAG_PENDING_NOTIFY).
  * Earliest oldValue wins.
- * Optimization: Skip queueing during subscribe initial call.
  */
 function queueBatchedNotification(node: AnyNode, oldValue: unknown): void {
-  // Skip queueing if we're in subscribe initial call (O(1) flag check)
-  if ((node._flags & FLAG_IN_SUBSCRIBE_CALL) !== 0) {
-    return;
-  }
-
   if ((node._flags & FLAG_PENDING_NOTIFY) === 0) {
     node._flags |= FLAG_PENDING_NOTIFY;
     pendingNotifications.push([node, oldValue]);
@@ -761,39 +754,30 @@ export function batch<T>(fn: () => T): T {
 // ============================================================================
 
 /**
- * Subscribe to signal/computed changes.
- * Returns O(1) unsubscribe function.
+ * BREAKING CHANGE: Subscribe now uses unified scheduler (Solid-style).
+ * - Listener runs at most once per flush (automatic dedup)
+ * - No immediate initial call (effect-based)
+ * - Simpler implementation using effect
  */
 export function subscribe<T>(
   node: ZenCore<T> | ComputedCore<T>,
   listener: Listener<T>,
 ): Unsubscribe {
-  const n = node as AnyNode;
+  let previousValue: T | undefined;
+  let isFirst = true;
 
-  // Add effect listener (O(1))
-  const unsubEffect = addEffectListener(n, listener as Listener<any>);
+  return effect(() => {
+    const currentValue = node.value;
 
-  // Set flag to prevent queueing during initial call (O(1))
-  n._flags |= FLAG_IN_SUBSCRIBE_CALL;
-
-  // Immediate call with current value (triggers lazy eval for computeds)
-  listener((node as any).value as T, undefined);
-
-  // Clear flag after initial call (O(1))
-  n._flags &= ~FLAG_IN_SUBSCRIBE_CALL;
-
-  return (): void => {
-    unsubEffect();
-
-    // If computed with no remaining listeners, detach from sources
-    const remaining = n._computedListeners.length +
-      (n._effectListener1 !== undefined ? 1 : 0) +
-      (n._effectListener2 !== undefined ? 1 : 0) +
-      (n._effectListeners?.length ?? 0);
-    if (remaining === 0 && (node._flags & FLAG_IS_COMPUTED) !== 0) {
-      (node as ComputedNode<T>)._unsubscribeFromSources();
+    if (isFirst) {
+      isFirst = false;
+      previousValue = currentValue;
+      return;
     }
-  };
+
+    listener(currentValue, previousValue);
+    previousValue = currentValue;
+  });
 }
 
 // ============================================================================

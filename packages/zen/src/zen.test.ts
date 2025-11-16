@@ -169,13 +169,14 @@ describe('computed', () => {
 });
 
 describe('subscribe', () => {
-  it('should call listener immediately with current value', () => {
+  it('should NOT call listener immediately (effect-based, no initial call)', () => {
     const count = zen(5);
     const listener = vi.fn();
 
     subscribe(count, listener);
 
-    expect(listener).toHaveBeenCalledWith(5, undefined);
+    // BREAKING CHANGE: No immediate call, listener only fires on updates
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('should call listener on updates', () => {
@@ -183,7 +184,6 @@ describe('subscribe', () => {
     const listener = vi.fn();
 
     subscribe(count, listener);
-    listener.mockClear();
 
     count.value = 5;
     expect(listener).toHaveBeenCalledWith(5, 0);
@@ -194,7 +194,6 @@ describe('subscribe', () => {
     const listener = vi.fn();
 
     const unsub = subscribe(count, listener);
-    listener.mockClear();
 
     count.value = 1;
     expect(listener).toHaveBeenCalledTimes(1);
@@ -212,9 +211,6 @@ describe('subscribe', () => {
 
     subscribe(count, listener1);
     subscribe(count, listener2);
-
-    listener1.mockClear();
-    listener2.mockClear();
 
     count.value = 5;
 
