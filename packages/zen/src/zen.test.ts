@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { zen, computed, effect, subscribe, batch } from './zen';
+import { zen, computed, effect, subscribe, batch, untrack, peek } from './zen';
 
 describe('zen', () => {
   it('should create a zen signal with initial value', () => {
@@ -414,35 +414,33 @@ describe('effect', () => {
     expect(spy).toHaveBeenCalledWith(50);
   });
 
-  it('should swallow effect errors', () => {
+  it('should propagate effect errors to app (production optimization)', () => {
     const count = zen(0);
 
-    expect(() => {
-      effect(() => {
-        if (count.value > 0) throw new Error('Test error');
-      });
-    }).not.toThrow();
+    effect(() => {
+      if (count.value > 0) throw new Error('Test error');
+    });
 
+    // Errors now propagate to app for V8 optimization (no try/catch overhead)
     expect(() => {
       count.value = 1;
-    }).not.toThrow();
+    }).toThrow('Test error');
   });
 
-  it('should ignore cleanup errors', () => {
+  it('should propagate cleanup errors to app (production optimization)', () => {
     const count = zen(0);
 
-    expect(() => {
-      effect(() => {
-        count.value;
-        return () => {
-          throw new Error('Cleanup error');
-        };
-      });
-    }).not.toThrow();
+    effect(() => {
+      count.value;
+      return () => {
+        throw new Error('Cleanup error');
+      };
+    });
 
+    // Errors now propagate to app for V8 optimization (no try/catch overhead)
     expect(() => {
       count.value = 1;
-    }).not.toThrow();
+    }).toThrow('Cleanup error');
   });
 });
 

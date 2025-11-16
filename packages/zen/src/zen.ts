@@ -101,24 +101,18 @@ function valuesEqual(a: unknown, b: unknown): boolean {
  * Uses epoch-based deduplication to prevent duplicate subscriptions.
  * BUG FIX: Effect nodes now use epoch dedup instead of last-source check,
  * preventing duplicate subscriptions when reading same source non-consecutively.
+ *
+ * Optimization: Direct epoch check (no fallback) for better V8 inlining.
+ * All Computation/Effect collectors set _epoch before tracking.
  */
 function trackSource(source: AnyNode): void {
   if (!currentListener) return;
 
   const epoch = currentListener._epoch;
-  if (epoch !== undefined && epoch !== 0) {
-    // Fast path: epoch-based dedup (handles all duplicates)
-    if (source._lastSeenEpoch !== epoch) {
-      source._lastSeenEpoch = epoch;
-      currentListener._sources.push(source);
-    }
-  } else {
-    // Fallback: last-source dedup (for collectors without epoch)
-    const list = currentListener._sources;
-    const last = list[list.length - 1];
-    if (last !== source) {
-      list.push(source);
-    }
+  // Direct epoch-based dedup (single code path for V8 optimization)
+  if (source._lastSeenEpoch !== epoch) {
+    source._lastSeenEpoch = epoch;
+    currentListener._sources.push(source);
   }
 }
 
@@ -798,13 +792,9 @@ class EffectNode extends Computation<void | (() => void)> {
   _execute(): void {
     if (this._cancelled) return;
 
-    // Run previous cleanup
+    // Run previous cleanup (direct call - errors propagate to app)
     if (this._cleanup) {
-      try {
-        this._cleanup();
-      } catch {
-        // Swallow cleanup errors (rare, minimal perf impact)
-      }
+      this._cleanup();
       this._cleanup = undefined;
     }
 
@@ -826,12 +816,8 @@ class EffectNode extends Computation<void | (() => void)> {
     currentListener = this;
     this._epoch = ++TRACKING_EPOCH;
 
-    let cleanup: void | (() => void);
-    try {
-      cleanup = this._fn();
-    } catch {
-      // Swallow effect errors (rare, minimal perf impact)
-    }
+    // Direct call (no try/catch for V8 optimization - errors propagate to app)
+    const cleanup = this._fn();
     currentListener = prevListener;
 
     if (cleanup) this._cleanup = cleanup;
