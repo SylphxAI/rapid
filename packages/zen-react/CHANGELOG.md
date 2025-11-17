@@ -1,5 +1,12 @@
 # @sylphx/zen-react
 
+## 5.0.33
+
+### Patch Changes
+
+- Updated dependencies [cc38aa4]
+  - @sylphx/zen@3.44.2
+
 ## 5.0.32
 
 ### Patch Changes
