@@ -458,17 +458,9 @@ class Computation<T> implements SourceType, ObserverType, Owner {
       return;
     }
 
-    // OPTIMIZATION: Batch for large observer counts
-    if (len > 100) {
-      batchDepth++;
-      for (let i = 0; i < len; i++) {
-        observers[i]._notify(state);
-      }
-      batchDepth--;
-    } else {
-      for (let i = 0; i < len; i++) {
-        observers[i]._notify(state);
-      }
+    // Simple loop for all observer counts
+    for (let i = 0; i < len; i++) {
+      observers[i]._notify(state);
     }
   }
 
