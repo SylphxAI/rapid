@@ -80,8 +80,8 @@ function CounterExample() {
 
       <div class="example-demo">
         <div class="counter-display">
-          <div class="value-large">{count.value}</div>
-          <div class="value-computed">Doubled: {doubled.value}</div>
+          <div class="value-large">{count}</div>
+          <div class="value-computed">Doubled: {doubled}</div>
         </div>
         <div class="counter-controls">
           <label>
