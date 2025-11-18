@@ -2,6 +2,7 @@ import * as Babel from '@babel/standalone';
 import * as ZenSignal from '@zen/signal';
 import { Show, signal } from '@zen/zen';
 import * as Zen from '@zen/zen';
+import { jsx, Fragment } from '@zen/zen/jsx-runtime';
 
 export function Playground() {
   const code = signal(`// Create reactive state
@@ -59,6 +60,8 @@ preview.appendChild(app);`);
       const zenContext = {
         ...Zen,
         ...ZenSignal,
+        jsx,
+        Fragment,
         document,
         console,
       };
