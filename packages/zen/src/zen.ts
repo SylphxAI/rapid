@@ -549,7 +549,7 @@ class Signal<T> implements SourceType {
 
     // OPTIMIZATION: Fast path for single observer (common case)
     if (len === 1) {
-      observers[0]._notify(STATE_DIRTY);
+      notifyComputation(observers[0] as Computation<any>, STATE_DIRTY);
       // Only flush if effects are pending and not already scheduled
       if (batchDepth === 0 && pendingCount > 0 && !isFlushScheduled) {
         isFlushScheduled = true;
@@ -559,7 +559,7 @@ class Signal<T> implements SourceType {
     }
 
     // OPTIMIZATION: Queue-based notification for massive fanouts (100+)
-    // Solid.js pattern: mark as DIRTY + queue, avoid recursive _notify() calls
+    // Solid.js pattern: mark as DIRTY + queue, avoid recursive calls
     if (len >= 100) {
       batchDepth++;
 
@@ -568,7 +568,7 @@ class Signal<T> implements SourceType {
 
       // Queue all observers with inline state updates
       for (let i = 0; i < len; i++) {
-        const obs = observers[i];
+        const obs = observers[i] as Computation<any>;
 
         // Skip if already dirty or disposed
         if (obs._state >= STATE_DIRTY || obs._state === STATE_DISPOSED) {
@@ -579,8 +579,8 @@ class Signal<T> implements SourceType {
         obs._state = STATE_DIRTY;
 
         // Schedule effects
-        if ((obs as any)._effectType !== EFFECT_PURE) {
-          scheduleEffect(obs as Computation<any>);
+        if (obs._effectType !== EFFECT_PURE) {
+          scheduleEffect(obs);
         }
 
         // Queue for downstream propagation
@@ -589,11 +589,11 @@ class Signal<T> implements SourceType {
 
       // Process queue: propagate CHECK state to downstream observers
       for (let i = 0; i < pendingUpdateCount; i++) {
-        const obs = pendingUpdates[i];
+        const obs = pendingUpdates[i] as Computation<any>;
         const obsObservers = obs._observers;
 
         if (obsObservers && obsObservers.length > 0) {
-          notifyObservers(obs as Computation<any>, STATE_CHECK);
+          notifyObservers(obs, STATE_CHECK);
         }
       }
 
@@ -602,7 +602,7 @@ class Signal<T> implements SourceType {
       // Standard path for moderate fanouts (<100)
       batchDepth++;
       for (let i = 0; i < len; i++) {
-        observers[i]._notify(STATE_DIRTY);
+        notifyComputation(observers[i] as Computation<any>, STATE_DIRTY);
       }
       batchDepth--;
     }
