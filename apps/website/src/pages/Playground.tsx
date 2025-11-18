@@ -369,6 +369,7 @@ const app = (
   const opsPerSecond = signal(0);
 
   let editorView: EditorView | null = null;
+  let autoRunTimer: number | null = null;
 
   const changeTemplate = (template: string) => {
     selectedTemplate.value = template;
@@ -382,6 +383,27 @@ const app = (
       });
     }
   };
+
+  // Auto-run with debounce when code changes
+  Zen.effect(() => {
+    const currentCode = code.value;
+
+    // Clear previous timer
+    if (autoRunTimer !== null) {
+      clearTimeout(autoRunTimer);
+    }
+
+    // Debounce auto-run (1 second)
+    autoRunTimer = window.setTimeout(() => {
+      runCode();
+    }, 1000);
+
+    return () => {
+      if (autoRunTimer !== null) {
+        clearTimeout(autoRunTimer);
+      }
+    };
+  });
 
   // Initialize CodeMirror
   const initEditor = (container: HTMLDivElement) => {
@@ -417,12 +439,8 @@ const app = (
   const runCode = () => {
     const startTime = performance.now();
     try {
-      error.value = '';
       const previewEl = document.getElementById('preview');
       if (!previewEl) return;
-
-      // Clear preview
-      previewEl.innerHTML = '';
 
       // Remove import statements (Zen API is provided via context)
       const codeWithoutImports = code.value.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
@@ -473,10 +491,16 @@ const app = (
       const result = fn(...Object.values(zenContext));
       const execEnd = performance.now();
 
+      // Clear preview only on success
+      previewEl.innerHTML = '';
+
       // Auto-render the app to preview
       if (result && result instanceof Node) {
         previewEl.appendChild(result);
       }
+
+      // Clear error on success
+      error.value = '';
 
       executeTime.value = execEnd - execStart;
       renderTime.value = execEnd - startTime;
@@ -492,11 +516,8 @@ const app = (
       const timePerOp = (benchEnd - benchStart) / iterations;
       opsPerSecond.value = Math.round(1000 / timePerOp);
     } catch (e: unknown) {
+      // Set error but DON'T clear preview - keep previous working version
       error.value = (e as Error).message || 'Unknown error';
-      const previewEl = document.getElementById('preview');
-      if (previewEl) {
-        previewEl.innerHTML = `<div style="padding: 20px; color: #ef4444; font-family: monospace; white-space: pre-wrap;">${error.value}</div>`;
-      }
     }
   };
 
@@ -528,14 +549,6 @@ const app = (
                 </div>
               </div>
             </Show>
-            <button
-              type="button"
-              onClick={runCode}
-              class="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-zen shadow-zen transition-colors flex items-center gap-2"
-            >
-              <span>▶</span>
-              Run Code
-            </button>
           </div>
         </div>
 
@@ -602,11 +615,11 @@ const app = (
             </li>
             <li class="flex items-start gap-2">
               <span class="text-primary">•</span>
-              Click "Run Code" - your component will automatically render
+              Code runs automatically 1 second after you stop typing
             </li>
             <li class="flex items-start gap-2">
               <span class="text-primary">•</span>
-              Try modifying the code and re-running to see changes
+              Errors won't clear your preview - previous version stays visible
             </li>
             <li class="flex items-start gap-2">
               <span class="text-primary">•</span>
