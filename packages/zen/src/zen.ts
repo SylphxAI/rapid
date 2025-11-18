@@ -118,7 +118,7 @@ class Computation<T> implements SourceType, ObserverType {
   }
 
   _update(): void {
-    if (this._state === STATE_CLEAN || this._state === STATE_DISPOSED) return;
+    if (this._state !== STATE_DIRTY) return;
     if (this._sources) {
       const myTime = this._time;
       const len = this._sources.length;
@@ -182,7 +182,7 @@ class Computation<T> implements SourceType, ObserverType {
   }
 
   _notify(): void {
-    if (this._state === STATE_DIRTY || this._state === STATE_DISPOSED) return;
+    if (this._state !== STATE_CLEAN) return;
     this._state = STATE_DIRTY;
     if (this._effectType !== EFFECT_PURE) scheduleEffect(this);
     this._notifyObservers();
