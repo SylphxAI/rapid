@@ -1,3 +1,4 @@
+import './index.css';
 import { render } from '@zen/zen';
 import { App } from './App';
 
