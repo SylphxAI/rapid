@@ -186,8 +186,8 @@ count.value++; // Effect won't run`}</pre>
             <article class="bg-bg-light border border-border rounded-zen p-8">
               <h1 class="text-4xl font-bold text-text mb-4">@zen/zen Framework</h1>
               <p class="text-xl text-text-muted mb-8 leading-relaxed">
-                Fine-grained reactive framework with no virtual DOM. Components render once,
-                signals handle all updates.
+                Fine-grained reactive framework with no virtual DOM. Components render once, signals
+                handle all updates.
               </p>
               {/* Additional content following same pattern... */}
               <p class="text-text-muted">
@@ -202,9 +202,7 @@ count.value++; // Effect won't run`}</pre>
               <p class="text-xl text-text-muted mb-8 leading-relaxed">
                 Zen provides powerful components for common patterns.
               </p>
-              <p class="text-text-muted">
-                Components documentation - converted to Tailwind...
-              </p>
+              <p class="text-text-muted">Components documentation - converted to Tailwind...</p>
             </article>
           </Show>
 
@@ -224,9 +222,7 @@ count.value++; // Effect won't run`}</pre>
               <p class="text-xl text-text-muted mb-8 leading-relaxed">
                 Use Zen Signal with your favorite frameworks.
               </p>
-              <p class="text-text-muted">
-                Integrations documentation - converted to Tailwind...
-              </p>
+              <p class="text-text-muted">Integrations documentation - converted to Tailwind...</p>
             </article>
           </Show>
         </main>

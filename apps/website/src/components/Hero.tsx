@@ -22,8 +22,8 @@ export function Hero() {
           <strong class="text-text font-semibold">@zen/signal</strong> - Ultra-fast reactive
           primitives
           <br />
-          <strong class="text-text font-semibold">@zen/zen</strong> - Fine-grained framework with
-          no virtual DOM
+          <strong class="text-text font-semibold">@zen/zen</strong> - Fine-grained framework with no
+          virtual DOM
         </p>
 
         <div class="flex gap-12 justify-center mb-12">

@@ -93,7 +93,10 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://x.com/SylphxAI" class="text-text-muted hover:text-primary transition-colors">
+                <a
+                  href="https://x.com/SylphxAI"
+                  class="text-text-muted hover:text-primary transition-colors"
+                >
                   Twitter
                 </a>
               </li>
