@@ -43,10 +43,6 @@ let currentOwner: Owner | null = null;
 let batchDepth = 0;
 let clock = 0; // Global clock (Solid.js uses this instead of per-node epoch)
 
-// Optimization: track() context
-let newSources: SourceType[] | null = null;
-let newSourcesIndex = 0;
-
 const pendingEffects: Computation<any>[] = [];
 let pendingCount = 0;
 let isFlushScheduled = false;
@@ -157,20 +153,21 @@ function disposeOwner(owner: Owner) {
  * rebuild the sources array.
  */
 function track(source: SourceType) {
+  const observer = currentObserver!;
   // OPTIMIZATION: Compare with old sources first
   if (
-    !newSources &&
-    currentObserver!._sources &&
-    currentObserver!._sources[newSourcesIndex] === source
+    !observer._trackingSources &&
+    observer._sources &&
+    observer._sources[observer._trackingIndex] === source
   ) {
     // Source at this index hasn't changed, just increment
-    newSourcesIndex++;
-  } else if (!newSources) {
-    // First changed source - create newSources array
-    newSources = [source];
-  } else if (source !== newSources[newSources.length - 1]) {
+    observer._trackingIndex++;
+  } else if (!observer._trackingSources) {
+    // First changed source - create trackingSources array
+    observer._trackingSources = [source];
+  } else if (source !== observer._trackingSources[observer._trackingSources.length - 1]) {
     // Don't add duplicate if it's the same as last source
-    newSources.push(source);
+    observer._trackingSources.push(source);
   }
 }
 
@@ -237,6 +234,10 @@ class Computation<T> implements SourceType, ObserverType, Owner {
   _effectType: number;
   _cleanup: (() => void) | null = null;
 
+  // OPTIMIZATION: Move tracking state from global to instance
+  _trackingSources: SourceType[] | null = null;
+  _trackingIndex = 0;
+
   constructor(fn: () => T, initialValue: T, effectType: number = EFFECT_PURE) {
     this._fn = fn;
     this._value = initialValue;
@@ -248,13 +249,13 @@ class Computation<T> implements SourceType, ObserverType, Owner {
   read(): T {
     if (currentObserver) {
       // OPTIMIZATION: Inline track - avoid function call
-      const sources = currentObserver._sources;
-      if (!newSources && sources && sources[newSourcesIndex] === this) {
-        newSourcesIndex++;
-      } else if (!newSources) {
-        newSources = [this];
-      } else if (this !== newSources[newSources.length - 1]) {
-        newSources.push(this);
+      const observer = currentObserver;
+      if (!observer._trackingSources && observer._sources && observer._sources[observer._trackingIndex] === this) {
+        observer._trackingIndex++;
+      } else if (!observer._trackingSources) {
+        observer._trackingSources = [this];
+      } else if (this !== observer._trackingSources[observer._trackingSources.length - 1]) {
+        observer._trackingSources.push(this);
       }
 
       // Only check if not CLEAN
@@ -349,14 +350,12 @@ class Computation<T> implements SourceType, ObserverType, Owner {
     // Save previous context
     const prevOwner = currentOwner;
     const prevObserver = currentObserver;
-    const prevNewSources = newSources;
-    const prevNewSourcesIndex = newSourcesIndex;
 
     // Set new context
     currentOwner = this;
     currentObserver = this;
-    newSources = null;
-    newSourcesIndex = 0;
+    this._trackingSources = null;
+    this._trackingIndex = 0;
 
     try {
       const newValue = this._fn();
@@ -369,26 +368,26 @@ class Computation<T> implements SourceType, ObserverType, Owner {
       }
 
       // SOLID.JS PATTERN: Update sources incrementally
-      if (newSources) {
+      if (this._trackingSources) {
         // Remove old observers from tail
         if (this._sources) {
-          removeSourceObservers(this, newSourcesIndex);
+          removeSourceObservers(this, this._trackingIndex);
         }
 
         // Update sources array
-        if (this._sources && newSourcesIndex > 0) {
-          this._sources.length = newSourcesIndex + newSources.length;
-          const newLen = newSources.length;
+        if (this._sources && this._trackingIndex > 0) {
+          this._sources.length = this._trackingIndex + this._trackingSources.length;
+          const newLen = this._trackingSources.length;
           for (let i = 0; i < newLen; i++) {
-            this._sources[newSourcesIndex + i] = newSources[i];
+            this._sources[this._trackingIndex + i] = this._trackingSources[i];
           }
         } else {
-          this._sources = newSources;
+          this._sources = this._trackingSources;
         }
 
         // Add this observer to new sources
         const sourcesLen = this._sources.length;
-        for (let i = newSourcesIndex; i < sourcesLen; i++) {
+        for (let i = this._trackingIndex; i < sourcesLen; i++) {
           const source = this._sources[i];
           if (!source._observers) {
             source._observers = [this];
@@ -396,10 +395,10 @@ class Computation<T> implements SourceType, ObserverType, Owner {
             source._observers.push(this);
           }
         }
-      } else if (this._sources && newSourcesIndex < this._sources.length) {
+      } else if (this._sources && this._trackingIndex < this._sources.length) {
         // Sources array shrunk
-        removeSourceObservers(this, newSourcesIndex);
-        this._sources.length = newSourcesIndex;
+        removeSourceObservers(this, this._trackingIndex);
+        this._sources.length = this._trackingIndex;
       }
 
       // Update time and notify AFTER sources are updated (Solid.js pattern)
@@ -418,8 +417,6 @@ class Computation<T> implements SourceType, ObserverType, Owner {
       // Restore context
       currentObserver = prevObserver;
       currentOwner = prevOwner;
-      newSources = prevNewSources;
-      newSourcesIndex = prevNewSourcesIndex;
     }
   }
 
@@ -515,14 +512,14 @@ class Signal<T> implements SourceType {
   get value(): T {
     // OPTIMIZATION: Inline track - avoid function call overhead
     if (currentObserver) {
-      const sources = currentObserver._sources;
+      const observer = currentObserver;
       // OPTIMIZATION: Fast path - source unchanged at same index
-      if (!newSources && sources && sources[newSourcesIndex] === this) {
-        newSourcesIndex++;
-      } else if (!newSources) {
-        newSources = [this];
-      } else if (this !== newSources[newSources.length - 1]) {
-        newSources.push(this);
+      if (!observer._trackingSources && observer._sources && observer._sources[observer._trackingIndex] === this) {
+        observer._trackingIndex++;
+      } else if (!observer._trackingSources) {
+        observer._trackingSources = [this];
+      } else if (this !== observer._trackingSources[observer._trackingSources.length - 1]) {
+        observer._trackingSources.push(this);
       }
     }
     return this._value;
