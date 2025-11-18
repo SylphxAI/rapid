@@ -60,20 +60,10 @@ const count = signal(0);
 const renderCount = signal(0);
 
 // Auto-increment every second
-setTimeout(() => {
-  console.log('⏰ Timer 1s');
+const timer = setInterval(() => {
   count.value++;
+  console.log(\`⏰ Timer: count = \${count.value}\`);
 }, 1000);
-
-setTimeout(() => {
-  console.log('⏰ Timer 2s');
-  count.value++;
-}, 2000);
-
-setTimeout(() => {
-  console.log('⏰ Timer 3s');
-  count.value++;
-}, 3000);
 
 // Track effect runs (not component re-renders)
 effect(() => {
@@ -386,7 +376,7 @@ const app = (
 
   // Auto-run with debounce when code changes
   Zen.effect(() => {
-    const currentCode = code.value;
+    const _currentCode = code.value;
 
     // Clear previous timer
     if (autoRunTimer !== null) {
