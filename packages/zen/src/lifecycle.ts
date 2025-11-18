@@ -13,7 +13,7 @@ type CleanupFunction = () => void;
  * Owner represents a component's lifecycle context
  * Forms a tree structure for hierarchical cleanup
  */
-type Owner = {
+export type Owner = {
   cleanups: CleanupFunction[];
   children: Owner[];
   parent: Owner | null;

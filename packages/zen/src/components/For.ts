@@ -17,24 +17,31 @@ interface ForProps<T, U extends Node> {
   each: T[] | AnyZen;
   children: (item: T, index: () => number) => U;
   fallback?: Node;
+  key?: (item: T, index: number) => any;
 }
 
 /**
  * For component - Keyed list rendering
  *
  * @example
+ * // Default: item-based keying
  * <For each={items}>
+ *   {(item, index) => <div>{item.name}</div>}
+ * </For>
+ *
+ * // Custom key function
+ * <For each={items} key={(item) => item.id}>
  *   {(item, index) => <div>{item.name}</div>}
  * </For>
  */
 export function For<T, U extends Node>(props: ForProps<T, U>): Node {
-  const { each, children, fallback } = props;
+  const { each, children, fallback, key: keyFn } = props;
 
   // Anchor comment node to mark position
   const marker = document.createComment('for');
 
-  // Track rendered items
-  const items = new Map<T, { node: U; index: number }>();
+  // Track rendered items by key
+  const items = new Map<any, { node: U; index: number; item: T }>();
 
   // Get parent for DOM operations
   let parent: Node | null = null;
@@ -55,11 +62,11 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
     // Show fallback if empty
     if (array.length === 0 && fallback) {
       // Clear existing items
-      for (const [, { node }] of items) {
-        if (node.parentNode) {
-          node.parentNode.removeChild(node);
+      for (const [, entry] of items) {
+        if (entry.node.parentNode) {
+          entry.node.parentNode.removeChild(entry.node);
         }
-        disposeNode(node);
+        disposeNode(entry.node);
       }
       items.clear();
 
@@ -80,45 +87,48 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
     if (!parent) return;
 
     // Build new items map
-    const newItems = new Map<T, { node: U; index: number }>();
+    const newItems = new Map<any, { node: U; index: number; item: T }>();
     const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < array.length; i++) {
       const item = array[i];
-      let entry = items.get(item);
+      // Use custom key function or item itself as key
+      const itemKey = keyFn ? keyFn(item, i) : item;
+      let entry = items.get(itemKey);
 
       if (entry) {
         // Reuse existing node
         entry.index = i;
-        newItems.set(item, entry);
+        entry.item = item;
+        newItems.set(itemKey, entry);
       } else {
         // Create new node
         const node = children(item, () => {
-          const entry = newItems.get(item);
+          const entry = Array.from(newItems.values()).find(e => e.item === item);
           return entry ? entry.index : -1;
         });
 
-        entry = { node, index: i };
-        newItems.set(item, entry);
+        entry = { node, index: i, item };
+        newItems.set(itemKey, entry);
       }
 
       fragment.appendChild(entry.node);
     }
 
     // Remove items no longer in array
-    for (const [item, { node }] of items) {
-      if (!newItems.has(item)) {
-        if (node.parentNode) {
-          node.parentNode.removeChild(node);
+    for (const [itemKey, entry] of items) {
+      if (!newItems.has(itemKey)) {
+        if (entry.node.parentNode) {
+          entry.node.parentNode.removeChild(entry.node);
         }
-        disposeNode(node);
+        disposeNode(entry.node);
       }
     }
 
     // Update items map
     items.clear();
-    for (const [item, entry] of newItems) {
-      items.set(item, entry);
+    for (const [itemKey, entry] of newItems) {
+      items.set(itemKey, entry);
     }
 
     // Insert all nodes in correct order
@@ -130,11 +140,11 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
   // Register cleanup via owner system
   onCleanup(() => {
     dispose();
-    for (const [, { node }] of items) {
-      if (node.parentNode) {
-        node.parentNode.removeChild(node);
+    for (const [, entry] of items) {
+      if (entry.node.parentNode) {
+        entry.node.parentNode.removeChild(entry.node);
       }
-      disposeNode(node);
+      disposeNode(entry.node);
     }
     items.clear();
   });
