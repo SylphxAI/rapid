@@ -1,7 +1,7 @@
 {
   "name": "@sylphx/zen",
-  "version": "3.46.0",
-  "description": "Zen state management library - extreme minimalism, extreme speed. V3.46: Removed unused Owner system (~250 bytes smaller).",
+  "version": "3.47.0",
+  "description": "Zen state management library - extreme minimalism, extreme speed. V3.47: Major simplification - removed Solid.js complexity (2-state, direct tracking, ~700 bytes smaller).",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
