@@ -1,8 +1,16 @@
 import * as Babel from '@babel/standalone';
 import * as ZenSignal from '@zen/signal';
+import { effect } from '@zen/signal';
 import { Show, signal } from '@zen/zen';
 import * as Zen from '@zen/zen';
 import { Fragment, jsx } from '@zen/zen/jsx-runtime';
+import { EditorView, keymap, highlightActiveLine, highlightSpecialChars, drawSelection, highlightActiveLineGutter, lineNumbers } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { javascript } from '@codemirror/lang-javascript';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
+import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 
 export function Playground() {
   const templates = {
@@ -204,10 +212,59 @@ if (preview) {
   const renderTime = signal(0);
   const opsPerSecond = signal(0);
 
+  let editorView: EditorView | null = null;
+  let selectRef: HTMLSelectElement | null = null;
+
   const changeTemplate = (template: string) => {
     selectedTemplate.value = template;
-    code.value = templates[template] || templates.counter;
+    const newCode = templates[template] || templates.counter;
+    code.value = newCode;
+
+    // Update CodeMirror
+    if (editorView) {
+      editorView.dispatch({
+        changes: { from: 0, to: editorView.state.doc.length, insert: newCode },
+      });
+    }
   };
+
+  // Initialize CodeMirror
+  const initEditor = (container: HTMLDivElement) => {
+    const startState = EditorState.create({
+      doc: code.value,
+      extensions: [
+        lineNumbers(),
+        highlightActiveLineGutter(),
+        highlightSpecialChars(),
+        history(),
+        drawSelection(),
+        syntaxHighlighting(defaultHighlightStyle),
+        bracketMatching(),
+        closeBrackets(),
+        highlightActiveLine(),
+        keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap]),
+        javascript({ jsx: true, typescript: true }),
+        oneDark,
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            code.value = update.state.doc.toString();
+          }
+        }),
+      ],
+    });
+
+    editorView = new EditorView({
+      state: startState,
+      parent: container,
+    });
+  };
+
+  // Sync select value (因為 value prop 唔會reactive)
+  effect(() => {
+    if (selectRef) {
+      selectRef.value = selectedTemplate.value;
+    }
+  });
 
   const runCode = () => {
     const startTime = performance.now();
@@ -337,7 +394,9 @@ if (preview) {
               <span class="text-text font-medium">Code Editor</span>
               <select
                 class="px-3 py-1 bg-bg border border-border rounded text-text text-sm focus:outline-none focus:border-primary"
-                value={selectedTemplate.value}
+                ref={(el) => {
+                  selectRef = el as HTMLSelectElement;
+                }}
                 onChange={(e) => changeTemplate((e.target as HTMLSelectElement).value)}
               >
                 <option value="counter">Counter</option>
@@ -346,13 +405,13 @@ if (preview) {
                 <option value="async">Async Data</option>
               </select>
             </div>
-            <textarea
-              class="flex-1 min-h-[500px] p-4 bg-bg-lighter border border-t-0 border-border rounded-b-zen text-text font-mono text-sm resize-none focus:outline-none focus:border-primary"
-              value={code.value}
-              onInput={(e) => {
-                code.value = (e.target as HTMLTextAreaElement).value;
+            <div
+              class="flex-1 min-h-[500px] border border-t-0 border-border rounded-b-zen overflow-hidden"
+              ref={(el) => {
+                if (el && !editorView) {
+                  initEditor(el as HTMLDivElement);
+                }
               }}
-              spellcheck={false}
             />
           </div>
 
