@@ -4,38 +4,11 @@ import { Show, signal } from '@zen/zen';
 import * as Zen from '@zen/zen';
 import { Fragment, jsx } from '@zen/zen/jsx-runtime';
 
-// Simple syntax highlighter
-function highlightCode(code: string): string {
-  return code
-    // Keywords
-    .replace(
-      /\b(const|let|var|function|return|if|else|for|while|import|from|export|default|class|extends|async|await|try|catch|finally|throw|new)\b/g,
-      '<span style="color: #c678dd">$1</span>',
-    )
-    // Strings
-    .replace(/(['"`])(?:(?=(\\?))\2.)*?\1/g, '<span style="color: #98c379">$&</span>')
-    // Comments
-    .replace(/\/\/.*/g, '<span style="color: #5c6370; font-style: italic">$&</span>')
-    .replace(/\/\*[\s\S]*?\*\//g, '<span style="color: #5c6370; font-style: italic">$&</span>')
-    // Numbers
-    .replace(/\b(\d+)\b/g, '<span style="color: #d19a66">$1</span>')
-    // Functions
-    .replace(/\b(signal|computed|effect|render)\b/g, '<span style="color: #61afef">$1</span>')
-    // JSX tags
-    .replace(/&lt;(\/?[\w-]+)/g, '&lt;<span style="color: #e06c75">$1</span>')
-    // HTML escape
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
 export function Playground() {
-  const code = signal(`console.log('Code is running!');
-
-// Create reactive state
+  const templates = {
+    counter: `// Create reactive state
 const count = signal(0);
 const doubled = computed(() => count.value * 2);
-
-console.log('Signals created:', count, doubled);
 
 // Create component
 const app = (
@@ -50,24 +23,191 @@ const app = (
   </div>
 );
 
-console.log('Component created:', app);
-
 // Render to preview
 const preview = document.getElementById('preview');
-console.log('Preview element:', preview);
-
 if (preview) {
   preview.innerHTML = '';
   preview.appendChild(app);
-  console.log('Component appended to preview');
-} else {
-  console.error('Preview element not found!');
-}`);
+}`,
+    todo: `// Todo list example
+const todos = signal([]);
+const input = signal('');
 
+const addTodo = () => {
+  if (input.value.trim()) {
+    todos.value = [...todos.value, { id: Date.now(), text: input.value, done: false }];
+    input.value = '';
+  }
+};
+
+const toggleTodo = (id) => {
+  todos.value = todos.value.map(t =>
+    t.id === id ? { ...t, done: !t.done } : t
+  );
+};
+
+const app = (
+  <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '500px' }}>
+    <h2>Todo List</h2>
+    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      <input
+        type="text"
+        value={input.value}
+        onInput={(e) => input.value = e.target.value}
+        placeholder="Add a todo..."
+        style={{ flex: 1, padding: '8px' }}
+      />
+      <button onClick={addTodo}>Add</button>
+    </div>
+    <div>
+      {todos.value.map(todo => (
+        <div key={todo.id} style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
+          <input
+            type="checkbox"
+            checked={todo.done}
+            onChange={() => toggleTodo(todo.id)}
+          />
+          <span style={{ textDecoration: todo.done ? 'line-through' : 'none' }}>
+            {todo.text}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const preview = document.getElementById('preview');
+if (preview) {
+  preview.innerHTML = '';
+  preview.appendChild(app);
+}`,
+    form: `// Form with validation
+const name = signal('');
+const email = signal('');
+const submitted = signal(false);
+
+const isValid = computed(() =>
+  name.value.length > 0 && email.value.includes('@')
+);
+
+const handleSubmit = () => {
+  if (isValid.value) {
+    submitted.value = true;
+  }
+};
+
+const app = (
+  <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '400px' }}>
+    <h2>Contact Form</h2>
+    <Show when={!submitted.value}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div>
+          <label>Name:</label>
+          <input
+            type="text"
+            value={name.value}
+            onInput={(e) => name.value = e.target.value}
+            style={{ display: 'block', width: '100%', padding: '8px', marginTop: '5px' }}
+          />
+        </div>
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email.value}
+            onInput={(e) => email.value = e.target.value}
+            style={{ display: 'block', width: '100%', padding: '8px', marginTop: '5px' }}
+          />
+        </div>
+        <button
+          onClick={handleSubmit}
+          disabled={!isValid.value}
+          style={{
+            padding: '10px',
+            opacity: isValid.value ? 1 : 0.5,
+            cursor: isValid.value ? 'pointer' : 'not-allowed'
+          }}
+        >
+          Submit
+        </button>
+      </div>
+    </Show>
+    <Show when={submitted.value}>
+      <div style={{ color: 'green', padding: '20px', textAlign: 'center' }}>
+        <h3>✓ Form submitted!</h3>
+        <p>Name: {name.value}</p>
+        <p>Email: {email.value}</p>
+      </div>
+    </Show>
+  </div>
+);
+
+const preview = document.getElementById('preview');
+if (preview) {
+  preview.innerHTML = '';
+  preview.appendChild(app);
+}`,
+    async: `// Async data fetching
+const loading = signal(false);
+const data = signal(null);
+const error = signal(null);
+
+const fetchData = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await fetch('https://api.github.com/repos/zenjs/zen');
+    const json = await res.json();
+    data.value = json;
+  } catch (e) {
+    error.value = e.message;
+  } finally {
+    loading.value = false;
+  }
+};
+
+const app = (
+  <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+    <h2>GitHub Repo Info</h2>
+    <button onClick={fetchData} disabled={loading.value}>
+      {loading.value ? 'Loading...' : 'Fetch Data'}
+    </button>
+
+    <Show when={error.value}>
+      <div style={{ color: 'red', marginTop: '20px' }}>
+        Error: {error.value}
+      </div>
+    </Show>
+
+    <Show when={data.value}>
+      <div style={{ marginTop: '20px' }}>
+        <h3>{data.value.name}</h3>
+        <p>{data.value.description}</p>
+        <p>⭐ Stars: {data.value.stargazers_count}</p>
+        <p>🍴 Forks: {data.value.forks_count}</p>
+      </div>
+    </Show>
+  </div>
+);
+
+const preview = document.getElementById('preview');
+if (preview) {
+  preview.innerHTML = '';
+  preview.appendChild(app);
+}`,
+  };
+
+  const code = signal(templates.counter);
+  const selectedTemplate = signal('counter');
   const error = signal('');
   const executeTime = signal(0);
   const renderTime = signal(0);
   const opsPerSecond = signal(0);
+
+  const changeTemplate = (template: string) => {
+    selectedTemplate.value = template;
+    code.value = templates[template] || templates.counter;
+  };
 
   const runCode = () => {
     const startTime = performance.now();
@@ -137,7 +277,6 @@ if (preview) {
       const benchEnd = performance.now();
       const timePerOp = (benchEnd - benchStart) / iterations;
       opsPerSecond.value = Math.round(1000 / timePerOp);
-
     } catch (e: unknown) {
       error.value = (e as Error).message || 'Unknown error';
       const previewEl = document.getElementById('preview');
@@ -169,7 +308,9 @@ if (preview) {
                 </div>
                 <div class="text-center">
                   <div class="text-sm text-text-muted">Ops/sec</div>
-                  <div class="text-lg font-bold text-secondary">{opsPerSecond.value.toLocaleString()}</div>
+                  <div class="text-lg font-bold text-secondary">
+                    {opsPerSecond.value.toLocaleString()}
+                  </div>
                 </div>
               </div>
             </Show>
@@ -194,28 +335,25 @@ if (preview) {
           <div class="flex flex-col">
             <div class="flex items-center justify-between bg-bg-lighter border border-border rounded-t-zen px-4 py-2">
               <span class="text-text font-medium">Code Editor</span>
-              <select class="px-3 py-1 bg-bg border border-border rounded text-text text-sm focus:outline-none focus:border-primary">
-                <option>Counter</option>
-                <option>Todo App</option>
-                <option>Form</option>
-                <option>Async Data</option>
+              <select
+                class="px-3 py-1 bg-bg border border-border rounded text-text text-sm focus:outline-none focus:border-primary"
+                value={selectedTemplate.value}
+                onChange={(e) => changeTemplate((e.target as HTMLSelectElement).value)}
+              >
+                <option value="counter">Counter</option>
+                <option value="todo">Todo App</option>
+                <option value="form">Form</option>
+                <option value="async">Async Data</option>
               </select>
             </div>
-            <div class="flex-1 min-h-[500px] relative">
-              <textarea
-                class="absolute inset-0 p-4 bg-transparent border-0 text-transparent caret-text font-mono text-sm resize-none focus:outline-none z-10"
-                value={code.value}
-                onInput={(e) => {
-                  code.value = (e.target as HTMLTextAreaElement).value;
-                }}
-                spellcheck={false}
-                style={{ caretColor: '#6366f1' }}
-              />
-              <pre
-                class="absolute inset-0 p-4 bg-bg-lighter border border-t-0 border-border rounded-b-zen font-mono text-sm overflow-auto pointer-events-none"
-                innerHTML={highlightCode(code.value)}
-              />
-            </div>
+            <textarea
+              class="flex-1 min-h-[500px] p-4 bg-bg-lighter border border-t-0 border-border rounded-b-zen text-text font-mono text-sm resize-none focus:outline-none focus:border-primary"
+              value={code.value}
+              onInput={(e) => {
+                code.value = (e.target as HTMLTextAreaElement).value;
+              }}
+              spellcheck={false}
+            />
           </div>
 
           <div class="flex flex-col">
