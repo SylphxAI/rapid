@@ -16,10 +16,10 @@ type ReactiveValue = AnyZen;
 
 /**
  * Check if value is a reactive signal/computed from @zen/signal
- * Zen signals have _value and _observers properties
+ * Zen signals have _value and _kind properties
  */
 function isReactive(value: any): value is ReactiveValue {
-  return value !== null && typeof value === 'object' && '_value' in value && '_observers' in value;
+  return value !== null && typeof value === 'object' && '_value' in value && '_kind' in value;
 }
 
 /**
