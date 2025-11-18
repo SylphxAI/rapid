@@ -1,7 +1,7 @@
 {
-  "name": "@sylphx/zen-router-preact",
+  "name": "@zen/zen-router-preact",
   "version": "5.0.35",
-  "description": "Preact integration for @sylphx/zen-router",
+  "description": "Preact integration for @zen/zen-router",
   "author": "Sylphx <hi@sylphx.com>",
   "license": "MIT",
   "repository": {
@@ -31,8 +31,8 @@
     "clean": "bun rimraf dist .turbo"
   },
   "dependencies": {
-    "@sylphx/zen": "workspace:*",
-    "@sylphx/zen-router": "workspace:*"
+    "@zen/zen": "workspace:*",
+    "@zen/zen-router": "workspace:*"
   },
   "peerDependencies": {
     "preact": "^10.0.0"

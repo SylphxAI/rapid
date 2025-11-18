@@ -4,12 +4,20 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*.bench.ts',
+        'src/test.ts', // Manual test file
+        'src/index.ts', // Just exports
+      ],
+    },
   },
   resolve: {
     alias: {
       '@zen/zen': path.resolve(__dirname, '../zen/src/index.ts'),
-      '@zen/zen-patterns': path.resolve(__dirname, '../zen-patterns/src/index.ts'),
-      '@zen/zen-router': path.resolve(__dirname, '../zen-router/src/index.ts'),
     },
   },
 });

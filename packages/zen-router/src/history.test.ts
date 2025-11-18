@@ -1,4 +1,4 @@
-import { map, setKey } from '@sylphx/zen-patterns';
+import { map, setKey } from '@zen/zen-patterns';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleLinkClick,
@@ -12,10 +12,10 @@ import * as matcher from './matcher'; // To mock matchRoutes
 import * as routes from './routes'; // To mock getRoutes
 import * as utils from './utils'; // To mock parseQuery
 
-import * as core from '@sylphx/zen'; // Import actual core functions
+import * as core from '@zen/zen'; // Import actual core functions
 
 // Define mockRouterStore *before* vi.mock uses it
-// Note: map() moved to @sylphx/zen-patterns
+// Note: map() moved to @zen/zen-patterns
 
 // No longer mocking './index' directly
 

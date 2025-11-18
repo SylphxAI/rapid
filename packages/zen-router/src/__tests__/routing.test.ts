@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { $router } from '../index';
 import { matchRoutes } from '../matcher'; // Assuming matchRoutes is exported or made available for testing
 import { defineRoutes, getRoutes } from '../routes'; // Assuming getRoutes is exported or made available for testing
-import { setKey } from '@sylphx/zen-patterns';
+import { setKey } from '@zen/zen-patterns';
 
 // Mock routes for testing
 const testRoutes = [

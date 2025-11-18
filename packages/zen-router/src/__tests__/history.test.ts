@@ -1,4 +1,4 @@
-import { setKey } from '@sylphx/zen-patterns';
+import { setKey } from '@zen/zen-patterns';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleLinkClick,

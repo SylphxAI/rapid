@@ -1,10 +1,10 @@
-// Entry point for @sylphx/zen-router
+// Entry point for @zen/zen-router
 
 // TODO: Implement router logic inspired by @nanostores/router
 // Goals: Tiny size, high performance, zen/FP principles
 
-import { map } from '@sylphx/zen-patterns';
-import type { MapStore } from '@sylphx/zen-patterns';
+import { map } from '@zen/zen-patterns';
+import type { MapStore } from '@zen/zen-patterns';
 
 /** Route type placeholder (extend as needed) */
 export type Route = string;

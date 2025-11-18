@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 // TODO: Add tests for useRouter hook.
-// Mocking dependencies (@sylphx/zen or @sylphx/zen-router)
+// Mocking dependencies (@zen/zen or @zen/zen-router)
 // proved problematic in the Vitest/jsdom/Preact environment.
 // Skipping tests for now.
 

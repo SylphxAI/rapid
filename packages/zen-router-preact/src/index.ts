@@ -1,5 +1,5 @@
-import { subscribe } from '@sylphx/zen';
-import { $router, type RouterState } from '@sylphx/zen-router';
+import { subscribe } from '@zen/zen';
+import { $router, type RouterState } from '@zen/zen-router';
 import { useEffect, useState } from 'preact/hooks'; // Import hooks from preact
 
 /**
@@ -35,4 +35,4 @@ export function useRouter(): RouterState {
 }
 
 // Re-export core types for convenience
-export type { RouterState, Params, Search } from '@sylphx/zen-router';
+export type { RouterState, Params, Search } from '@zen/zen-router';

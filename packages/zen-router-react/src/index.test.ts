@@ -1,14 +1,14 @@
 // Import subscribe normally - they will be mocked by vi.mock below
-import { type MapZen, type Unsubscribe, map, subscribe } from '@sylphx/zen';
-import { $router, type RouterState } from '@sylphx/zen-router'; // Import real $router
-import { setKey } from '@sylphx/zen-patterns';
+import { type MapZen, type Unsubscribe, map, subscribe } from '@zen/zen';
+import { $router, type RouterState } from '@zen/zen-router'; // Import real $router
+import { setKey } from '@zen/zen-patterns';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRouter } from './index'; // Import the hook
 
 // Mock the core subscribe function
-vi.mock('@sylphx/zen', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@sylphx/zen')>();
+vi.mock('@zen/zen', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@zen/zen')>();
   return {
     ...actual,
     subscribe: vi.fn(),
@@ -16,8 +16,8 @@ vi.mock('@sylphx/zen', async (importOriginal) => {
 });
 
 // Mock the router store itself (optional, could use real one if preferred)
-// vi.mock('@sylphx/zen-router', async (importOriginal) => {
-//     const actual = await importOriginal<typeof import('@sylphx/zen-router')>();
+// vi.mock('@zen/zen-router', async (importOriginal) => {
+//     const actual = await importOriginal<typeof import('@zen/zen-router')>();
 //     const mockMap = map<RouterState>({ path: '/', search: {}, params: {} });
 //     return {
 //         ...actual,

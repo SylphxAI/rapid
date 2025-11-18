@@ -1,5 +1,5 @@
 {
-  "name": "@sylphx/zen",
+  "name": "@zen/zen",
   "version": "3.49.2",
   "description": "Zen state management library - extreme minimalism, extreme speed. V3.49.2: Fixed critical effect-computed dependency bug, proper micro-batch notification flushing.",
   "type": "module",
