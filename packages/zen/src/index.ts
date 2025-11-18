@@ -8,7 +8,7 @@ export type { Listener, Unsubscribe, AnyZen } from './zen';
 
 // Core Primitives
 export {
-  zen,
+  signal,
   computed,
   batch,
   subscribe,
@@ -17,7 +17,7 @@ export {
   peek,
 } from './zen';
 
-export type { Zen, ReadonlyZen, ComputedZen } from './zen';
+export type { Signal, ReadonlyZen, ComputedZen } from './zen';
 
 // Legacy compatibility exports
 export type { ZenValue } from './types';

@@ -156,14 +156,14 @@ const zenProto = {
   },
 };
 
-export function zen<T>(initialValue: T): Zen<T> {
-  const signal = Object.create(zenProto) as ZenCore<T> & { value: T };
-  signal._kind = 'zen';
-  signal._value = initialValue;
-  return signal;
+export function signal<T>(initialValue: T): Signal<T> {
+  const sig = Object.create(zenProto) as ZenCore<T> & { value: T };
+  sig._kind = 'zen';
+  sig._value = initialValue;
+  return sig;
 }
 
-export type Zen<T> = ReturnType<typeof zen<T>>;
+export type Signal<T> = ReturnType<typeof signal<T>>;
 
 // ============================================================================
 // SUBSCRIBE
@@ -534,6 +534,6 @@ export function untrack<T>(fn: () => T): T {
 /**
  * Read a signal's value without tracking it as a dependency
  */
-export function peek<T>(signal: Zen<T> | ComputedCore<T>): T {
-  return untrack(() => (signal as any).value);
+export function peek<T>(sig: Signal<T> | ComputedCore<T>): T {
+  return untrack(() => (sig as any).value);
 }
