@@ -12,20 +12,20 @@ export function MigrationPaths() {
 
   const migrationSteps = {
     react: {
-      title: '從 React 無縫遷移',
-      subtitle: 'React 開發者會感覺非常熟悉',
+      title: 'Seamless Migration from React',
+      subtitle: 'React developers will feel right at home',
       steps: [
         {
           step: 1,
-          title: '先用 Signal (唔改現有代碼)',
-          code: `// 喺現有 React 項目加入 @zen/signal
+          title: 'Start with Signal (No Code Changes)',
+          code: `// Add @zen/signal to existing React project
 import { useZen } from '@zen/signal-react'
 import { signal } from '@zen/signal'
 
-// 創建全局 signal
+// Create global signal
 const count = signal(0)
 
-// 喺任何 React 組件使用
+// Use in any React component
 function Counter() {
   const value = useZen(count)
   return (
@@ -34,26 +34,26 @@ function Counter() {
     </button>
   )
 }`,
-          benefit: '✅ 零重寫，立即享受 1.75KB Signal',
+          benefit: '✅ Zero rewrites, instant 1.75KB Signal',
         },
         {
           step: 2,
-          title: '漸進替換組件 (一個個來)',
-          code: `// React 同 Zen 組件可以共存
+          title: 'Gradually Replace Components',
+          code: `// React and Zen components coexist
 <ReactApp>
   <ReactHeader />
-  <ZenCounter />  {/* 新組件用 Zen */}
+  <ZenCounter />  {/* New components use Zen */}
   <ReactFooter />
 </ReactApp>
 
-// 慢慢將複雜組件遷移到 Zen
-// 享受更小 bundle 同更快性能`,
-          benefit: '✅ 逐步遷移，無風險',
+// Slowly migrate complex components to Zen
+// Enjoy smaller bundles and faster performance`,
+          benefit: '✅ Incremental migration, zero risk',
         },
         {
           step: 3,
-          title: '完全遷移 (可選)',
-          code: `// 當你準備好，全面使用 Zen
+          title: 'Full Migration (Optional)',
+          code: `// When ready, go all-in with Zen
 import { render, signal } from '@zen/zen'
 
 function App() {
@@ -70,32 +70,32 @@ function App() {
 }
 
 render(() => <App />, document.getElementById('app'))`,
-          benefit: '✅ Bundle 從 42KB → <5KB',
+          benefit: '✅ Bundle size: 42KB → <5KB',
         },
       ],
     },
     vue: {
-      title: '從 Vue 無縫遷移',
-      subtitle: 'Vue 3 Composition API 用戶會覺得係咁熟悉',
+      title: 'Seamless Migration from Vue',
+      subtitle: 'Vue 3 Composition API users will feel instantly familiar',
       steps: [
         {
           step: 1,
-          title: 'API 幾乎一樣',
+          title: 'Nearly Identical API',
           code: `// Vue 3 Composition API
 import { ref, computed } from 'vue'
 const count = ref(0)
 const doubled = computed(() => count.value * 2)
 
-// Zen Signal - 一模一樣！
+// Zen Signal - Exactly the same!
 import { signal, computed } from '@zen/signal'
 const count = signal(0)
 const doubled = computed(() => count.value * 2)`,
-          benefit: '✅ 零學習成本',
+          benefit: '✅ Zero learning curve',
         },
         {
           step: 2,
-          title: '喺 Vue 入面用 Zen Signal',
-          code: `// 可以喺 Vue 組件使用 Zen Signal
+          title: 'Use Zen Signal in Vue',
+          code: `// Use Zen Signal in Vue components
 import { useZen } from '@zen/signal-vue'
 import { signal } from '@zen/signal'
 
@@ -107,12 +107,12 @@ export default {
     return { state }
   }
 }`,
-          benefit: '✅ 更好的全局狀態管理',
+          benefit: '✅ Better global state management',
         },
         {
           step: 3,
-          title: '遷移到 Zen 框架',
-          code: `// Zen 的寫法同 Vue 3 好似
+          title: 'Migrate to Zen Framework',
+          code: `// Zen syntax similar to Vue 3
 import { signal, computed } from '@zen/zen'
 
 function Counter() {
@@ -132,66 +132,66 @@ function Counter() {
       ],
     },
     solid: {
-      title: '從 Solid 遷移',
-      subtitle: 'Solid 用戶會發現 Zen 更簡單',
+      title: 'Migration from Solid',
+      subtitle: 'Solid users will find Zen even simpler',
       steps: [
         {
           step: 1,
-          title: '統一的 .value API',
-          code: `// Solid - 要記幾時用 ()
+          title: 'Unified .value API',
+          code: `// Solid - Remember when to use ()
 const [count, setCount] = createSignal(0)
 const doubled = createMemo(() => count() * 2)
-console.log(count())  // 讀取用 ()
-setCount(1)           // 寫入用 setter
+console.log(count())  // Read with ()
+setCount(1)           // Write with setter
 
-// Zen - 統一用 .value
+// Zen - Unified .value
 const count = signal(0)
 const doubled = computed(() => count.value * 2)
-console.log(count.value)  // 讀取用 .value
-count.value = 1           // 寫入用 .value`,
-          benefit: '✅ 更一致的 API',
+console.log(count.value)  // Read with .value
+count.value = 1           // Write with .value`,
+          benefit: '✅ More consistent API',
         },
         {
           step: 2,
-          title: '更小的 Bundle',
-          code: `// Solid: 7KB (不錯，但 Zen 更小)
+          title: 'Smaller Bundle',
+          code: `// Solid: 7KB (good, but Zen is smaller)
 // Zen: <5KB Signal + Framework
 
-// 性能相似，但 Zen 更輕量
-// 而且唔需要編譯器設置`,
+// Similar performance, but lighter weight
+// And no compiler setup needed`,
           benefit: '✅ 7KB → <5KB',
         },
       ],
     },
     svelte: {
-      title: '從 Svelte 遷移',
-      subtitle: 'Svelte 用戶會喜歡唔需要編譯器',
+      title: 'Migration from Svelte',
+      subtitle: 'Svelte users will love not needing a compiler',
       steps: [
         {
           step: 1,
-          title: 'Svelte 要編譯器',
-          code: `// Svelte - 需要特殊編譯器
+          title: 'Svelte Requires Compiler',
+          code: `// Svelte - Needs special compiler
 let count = 0
-$: doubled = count * 2  // 特殊語法
+$: doubled = count * 2  // Special syntax
 
-// Zen - 純 JavaScript/TypeScript
+// Zen - Pure JavaScript/TypeScript
 const count = signal(0)
 const doubled = computed(() => count.value * 2)`,
-          benefit: '✅ 標準 JS，任何工具都支持',
+          benefit: '✅ Standard JS, works with any tool',
         },
         {
           step: 2,
-          title: '可以喺 Svelte 用 Zen Signal',
-          code: `// 用 Zen Signal 做全局狀態管理
+          title: 'Use Zen Signal in Svelte',
+          code: `// Use Zen Signal for global state management
 import { toStore } from '@zen/signal-svelte'
 import { signal } from '@zen/signal'
 
 const count = signal(0)
 const countStore = toStore(count)
 
-// 喺 Svelte 組件使用
+// Use in Svelte components
 $: value = $countStore`,
-          benefit: '✅ 更好的全局狀態',
+          benefit: '✅ Better global state',
         },
       ],
     },
@@ -201,9 +201,9 @@ $: value = $countStore`,
     <section class="py-16 px-0 bg-bg">
       <div class="max-w-screen-xl mx-auto px-6">
         <div class="text-center mb-12">
-          <h2 class="text-4xl md:text-5xl font-bold text-text mb-4">無縫遷移</h2>
+          <h2 class="text-4xl md:text-5xl font-bold text-text mb-4">Seamless Migration</h2>
           <p class="text-xl text-text-muted max-w-2xl mx-auto">
-            從任何框架遷移到 Zen，或者單獨使用 Zen Signal
+            Migrate to Zen from any framework, or use Zen Signal standalone
           </p>
         </div>
 
@@ -235,9 +235,7 @@ $: value = $countStore`,
             <h3 class="text-3xl font-bold text-text mb-2">
               {migrationSteps[activeTab.value]?.title}
             </h3>
-            <p class="text-lg text-text-muted">
-              {migrationSteps[activeTab.value]?.subtitle}
-            </p>
+            <p class="text-lg text-text-muted">{migrationSteps[activeTab.value]?.subtitle}</p>
           </div>
 
           <div class="space-y-8">
@@ -272,7 +270,7 @@ $: value = $countStore`,
             href="#/docs/migration"
             class="inline-block px-8 py-4 bg-primary hover:bg-primary-dark text-white font-semibold rounded-zen shadow-zen transition-all hover:scale-105"
           >
-            查看完整遷移指南 →
+            View Full Migration Guide →
           </a>
         </div>
       </div>

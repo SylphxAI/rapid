@@ -5,13 +5,13 @@ export function StandalonePackages() {
     {
       name: '@zen/signal',
       size: '1.75 KB',
-      description: '極致輕量的響應式原語',
+      description: 'Ultra-lightweight reactive primitives',
       features: [
-        '喺任何框架使用 (React, Vue, Svelte, Solid)',
-        'Vanilla JS 項目都可以用',
-        '150M+ 操作/秒',
-        '自動依賴追蹤',
-        '零依賴',
+        'Use in any framework (React, Vue, Svelte, Solid)',
+        'Works in vanilla JS projects',
+        '150M+ operations/second',
+        'Automatic dependency tracking',
+        'Zero dependencies',
       ],
       integrations: [
         { name: 'React', pkg: '@zen/signal-react', icon: '⚛️' },
@@ -35,13 +35,13 @@ count.value++ // Logs: "Count: 1"`,
     {
       name: '@zen/router',
       size: '<3 KB',
-      description: '輕量的路由解決方案',
+      description: 'Lightweight routing solution',
       features: [
-        '框架無關，可用於任何項目',
-        '支持動態路由參數',
-        'Hash 或 History 模式',
-        'TypeScript 類型安全',
-        '簡單易用',
+        'Framework-agnostic, works in any project',
+        'Supports dynamic route parameters',
+        'Hash or History mode',
+        'TypeScript type-safe',
+        'Simple and easy to use',
       ],
       integrations: [
         { name: 'Zen', pkg: '@zen/zen', icon: '⚡' },
@@ -49,7 +49,7 @@ count.value++ // Logs: "Count: 1"`,
         { name: 'Vue', pkg: 'vue-router', icon: '💚' },
         { name: 'Vanilla', pkg: '@zen/router', icon: '📦' },
       ],
-      example: `// 可用於任何項目
+      example: `// Works in any project
 import { createRouter } from '@zen/router'
 
 const router = createRouter({
@@ -64,16 +64,16 @@ router.navigate('/users/123')`,
     {
       name: '@zen/signal-patterns',
       size: '<2 KB',
-      description: '常用狀態管理模式',
+      description: 'Common state management patterns',
       features: [
-        'Store (類似 Redux/Zustand)',
-        'Async Signal (處理異步狀態)',
-        'Computed Map (批量計算)',
-        'Signal Array/Map (集合響應式)',
-        '即用模式庫',
+        'Store (like Redux/Zustand)',
+        'Async Signal (handle async state)',
+        'Computed Map (batch computations)',
+        'Signal Array/Map (reactive collections)',
+        'Ready-to-use pattern library',
       ],
       integrations: [],
-      example: `// 創建 Store
+      example: `// Create a Store
 import { createStore } from '@zen/signal-patterns'
 
 const useStore = createStore({
@@ -90,32 +90,32 @@ const useStore = createStore({
   }
 })
 
-// 任何地方使用
+// Use anywhere
 const store = useStore()
 store.increment()`,
     },
     {
       name: '@zen/signal-persistent',
       size: '<1 KB',
-      description: '持久化 Signal',
+      description: 'Persistent signals',
       features: [
-        '自動同步到 localStorage',
-        '支持 sessionStorage',
-        '可自定義存儲後端',
-        '類型安全的序列化',
-        '跨 Tab 同步',
+        'Auto-sync to localStorage',
+        'Supports sessionStorage',
+        'Customizable storage backend',
+        'Type-safe serialization',
+        'Cross-tab synchronization',
       ],
       integrations: [],
-      example: `// 自動持久化
+      example: `// Auto-persistence
 import { persistentSignal } from '@zen/signal-persistent'
 
 const theme = persistentSignal('theme', 'dark')
 const settings = persistentSignal('settings', {
-  language: 'zh-HK',
+  language: 'en',
   notifications: true
 })
 
-// 自動保存到 localStorage
+// Auto-saves to localStorage
 theme.value = 'light'
 settings.value.language = 'en'`,
     },
@@ -125,12 +125,12 @@ settings.value.language = 'en'`,
     <section class="py-16 px-0 bg-bg-light">
       <div class="max-w-screen-xl mx-auto px-6">
         <div class="text-center mb-12">
-          <h2 class="text-4xl md:text-5xl font-bold text-text mb-4">獨立套件</h2>
+          <h2 class="text-4xl md:text-5xl font-bold text-text mb-4">Standalone Packages</h2>
           <p class="text-xl text-text-muted max-w-3xl mx-auto">
-            唔一定要用成個框架，可以單獨使用任何套件
+            You don't need to use the entire framework, use any package independently
             <br />
             <span class="text-primary font-medium">
-              喺 React/Vue/Svelte/Solid 或者任何項目都可以用
+              Works in React/Vue/Svelte/Solid or any project
             </span>
           </p>
         </div>
@@ -154,7 +154,7 @@ settings.value.language = 'en'`,
                   {/* Framework integrations */}
                   {pkg.integrations.length > 0 && (
                     <div class="flex flex-wrap gap-2">
-                      <span class="text-sm text-text-muted mr-2">可用於:</span>
+                      <span class="text-sm text-text-muted mr-2">Works with:</span>
                       <For each={pkg.integrations}>
                         {(integration) => (
                           <span class="px-3 py-1 bg-bg border border-border rounded-full text-sm text-text">
@@ -170,7 +170,7 @@ settings.value.language = 'en'`,
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
                   {/* Features */}
                   <div class="p-8 border-b lg:border-b-0 lg:border-r border-border">
-                    <h4 class="text-lg font-semibold text-text mb-4">特點</h4>
+                    <h4 class="text-lg font-semibold text-text mb-4">Features</h4>
                     <ul class="space-y-3">
                       <For each={pkg.features}>
                         {(feature) => (
@@ -191,7 +191,7 @@ settings.value.language = 'en'`,
 
                   {/* Example */}
                   <div class="p-8 bg-bg-lighter">
-                    <h4 class="text-lg font-semibold text-text mb-4">使用示例</h4>
+                    <h4 class="text-lg font-semibold text-text mb-4">Usage Example</h4>
                     <pre class="text-sm text-text-muted font-mono overflow-x-auto">
                       {pkg.example}
                     </pre>
@@ -204,14 +204,12 @@ settings.value.language = 'en'`,
 
         {/* CTA */}
         <div class="mt-12 text-center">
-          <p class="text-lg text-text-muted mb-6">
-            所有套件都可以獨立使用，唔需要遷移整個項目
-          </p>
+          <p class="text-lg text-text-muted mb-6">All packages can be used independently, no need to migrate your entire project</p>
           <a
             href="#/docs/packages"
             class="inline-block px-8 py-4 bg-primary hover:bg-primary-dark text-white font-semibold rounded-zen shadow-zen transition-all hover:scale-105"
           >
-            查看完整套件文檔 →
+            View Full Package Documentation →
           </a>
         </div>
       </div>

@@ -69,9 +69,7 @@ export function NewHero() {
               <div class="bg-bg-lighter border-b border-border px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="text-text font-medium">React</span>
-                  <span class="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded">
-                    42 KB
-                  </span>
+                  <span class="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded">42 KB</span>
                 </div>
                 <span class="text-text-muted text-sm">Re-renders entire component</span>
               </div>

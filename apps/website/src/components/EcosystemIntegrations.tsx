@@ -4,10 +4,10 @@ export function EcosystemIntegrations() {
   const activeCategory = signal('css');
 
   const categories = [
-    { id: 'css', name: 'CSS 框架', icon: '🎨' },
-    { id: 'icons', name: '圖標庫', icon: '🎭' },
-    { id: 'ui', name: 'UI 組件', icon: '🧩' },
-    { id: 'tools', name: '開發工具', icon: '🛠️' },
+    { id: 'css', name: 'CSS Frameworks', icon: '🎨' },
+    { id: 'icons', name: 'Icon Libraries', icon: '🎭' },
+    { id: 'ui', name: 'UI Components', icon: '🧩' },
+    { id: 'tools', name: 'Dev Tools', icon: '🛠️' },
   ];
 
   const integrations = {
@@ -15,7 +15,7 @@ export function EcosystemIntegrations() {
       {
         name: 'Tailwind CSS',
         logo: '🌊',
-        description: '最流行的 Utility-first CSS 框架',
+        description: 'Most popular utility-first CSS framework',
         setup: `// tailwind.config.js
 export default {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
@@ -24,7 +24,7 @@ export default {
   }
 }
 
-// 直接使用
+// Use directly
 function Button() {
   return (
     <button class="px-4 py-2 bg-blue-500 text-white rounded">
@@ -32,12 +32,12 @@ function Button() {
     </button>
   )
 }`,
-        features: ['開箱即用', '完整支持', 'JIT 模式', '自定義主題'],
+        features: ['Works out of the box', 'Full support', 'JIT mode', 'Custom themes'],
       },
       {
         name: 'Panda CSS',
         logo: '🐼',
-        description: '零運行時的 CSS-in-JS',
+        description: 'Zero-runtime CSS-in-JS',
         setup: `// panda.config.ts
 import { defineConfig } from '@pandacss/dev'
 
@@ -46,7 +46,7 @@ export default defineConfig({
   outdir: 'styled-system'
 })
 
-// 使用
+// Usage
 import { css } from '../styled-system/css'
 
 function Button() {
@@ -62,20 +62,20 @@ function Button() {
     </button>
   )
 }`,
-        features: ['零運行時', '類型安全', '完美整合', '設計令牌'],
+        features: ['Zero runtime', 'Type-safe', 'Perfect integration', 'Design tokens'],
       },
       {
         name: 'UnoCSS',
         logo: '⚡',
-        description: '即時按需的原子化 CSS 引擎',
+        description: 'Instant on-demand atomic CSS engine',
         setup: `// uno.config.ts
 import { defineConfig } from 'unocss'
 
 export default defineConfig({
-  // 預設配置
+  // Preset configuration
 })
 
-// 直接使用
+// Use directly
 function Card() {
   return (
     <div class="p-4 bg-white rounded-lg shadow-md">
@@ -83,18 +83,18 @@ function Card() {
     </div>
   )
 }`,
-        features: ['極快速度', '靈活配置', '預設豐富', '插件生態'],
+        features: ['Blazing fast', 'Flexible config', 'Rich presets', 'Plugin ecosystem'],
       },
     ],
     icons: [
       {
         name: 'Iconify',
         logo: '🎯',
-        description: '200,000+ 圖標，統一訪問',
-        setup: `// 安裝
+        description: '200,000+ icons, unified access',
+        setup: `// Install
 npm install @iconify/react
 
-// 使用
+// Usage
 import { Icon } from '@iconify/react'
 
 function Header() {
@@ -106,16 +106,16 @@ function Header() {
     </div>
   )
 }`,
-        features: ['20萬+ 圖標', '按需加載', 'SVG 優化', '離線支持'],
+        features: ['200k+ icons', 'On-demand loading', 'SVG optimized', 'Offline support'],
       },
       {
         name: 'Lucide',
         logo: '🌟',
-        description: '美觀的 SVG 圖標庫',
-        setup: `// 安裝
+        description: 'Beautiful SVG icon library',
+        setup: `// Install
 npm install lucide
 
-// 使用
+// Usage
 import { Home, User, Heart } from 'lucide'
 
 function Nav() {
@@ -127,16 +127,16 @@ function Nav() {
     </nav>
   )
 }`,
-        features: ['設計精美', '體積小巧', '易於定制', 'Tree-shakable'],
+        features: ['Beautifully designed', 'Small size', 'Easy to customize', 'Tree-shakable'],
       },
       {
         name: 'Phosphor Icons',
         logo: '💎',
-        description: '靈活的圖標家族',
-        setup: `// 安裝
+        description: 'Flexible icon family',
+        setup: `// Install
 npm install phosphor-icons
 
-// 使用
+// Usage
 import { House, User, Heart } from 'phosphor-icons'
 
 function Icons() {
@@ -148,14 +148,14 @@ function Icons() {
     </div>
   )
 }`,
-        features: ['多種風格', '6種粗細', '完整集合', 'React 友好'],
+        features: ['Multiple styles', '6 weights', 'Complete set', 'React friendly'],
       },
     ],
     ui: [
       {
-        name: '自建組件庫',
+        name: 'Build Your Own',
         logo: '🎨',
-        description: '基於 Zen 構建自己的 UI 組件',
+        description: 'Build your own UI components with Zen',
         setup: `// Button.tsx
 import { signal } from '@zen/zen'
 
@@ -175,13 +175,13 @@ export function Button({ variant = 'primary', children, onClick }) {
     </button>
   )
 }`,
-        features: ['完全控制', '輕量靈活', '無依賴', '易於維護'],
+        features: ['Full control', 'Lightweight & flexible', 'No dependencies', 'Easy to maintain'],
       },
       {
         name: 'Headless UI',
         logo: '🎭',
-        description: '無樣式的可訪問 UI 組件',
-        setup: `// 可以整合 Headless UI 概念
+        description: 'Unstyled accessible UI components',
+        setup: `// Integrate Headless UI concepts
 import { signal, Show } from '@zen/zen'
 
 export function Dropdown({ items }) {
@@ -202,14 +202,14 @@ export function Dropdown({ items }) {
     </div>
   )
 }`,
-        features: ['可訪問性', '鍵盤導航', '自定義樣式', '完整控制'],
+        features: ['Accessibility', 'Keyboard navigation', 'Custom styling', 'Full control'],
       },
     ],
     tools: [
       {
         name: 'Vite',
         logo: '⚡',
-        description: '極速開發服務器',
+        description: 'Lightning-fast dev server',
         setup: `// vite.config.ts
 import { defineConfig } from 'vite'
 
@@ -219,12 +219,12 @@ export default defineConfig({
     jsxImportSource: '@zen/zen'
   }
 })`,
-        features: ['即時 HMR', '極快構建', '原生 ESM', '插件豐富'],
+        features: ['Instant HMR', 'Lightning fast builds', 'Native ESM', 'Rich plugin ecosystem'],
       },
       {
         name: 'Biome',
         logo: '🌿',
-        description: '一體化工具鏈',
+        description: 'All-in-one toolchain',
         setup: `// biome.json
 {
   "formatter": {
@@ -235,14 +235,14 @@ export default defineConfig({
   }
 }
 
-// 單一命令格式化和檢查
+// Single command to format and lint
 biome check --apply .`,
-        features: ['格式化', '代碼檢查', '極快速度', '零配置'],
+        features: ['Formatting', 'Linting', 'Blazing fast', 'Zero config'],
       },
       {
         name: 'TypeScript',
         logo: '💙',
-        description: '完整類型支持',
+        description: 'Full type support',
         setup: `// tsconfig.json
 {
   "compilerOptions": {
@@ -253,10 +253,10 @@ biome check --apply .`,
   }
 }
 
-// 完整類型推斷
+// Full type inference
 const count = signal(0)  // Signal<number>
 const doubled = computed(() => count.value * 2)  // Computed<number>`,
-        features: ['類型安全', '智能提示', '重構工具', '錯誤檢查'],
+        features: ['Type safety', 'IntelliSense', 'Refactoring tools', 'Error checking'],
       },
     ],
   };
@@ -265,10 +265,8 @@ const doubled = computed(() => count.value * 2)  // Computed<number>`,
     <section class="py-16 px-0 bg-bg">
       <div class="max-w-screen-xl mx-auto px-6">
         <div class="text-center mb-12">
-          <h2 class="text-4xl md:text-5xl font-bold text-text mb-4">生態系統整合</h2>
-          <p class="text-xl text-text-muted max-w-3xl mx-auto">
-            與主流工具完美配合，開箱即用
-          </p>
+          <h2 class="text-4xl md:text-5xl font-bold text-text mb-4">Ecosystem Integrations</h2>
+          <p class="text-xl text-text-muted max-w-3xl mx-auto">Works perfectly with popular tools, ready out of the box</p>
         </div>
 
         {/* Category tabs */}
@@ -329,11 +327,9 @@ const doubled = computed(() => count.value * 2)  // Computed<number>`,
         {/* Bottom message */}
         <div class="mt-12 text-center bg-bg-light border border-border rounded-zen p-8">
           <p class="text-lg text-text mb-2">
-            <span class="font-semibold text-primary">完全兼容現有生態系統</span>
+            <span class="font-semibold text-primary">Fully compatible with existing ecosystem</span>
           </p>
-          <p class="text-text-muted">
-            唔需要特殊配置，任何 JavaScript/TypeScript 工具都可以用
-          </p>
+          <p class="text-text-muted">No special configuration needed, works with any JavaScript/TypeScript tool</p>
         </div>
       </div>
     </section>
