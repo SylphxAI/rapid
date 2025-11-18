@@ -7,6 +7,7 @@
 
 import { effect } from '@zen/signal';
 import type { AnyZen } from '@zen/signal';
+import { attachNodeToOwner, createOwner, setOwner } from './lifecycle.js';
 
 export { Fragment } from './core/fragment.js';
 
@@ -30,7 +31,21 @@ export function jsx(type: string | Function, props: Props | null): Node {
 
   // Component
   if (typeof type === 'function') {
-    return type({ ...restProps, children });
+    // Create owner for component lifecycle
+    const owner = createOwner();
+    setOwner(owner);
+
+    try {
+      const node = type({ ...restProps, children });
+
+      // Attach node to owner for cleanup tracking
+      attachNodeToOwner(node, owner);
+
+      return node;
+    } finally {
+      // Clear owner context
+      setOwner(null);
+    }
   }
 
   // Element

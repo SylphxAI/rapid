@@ -3,12 +3,26 @@
  *
  * Even though components render once, lifecycle hooks are essential
  * for side effects that depend on DOM insertion.
+ *
+ * Owner system provides component cleanup tracking similar to SolidJS.
  */
 
 type CleanupFunction = () => void;
 
-// Track cleanup functions for the current component
-let currentCleanups: CleanupFunction[] | null = null;
+/**
+ * Owner represents a component's lifecycle context
+ * Tracks cleanups to run when component is disposed
+ */
+type Owner = {
+  cleanups: CleanupFunction[];
+  disposed: boolean;
+};
+
+// Current owner context (set during component rendering)
+let currentOwner: Owner | null = null;
+
+// Map DOM nodes to their owners for cleanup tracking
+const nodeOwners = new WeakMap<Node, Owner>();
 
 /**
  * Run callback after component is mounted (inserted into DOM)
@@ -42,11 +56,9 @@ export function onMount(callback: () => undefined | CleanupFunction): void {
   queueMicrotask(() => {
     const cleanup = callback();
 
-    // Track cleanup function
-    if (typeof cleanup === 'function') {
-      if (currentCleanups) {
-        currentCleanups.push(cleanup);
-      }
+    // Track cleanup function in current owner
+    if (typeof cleanup === 'function' && currentOwner && !currentOwner.disposed) {
+      currentOwner.cleanups.push(cleanup);
     }
   });
 }
@@ -71,8 +83,8 @@ export function onMount(callback: () => undefined | CleanupFunction): void {
  * ```
  */
 export function onCleanup(cleanup: CleanupFunction): void {
-  if (currentCleanups) {
-    currentCleanups.push(cleanup);
+  if (currentOwner && !currentOwner.disposed) {
+    currentOwner.cleanups.push(cleanup);
   }
 }
 
@@ -114,12 +126,80 @@ export function createEffect(effectFn: () => undefined | CleanupFunction): void 
   });
 }
 
-// Internal: Set cleanup tracking context
-export function _setCleanupContext(cleanups: CleanupFunction[] | null): void {
-  currentCleanups = cleanups;
+// ============================================================================
+// OWNER SYSTEM (Component Lifecycle Management)
+// ============================================================================
+
+/**
+ * Create a new owner context for a component
+ * Owner tracks all cleanups registered during component rendering
+ */
+export function createOwner(): Owner {
+  return {
+    cleanups: [],
+    disposed: false,
+  };
 }
 
-// Internal: Get current cleanups
-export function _getCleanups(): CleanupFunction[] | null {
-  return currentCleanups;
+/**
+ * Set the current owner context
+ * Called by jsx-runtime when rendering components
+ */
+export function setOwner(owner: Owner | null): void {
+  currentOwner = owner;
+}
+
+/**
+ * Get the current owner context
+ */
+export function getOwner(): Owner | null {
+  return currentOwner;
+}
+
+/**
+ * Dispose an owner, running all registered cleanups
+ * Called when a component is removed from the DOM
+ */
+export function disposeOwner(owner: Owner): void {
+  if (owner.disposed) return;
+
+  owner.disposed = true;
+
+  // Run all cleanups in reverse order (LIFO)
+  for (let i = owner.cleanups.length - 1; i >= 0; i--) {
+    try {
+      owner.cleanups[i]();
+    } catch (error) {
+      console.error('Error in cleanup function:', error);
+    }
+  }
+
+  owner.cleanups = [];
+}
+
+/**
+ * Attach a DOM node to an owner for cleanup tracking
+ * Called by jsx-runtime after component renders
+ */
+export function attachNodeToOwner(node: Node, owner: Owner): void {
+  nodeOwners.set(node, owner);
+}
+
+/**
+ * Get the owner for a DOM node
+ */
+export function getNodeOwner(node: Node): Owner | undefined {
+  return nodeOwners.get(node);
+}
+
+/**
+ * Dispose a DOM node and its owner
+ * Called when removing nodes from DOM
+ */
+export function disposeNode(node: Node): void {
+  const owner = nodeOwners.get(node);
+  if (owner) {
+    disposeOwner(owner);
+    nodeOwners.delete(node);
+  }
 }

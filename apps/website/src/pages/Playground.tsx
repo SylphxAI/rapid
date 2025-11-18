@@ -58,32 +58,24 @@ console.log('🎨 Component created');
 
 const count = signal(0);
 const renderCount = signal(0);
-const isRunning = signal(false);
+
+// Timer at component level (SolidJS style)
+const timer = setInterval(() => {
+  count.value++;
+  console.log(\`⏰ Timer tick: count = \${count.value}\`);
+}, 1000);
+
+// Register cleanup - will run when component is removed
+onCleanup(() => {
+  console.log('🧹 Cleaning up timer');
+  clearInterval(timer);
+});
 
 // Track effect runs (not component re-renders)
 effect(() => {
   renderCount.value++;
   console.log(\`✨ Effect ran: count = \${count.value}\`);
 });
-
-// Start/stop timer on button click
-function startTimer() {
-  if (isRunning.value) return;
-  isRunning.value = true;
-
-  const timer = setInterval(() => {
-    count.value++;
-    console.log(\`⏰ Timer: count = \${count.value}\`);
-  }, 1000);
-
-  // Note: In real app, component renders once and timer runs forever
-  // Playground auto-run will create new timers, but that's a playground artifact
-}
-
-function stopTimer() {
-  isRunning.value = false;
-  // In real app, would need to track timer ID to clear it
-};
 
 const app = (
   <div style={{
@@ -106,34 +98,6 @@ const app = (
       <p style={{ fontSize: '16px', margin: '8px 0', opacity: 0.7 }}>
         Effect runs: {renderCount}
       </p>
-      <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-        <button
-          onClick={startTimer}
-          style={{
-            padding: '8px 16px',
-            cursor: 'pointer',
-            backgroundColor: 'var(--primary)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px'
-          }}
-        >
-          Start Timer
-        </button>
-        <button
-          onClick={stopTimer}
-          style={{
-            padding: '8px 16px',
-            cursor: 'pointer',
-            backgroundColor: 'var(--bg-lighter)',
-            color: 'var(--text)',
-            border: '1px solid var(--border)',
-            borderRadius: '4px'
-          }}
-        >
-          Stop
-        </button>
-      </div>
     </div>
     <div style={{
       padding: '12px',
@@ -145,8 +109,9 @@ const app = (
       <p style={{ margin: '4px 0' }}>✅ Component created ONCE</p>
       <p style={{ margin: '4px 0' }}>✅ Only text nodes update</p>
       <p style={{ margin: '4px 0' }}>✅ No re-renders, no VDOM diff</p>
+      <p style={{ margin: '4px 0' }}>✅ onCleanup clears timer on re-run</p>
       <p style={{ margin: '4px 0', marginTop: '12px', opacity: 0.7 }}>
-        Click "Start Timer" and watch console 👉
+        Watch console for cleanup logs 👉
       </p>
     </div>
   </div>
@@ -522,6 +487,11 @@ const app = (
       const fn = new Function(...Object.keys(zenContext), wrappedCode);
       const result = fn(...Object.values(zenContext));
       const execEnd = performance.now();
+
+      // Dispose previous render's owner to trigger cleanups
+      if (previewEl.firstChild) {
+        Zen.disposeNode(previewEl.firstChild);
+      }
 
       // Clear preview only on success
       previewEl.innerHTML = '';
