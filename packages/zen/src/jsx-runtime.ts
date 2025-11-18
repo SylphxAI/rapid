@@ -75,15 +75,27 @@ function setAttribute(element: Element, key: string, value: any): void {
 
   // Reactive value (Signal or Computed)
   if (isReactive(value)) {
-    // Special handling for form control values - don't use effect
-    // to avoid interfering with user input
+    // Special handling for form control values
+    // Use effect but only update when DOM value actually differs
+    // This prevents cursor position issues while maintaining reactivity
     if (
       key === 'value' &&
       (element instanceof HTMLInputElement ||
         element instanceof HTMLTextAreaElement ||
         element instanceof HTMLSelectElement)
     ) {
+      // Set initial value
       (element as any)[key] = value.value;
+
+      // Create effect that only updates when value actually changes
+      effect(() => {
+        const newValue = value.value;
+        // Only update if DOM value is different (prevents cursor issues)
+        if ((element as any)[key] !== newValue) {
+          (element as any)[key] = newValue;
+        }
+        return undefined;
+      });
       return;
     }
 

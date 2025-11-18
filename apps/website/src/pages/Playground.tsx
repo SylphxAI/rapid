@@ -1,16 +1,24 @@
 import * as Babel from '@babel/standalone';
+import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { javascript } from '@codemirror/lang-javascript';
+import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { EditorState } from '@codemirror/state';
+import { oneDark } from '@codemirror/theme-one-dark';
+import {
+  EditorView,
+  drawSelection,
+  highlightActiveLine,
+  highlightActiveLineGutter,
+  highlightSpecialChars,
+  keymap,
+  lineNumbers,
+} from '@codemirror/view';
 import * as ZenSignal from '@zen/signal';
 import { effect } from '@zen/signal';
 import { Show, signal } from '@zen/zen';
 import * as Zen from '@zen/zen';
 import { Fragment, jsx } from '@zen/zen/jsx-runtime';
-import { EditorView, keymap, highlightActiveLine, highlightSpecialChars, drawSelection, highlightActiveLineGutter, lineNumbers } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { javascript } from '@codemirror/lang-javascript';
-import { oneDark } from '@codemirror/theme-one-dark';
-import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
-import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 
 export function Playground() {
   const templates = {
@@ -213,7 +221,6 @@ if (preview) {
   const opsPerSecond = signal(0);
 
   let editorView: EditorView | null = null;
-  let selectRef: HTMLSelectElement | null = null;
 
   const changeTemplate = (template: string) => {
     selectedTemplate.value = template;
@@ -258,13 +265,6 @@ if (preview) {
       parent: container,
     });
   };
-
-  // Sync select value (因為 value prop 唔會reactive)
-  effect(() => {
-    if (selectRef) {
-      selectRef.value = selectedTemplate.value;
-    }
-  });
 
   const runCode = () => {
     const startTime = performance.now();
@@ -394,9 +394,7 @@ if (preview) {
               <span class="text-text font-medium">Code Editor</span>
               <select
                 class="px-3 py-1 bg-bg border border-border rounded text-text text-sm focus:outline-none focus:border-primary"
-                ref={(el) => {
-                  selectRef = el as HTMLSelectElement;
-                }}
+                value={selectedTemplate}
                 onChange={(e) => changeTemplate((e.target as HTMLSelectElement).value)}
               >
                 <option value="counter">Counter</option>
