@@ -61,16 +61,6 @@ function flushEffects() {
   if (error) throw error;
 }
 
-function removeObserver(observers: ObserverType[], observer: ObserverType) {
-  const len = observers.length;
-  for (let i = 0; i < len; i++) {
-    if (observers[i] === observer) {
-      if (i < len - 1) observers[i] = observers[len - 1];
-      observers.pop();
-      return;
-    }
-  }
-}
 
 class Computation<T> implements SourceType, ObserverType {
   _sources: SourceType[] | null = null;
@@ -145,7 +135,16 @@ class Computation<T> implements SourceType, ObserverType {
       const len = this._sources.length;
       for (let i = 0; i < len; i++) {
         const obs = this._sources[i]._observers;
-        if (obs) removeObserver(obs, this);
+        if (obs) {
+          const obsLen = obs.length;
+          for (let j = 0; j < obsLen; j++) {
+            if (obs[j] === this) {
+              if (j < obsLen - 1) obs[j] = obs[obsLen - 1];
+              obs.pop();
+              break;
+            }
+          }
+        }
       }
       this._sources = null;
     }
@@ -202,7 +201,16 @@ class Computation<T> implements SourceType, ObserverType {
       const len = this._sources.length;
       for (let i = 0; i < len; i++) {
         const obs = this._sources[i]._observers;
-        if (obs) removeObserver(obs, this);
+        if (obs) {
+          const obsLen = obs.length;
+          for (let j = 0; j < obsLen; j++) {
+            if (obs[j] === this) {
+              if (j < obsLen - 1) obs[j] = obs[obsLen - 1];
+              obs.pop();
+              break;
+            }
+          }
+        }
       }
       this._sources = null;
     }
@@ -251,7 +259,7 @@ class Signal<T> implements SourceType {
     }
   }
 
-  _update(): void {}
+  _update() {}
 }
 
 export interface ZenNode<T> {
