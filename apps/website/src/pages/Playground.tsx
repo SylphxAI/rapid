@@ -37,14 +37,7 @@ const app = (
       <button onClick={() => count.value = 0}>Reset</button>
     </div>
   </div>
-);
-
-// Render to preview
-const preview = document.getElementById('preview');
-if (preview) {
-  preview.innerHTML = '';
-  preview.appendChild(app);
-}`,
+);`,
     todo: `// Todo list example
 const todos = signal([]);
 const input = signal('');
@@ -68,7 +61,7 @@ const app = (
     <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
       <input
         type="text"
-        value={input.value}
+        value={input}
         onInput={(e) => input.value = e.target.value}
         placeholder="Add a todo..."
         style={{ flex: 1, padding: '8px' }}
@@ -90,13 +83,7 @@ const app = (
       ))}
     </div>
   </div>
-);
-
-const preview = document.getElementById('preview');
-if (preview) {
-  preview.innerHTML = '';
-  preview.appendChild(app);
-}`,
+);`,
     form: `// Form with validation
 const name = signal('');
 const email = signal('');
@@ -121,7 +108,7 @@ const app = (
           <label>Name:</label>
           <input
             type="text"
-            value={name.value}
+            value={name}
             onInput={(e) => name.value = e.target.value}
             style={{ display: 'block', width: '100%', padding: '8px', marginTop: '5px' }}
           />
@@ -130,7 +117,7 @@ const app = (
           <label>Email:</label>
           <input
             type="email"
-            value={email.value}
+            value={email}
             onInput={(e) => email.value = e.target.value}
             style={{ display: 'block', width: '100%', padding: '8px', marginTop: '5px' }}
           />
@@ -151,18 +138,12 @@ const app = (
     <Show when={submitted.value}>
       <div style={{ color: 'green', padding: '20px', textAlign: 'center' }}>
         <h3>✓ Form submitted!</h3>
-        <p>Name: {name.value}</p>
-        <p>Email: {email.value}</p>
+        <p>Name: {name}</p>
+        <p>Email: {email}</p>
       </div>
     </Show>
   </div>
-);
-
-const preview = document.getElementById('preview');
-if (preview) {
-  preview.innerHTML = '';
-  preview.appendChild(app);
-}`,
+);`,
     async: `// Async data fetching
 const loading = signal(false);
 const data = signal(null);
@@ -191,7 +172,7 @@ const app = (
 
     <Show when={error.value}>
       <div style={{ color: 'red', marginTop: '20px' }}>
-        Error: {error.value}
+        Error: {error}
       </div>
     </Show>
 
@@ -204,13 +185,7 @@ const app = (
       </div>
     </Show>
   </div>
-);
-
-const preview = document.getElementById('preview');
-if (preview) {
-  preview.innerHTML = '';
-  preview.appendChild(app);
-}`,
+);`,
   };
 
   const code = signal(templates.counter);
@@ -315,11 +290,20 @@ if (preview) {
         console,
       };
 
-      // Execute transpiled code
+      // Execute transpiled code and capture `app` variable
       const execStart = performance.now();
-      const fn = new Function(...Object.keys(zenContext), transformed.code);
-      fn(...Object.values(zenContext));
+      const wrappedCode = `
+        ${transformed.code}
+        return typeof app !== 'undefined' ? app : null;
+      `;
+      const fn = new Function(...Object.keys(zenContext), wrappedCode);
+      const result = fn(...Object.values(zenContext));
       const execEnd = performance.now();
+
+      // Auto-render the app to preview
+      if (result && result instanceof Node) {
+        previewEl.appendChild(result);
+      }
 
       executeTime.value = execEnd - execStart;
       renderTime.value = execEnd - startTime;
@@ -438,25 +422,23 @@ if (preview) {
           <ul class="space-y-2 mb-4 text-text-muted">
             <li class="flex items-start gap-2">
               <span class="text-primary">•</span>
-              Write JSX code using Zen's API
+              Create a variable called <code class="px-1 bg-bg border border-border rounded text-primary">app</code> with your component
             </li>
             <li class="flex items-start gap-2">
               <span class="text-primary">•</span>
-              Click "Run Code" to see your component
+              Click "Run Code" - your component will automatically render
             </li>
             <li class="flex items-start gap-2">
               <span class="text-primary">•</span>
-              Try modifying the example to see live updates
+              Try modifying the code and re-running to see changes
             </li>
             <li class="flex items-start gap-2">
               <span class="text-primary">•</span>
-              All Zen features are available: signal, computed, effect, components
+              All Zen features are available: signal, computed, effect, Show, For
             </li>
           </ul>
           <p class="text-sm text-text-muted bg-bg border border-border rounded p-3">
-            <strong class="text-text">Note:</strong> This playground uses Babel Standalone for
-            runtime JSX transpilation. Your code runs directly in the browser with access to all Zen
-            APIs.
+            <strong class="text-text">Note:</strong> Just create your component and assign it to <code class="px-1 bg-bg-lighter border border-border rounded text-primary">const app = (...)</code> - the playground handles rendering automatically.
           </p>
         </div>
       </div>
