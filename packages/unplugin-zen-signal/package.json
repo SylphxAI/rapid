@@ -38,9 +38,21 @@
       "types": "./dist/esbuild.d.ts",
       "import": "./dist/esbuild.js",
       "require": "./dist/esbuild.cjs"
+    },
+    "./jsx-runtime/react": {
+      "types": "./jsx-runtime/react/index.tsx",
+      "import": "./jsx-runtime/react/index.tsx"
+    },
+    "./jsx-runtime/vue": {
+      "types": "./jsx-runtime/vue/index.ts",
+      "import": "./jsx-runtime/vue/index.ts"
+    },
+    "./svelte-preprocessor": {
+      "types": "./svelte-preprocessor/index.ts",
+      "import": "./svelte-preprocessor/index.ts"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "jsx-runtime", "svelte-preprocessor", "README.md"],
   "keywords": [
     "zen",
     "signal",
@@ -65,6 +77,17 @@
   },
   "peerDependencies": {
     "@zen/signal": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "bunup": "^0.15.13",

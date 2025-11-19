@@ -219,6 +219,21 @@ function appendChild(parent: Element, child: any, hydrating: boolean): void {
     return;
   }
 
+  // Reactive signal - auto-unwrap (runtime-first)
+  if (isReactive(child)) {
+    const textNode = document.createTextNode('');
+    if (!hydrating) {
+      parent.appendChild(textNode);
+    }
+
+    // Wrap in effect for reactivity
+    effect(() => {
+      textNode.data = String(child.value ?? '');
+      return undefined;
+    });
+    return;
+  }
+
   // Function - reactive text (from unplugin transformation)
   if (typeof child === 'function') {
     const textNode = document.createTextNode('');
