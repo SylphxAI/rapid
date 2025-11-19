@@ -12,11 +12,12 @@
 import { effect } from '@zen/signal';
 import { disposeNode, onCleanup } from '@zen/signal';
 import { type MaybeReactive, resolve } from '../reactive-utils.js';
+import { getPlatformOps } from '../platform-ops.js';
 
-interface ForProps<T, U extends Node> {
+interface ForProps<T, U = any> {
   each: MaybeReactive<T[]>;
   children: (item: T, index: () => number) => U;
-  fallback?: Node;
+  fallback?: any;
   key?: (item: T, index: number) => any;
 }
 
@@ -44,17 +45,20 @@ interface ForProps<T, U extends Node> {
  *   {(item, index) => <div>{item.name}</div>}
  * </For>
  */
-export function For<T, U extends Node>(props: ForProps<T, U>): Node {
+export function For<T, U = any>(props: ForProps<T, U>): any {
   const { each, children, fallback, key: keyFn } = props;
 
-  // Anchor comment node to mark position
-  const marker = document.createComment('for');
+  // Get platform operations
+  const ops = getPlatformOps();
+
+  // Anchor node to mark position
+  const marker = ops.createMarker('for');
 
   // Track rendered items by key
   const items = new Map<any, { node: U; index: number; item: T }>();
 
-  // Get parent for DOM operations
-  let parent: Node | null = null;
+  // Get parent for operations
+  let parent: any = null;
   let dispose: (() => void) | undefined;
 
   // Defer effect until marker is in DOM (same fix as Router and Show components)
@@ -67,32 +71,34 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
       if (array.length === 0 && fallback) {
         // Clear existing items
         for (const [, entry] of items) {
-          if (entry.node.parentNode) {
-            entry.node.parentNode.removeChild(entry.node);
+          const entryParent = ops.getParent(entry.node as any);
+          if (entryParent) {
+            ops.removeChild(entryParent, entry.node as any);
           }
-          disposeNode(entry.node);
+          disposeNode(entry.node as any);
         }
         items.clear();
 
         // Insert fallback
-        if (!parent) parent = marker.parentNode;
+        if (!parent) parent = ops.getParent(marker);
         if (parent) {
-          parent.insertBefore(fallback, marker);
+          ops.insertBefore(parent, fallback, marker);
         }
         return;
       }
 
       // Remove fallback if present
-      if (fallback?.parentNode) {
-        fallback.parentNode.removeChild(fallback);
+      const fallbackParent = fallback ? ops.getParent(fallback) : null;
+      if (fallbackParent) {
+        ops.removeChild(fallbackParent, fallback);
       }
 
-      if (!parent) parent = marker.parentNode;
+      if (!parent) parent = ops.getParent(marker);
       if (!parent) return;
 
       // Build new items map
       const newItems = new Map<any, { node: U; index: number; item: T }>();
-      const fragment = document.createDocumentFragment();
+      const fragment = ops.createFragment();
 
       for (let i = 0; i < array.length; i++) {
         const item = array[i];
@@ -116,16 +122,17 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
           newItems.set(itemKey, entry);
         }
 
-        fragment.appendChild(entry.node);
+        ops.appendToFragment(fragment, entry.node as any);
       }
 
       // Remove items no longer in array
       for (const [itemKey, entry] of items) {
         if (!newItems.has(itemKey)) {
-          if (entry.node.parentNode) {
-            entry.node.parentNode.removeChild(entry.node);
+          const entryParent = ops.getParent(entry.node as any);
+          if (entryParent) {
+            ops.removeChild(entryParent, entry.node as any);
           }
-          disposeNode(entry.node);
+          disposeNode(entry.node as any);
         }
       }
 
@@ -136,7 +143,7 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
       }
 
       // Insert all nodes in correct order
-      parent.insertBefore(fragment, marker);
+      ops.insertBefore(parent, fragment, marker);
 
       return undefined;
     });
@@ -148,10 +155,11 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
       dispose();
     }
     for (const [, entry] of items) {
-      if (entry.node.parentNode) {
-        entry.node.parentNode.removeChild(entry.node);
+      const entryParent = ops.getParent(entry.node as any);
+      if (entryParent) {
+        ops.removeChild(entryParent, entry.node as any);
       }
-      disposeNode(entry.node);
+      disposeNode(entry.node as any);
     }
     items.clear();
   });

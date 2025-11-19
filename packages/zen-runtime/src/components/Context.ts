@@ -8,6 +8,7 @@
  */
 
 import { getOwner } from '@zen/signal';
+import { getPlatformOps } from '../platform-ops.js';
 
 /**
  * Context object that holds the default value
@@ -15,7 +16,7 @@ import { getOwner } from '@zen/signal';
 export interface Context<T> {
   id: symbol;
   defaultValue: T;
-  Provider: (props: { value: T; children: Node | Node[] }) => Node;
+  Provider: (props: { value: T; children: any | any[] }) => any;
 }
 
 /**
@@ -49,7 +50,7 @@ export function createContext<T>(defaultValue: T): Context<T> {
   const context: Context<T> = {
     id: Symbol('context'),
     defaultValue,
-    Provider: (props: { value: T; children: Node | Node[] }) => {
+    Provider: (props: { value: T; children: any | any[] }) => {
       return Provider(context, props);
     },
   };
@@ -104,8 +105,8 @@ export function useContext<T>(context: Context<T>): T {
  */
 export function Provider<T>(
   context: Context<T>,
-  props: { value: T; children: Node | Node[] },
-): Node {
+  props: { value: T; children: any | any[] },
+): any {
   const { value, children } = props;
   const owner = getOwner();
 
@@ -121,15 +122,16 @@ export function Provider<T>(
   }
   values.set(context.id, value);
 
-  // Return children as a document fragment
-  const fragment = document.createDocumentFragment();
+  // Get platform operations
+  const ops = getPlatformOps();
+
+  // Return children as a fragment
+  const fragment = ops.createFragment();
   const childArray = Array.isArray(children) ? children : [children];
 
   for (const child of childArray) {
-    if (child instanceof Node) {
-      fragment.appendChild(child);
-    } else if (child) {
-      fragment.appendChild(document.createTextNode(String(child)));
+    if (child) {
+      ops.appendToFragment(fragment, child);
     }
   }
 

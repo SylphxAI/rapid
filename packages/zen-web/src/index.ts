@@ -5,6 +5,11 @@
  * Depends on @zen/runtime for platform-agnostic components.
  */
 
+// Initialize platform operations for web
+import { setPlatformOps } from '@zen/runtime';
+import { webPlatformOps } from './platform-ops.js';
+setPlatformOps(webPlatformOps);
+
 // Import JSX types (global augmentation)
 import './jsx-types.js';
 

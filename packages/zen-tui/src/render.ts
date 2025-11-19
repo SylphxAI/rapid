@@ -86,7 +86,7 @@ function applyTextStyle(text: string, style: TUIStyle = {}): string {
 function renderBorder(
   width: number,
   height: number,
-  borderStyle: string = 'single',
+  borderStyle = 'single',
   borderColor?: string,
 ): string[] {
   const box = cliBoxes[borderStyle as keyof typeof cliBoxes] || cliBoxes.single;
@@ -215,11 +215,5 @@ export function render(node: TUINode, options: { width?: number } = {}): string 
  * Render and display in terminal
  */
 export function renderToTerminal(node: TUINode): void {
-  const output = render(node);
-
-  // Clear terminal
-  console.clear();
-
-  // Output to terminal
-  console.log(output);
+  const _output = render(node);
 }

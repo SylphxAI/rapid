@@ -6,9 +6,9 @@
  * and need to be refactored to be platform-agnostic.
  */
 
-import { signal, render } from '@zen/tui';
+import { render, signal } from '@zen/tui';
 import { Box } from '@zen/tui';
-import { Text} from '@zen/tui';
+import { Text } from '@zen/tui';
 
 function App() {
   const count = signal(0);
@@ -23,9 +23,7 @@ function App() {
         borderColor: 'cyan',
       }}
     >
-      <Text style={{ bold: true, color: 'green' }}>
-        🎯 Zen TUI Demo
-      </Text>
+      <Text style={{ bold: true, color: 'green' }}>🎯 Zen TUI Demo</Text>
 
       <Box>
         <Text>Counter: </Text>
@@ -49,19 +47,11 @@ function App() {
       </Box>
 
       <Box>
-        <Text style={{ dim: true, italic: true }}>
-          Platform: Terminal UI
-        </Text>
+        <Text style={{ dim: true, italic: true }}>Platform: Terminal UI</Text>
       </Box>
     </Box>
   );
 }
 
 // Render to terminal
-const output = render(<App />);
-console.log(output);
-
-console.log('\n✅ TUI rendering successful!');
-console.log('✅ Cross-platform JSX runtime working');
-console.log('✅ Reactive signals integrated');
-console.log('\n⚠️  Note: @zen/runtime components need refactoring to remove DOM dependencies\n');
+const _output = render(<App />);

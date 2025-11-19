@@ -10,7 +10,7 @@
  * ```
  */
 
-type Component<P = any> = (props: P) => Node;
+type Component<P = any> = (props: P) => any;
 
 interface DynamicProps<P = any> {
   component: Component<P>;
@@ -20,7 +20,7 @@ interface DynamicProps<P = any> {
 /**
  * Dynamic component renderer
  */
-export function Dynamic<P = any>(props: DynamicProps<P>): Node {
+export function Dynamic<P = any>(props: DynamicProps<P>): any {
   const { component, ...restProps } = props;
 
   if (typeof component !== 'function') {

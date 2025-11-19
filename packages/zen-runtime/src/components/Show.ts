@@ -12,11 +12,12 @@
 import { effect, untrack } from '@zen/signal';
 import { disposeNode, onCleanup } from '@zen/signal';
 import { type Reactive, resolve } from '../reactive-utils.js';
+import { getPlatformOps } from '../platform-ops.js';
 
 interface ShowProps<T> {
   when: Reactive<T>;
-  fallback?: Node | (() => Node);
-  children: Node | ((value: T) => Node);
+  fallback?: any | (() => any);
+  children: any | ((value: T) => any);
 }
 
 /**
@@ -33,17 +34,20 @@ interface ShowProps<T> {
  *   {(u) => <div>Hello {u.name}</div>}
  * </Show>
  */
-export function Show<T>(props: ShowProps<T>): Node {
+export function Show<T>(props: ShowProps<T>): any {
   const { when, fallback, children } = props;
 
+  // Get platform operations
+  const ops = getPlatformOps();
+
   // Anchor to mark position
-  const marker = document.createComment('show');
+  const marker = ops.createMarker('show');
 
   // Track current node
-  let currentNode: Node | null = null;
+  let currentNode: any = null;
   let dispose: (() => void) | undefined;
 
-  // Defer effect until marker is in DOM (same fix as Router component)
+  // Defer effect until marker is in tree (same fix as Router component)
   queueMicrotask(() => {
     dispose = effect(() => {
       // Resolve condition - automatically tracks reactive dependencies
@@ -51,8 +55,9 @@ export function Show<T>(props: ShowProps<T>): Node {
 
       // Cleanup previous node
       if (currentNode) {
-        if (currentNode.parentNode) {
-          currentNode.parentNode.removeChild(currentNode);
+        const parent = ops.getParent(marker);
+        if (parent) {
+          ops.removeChild(parent, currentNode);
         }
         // Dispose child component's owner
         disposeNode(currentNode);
@@ -78,9 +83,12 @@ export function Show<T>(props: ShowProps<T>): Node {
         });
       }
 
-      // Insert into DOM
-      if (currentNode && marker.parentNode) {
-        marker.parentNode.insertBefore(currentNode, marker);
+      // Insert into tree
+      if (currentNode) {
+        const parent = ops.getParent(marker);
+        if (parent) {
+          ops.insertBefore(parent, currentNode, marker);
+        }
       }
 
       return undefined;
@@ -93,8 +101,9 @@ export function Show<T>(props: ShowProps<T>): Node {
       dispose();
     }
     if (currentNode) {
-      if (currentNode.parentNode) {
-        currentNode.parentNode.removeChild(currentNode);
+      const parent = ops.getParent(marker);
+      if (parent) {
+        ops.removeChild(parent, currentNode);
       }
       disposeNode(currentNode);
     }

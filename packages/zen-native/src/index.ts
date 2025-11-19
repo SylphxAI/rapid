@@ -1,26 +1,14 @@
 /**
- * @zen/native - Native renderer for Zen
+ * @zen/native - Native renderer for Zen (React Native)
  *
- * React Native-style renderer for iOS and Android.
- * Uses @zen/runtime components with native element rendering.
+ * PLACEHOLDER - Not yet implemented
+ * Will be implemented in Phase 4 of the cross-platform architecture.
  */
 
-// Re-export runtime for convenience
-export {
-  signal,
-  computed,
-  effect,
-  batch,
-  untrack,
-  onMount,
-  onCleanup,
-} from '@zen/runtime';
+// TODO: Implement native platform operations
+// TODO: Implement JSX runtime for React Native
+// TODO: Implement native components
 
-// TODO: Native renderer
-// export { render } from './render.js';
-
-// TODO: Native components
-// export { View } from './components/View.js';
-// export { Text } from './components/Text.js';
-// export { Image } from './components/Image.js';
-// export { Pressable } from './components/Pressable.js';
+export function placeholder() {
+  throw new Error('@zen/native is not yet implemented. Coming in Phase 4.');
+}

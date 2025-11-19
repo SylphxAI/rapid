@@ -1,22 +1,10 @@
 /**
- * @zen/start - Full-stack meta-framework for Zen
+ * @zen/start - Full-stack framework for Zen
  *
- * Features:
- * - File-based routing
- * - Server functions
- * - API routes
- * - SSR/SSG/ISR
- * - Build optimizations
+ * PLACEHOLDER - Not yet implemented
+ * Will be implemented in future phases.
  */
 
-// Re-export for convenience
-export * from '@zen/web';
-
-// TODO: Router
-// export { Router, Route, Link } from './router/index.js';
-
-// TODO: Server functions
-// export { createServerFn } from './server/server-fn.js';
-
-// TODO: API routes
-// export { createAPIHandler } from './api/handler.js';
+export function placeholder() {
+  throw new Error('@zen/start is not yet implemented.');
+}

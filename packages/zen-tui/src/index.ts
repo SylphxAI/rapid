@@ -5,6 +5,11 @@
  * Uses @zen/runtime components with terminal rendering.
  */
 
+// Initialize platform operations for TUI
+import { setPlatformOps } from '@zen/runtime';
+import { tuiPlatformOps } from './platform-ops.js';
+setPlatformOps(tuiPlatformOps);
+
 // Re-export runtime for convenience
 export {
   signal,

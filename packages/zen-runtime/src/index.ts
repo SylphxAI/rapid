@@ -45,3 +45,7 @@ export { runWithOwner } from './utils/runWithOwner.js';
 
 // Server utilities
 export { isServer, createUniqueId, setServerIdPrefix, resetIdCounter } from './server-utils.js';
+
+// Platform operations
+export { setPlatformOps, getPlatformOps, hasPlatformOps } from './platform-ops.js';
+export type { PlatformOps } from './platform-ops.js';
