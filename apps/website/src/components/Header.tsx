@@ -58,7 +58,7 @@ export function Header() {
         </div>
       </header>
 
-      <Show when={isSearchOpen.value}>
+      <Show when={() => isSearchOpen.value}>
         <SearchModal
           onClose={() => {
             isSearchOpen.value = false;
