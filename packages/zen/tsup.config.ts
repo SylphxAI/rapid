@@ -6,6 +6,7 @@ export default defineConfig({
     'jsx-runtime': 'src/jsx-runtime.ts',
     'jsx-runtime-server': 'src/jsx-runtime-server.ts',
     server: 'src/server.ts',
+    hydrate: 'src/hydrate.ts',
   },
   format: ['esm'],
   dts: true,

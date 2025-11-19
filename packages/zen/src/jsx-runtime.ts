@@ -8,6 +8,7 @@
 import { effect } from '@zen/signal';
 import type { AnyZen } from '@zen/signal';
 import { attachNodeToOwner, createOwner, setOwner } from './lifecycle.js';
+import { isHydrating, getNextHydrateNode, enterHydrateParent } from './hydrate.js';
 
 export { Fragment } from './core/fragment.js';
 
@@ -49,7 +50,44 @@ export function jsx(type: string | Function, props: Props | null): Node {
   }
 
   // Element
-  const element = document.createElement(type);
+  let element: Element;
+
+  // Hydration mode: reuse existing node
+  if (isHydrating()) {
+    const node = getNextHydrateNode();
+
+    // Verify node matches expected type
+    if (node && node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName.toLowerCase() === type) {
+      element = node as Element;
+
+      // Set up reactive attributes and event listeners
+      // (SSR rendered static HTML, need to attach interactivity)
+      if (restProps) {
+        for (const [key, value] of Object.entries(restProps)) {
+          setAttribute(element, key, value);
+        }
+      }
+
+      // Enter element for child hydration
+      if (children !== undefined) {
+        enterHydrateParent(element);
+        appendChild(element, children);
+      }
+
+      return element;
+    }
+
+    // Mismatch: log warning in development
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+      console.warn(
+        `Hydration mismatch: expected <${type}> but found ${node?.nodeName || 'null'}. ` +
+          'Falling back to client-side rendering.'
+      );
+    }
+  }
+
+  // Normal mode: create new element
+  element = document.createElement(type);
 
   // Set properties and attributes
   if (restProps) {
@@ -171,9 +209,25 @@ function appendChild(parent: Element, child: any): void {
 
   // Reactive child (Signal or Computed)
   if (isReactive(child)) {
-    const textNode = document.createTextNode('');
-    parent.appendChild(textNode);
+    let textNode: Text;
 
+    if (isHydrating()) {
+      // Hydration: reuse existing text node
+      const node = getNextHydrateNode();
+      if (node && node.nodeType === Node.TEXT_NODE) {
+        textNode = node as Text;
+      } else {
+        // Mismatch: create new text node
+        textNode = document.createTextNode('');
+        parent.appendChild(textNode);
+      }
+    } else {
+      // Normal: create new text node
+      textNode = document.createTextNode('');
+      parent.appendChild(textNode);
+    }
+
+    // Set up reactive subscription
     effect(() => {
       const value = child.value;
       textNode.data = String(value ?? '');
@@ -184,12 +238,27 @@ function appendChild(parent: Element, child: any): void {
 
   // Node
   if (child instanceof Node) {
-    parent.appendChild(child);
+    if (!isHydrating()) {
+      parent.appendChild(child);
+    }
     return;
   }
 
   // Text
-  parent.appendChild(document.createTextNode(String(child)));
+  if (isHydrating()) {
+    // Skip - text already in DOM
+    const node = getNextHydrateNode();
+    // Verify it's a text node (development mode)
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+      if (!node || node.nodeType !== Node.TEXT_NODE) {
+        console.warn(
+          `Hydration mismatch: expected text node "${String(child)}" but found ${node?.nodeName || 'null'}`
+        );
+      }
+    }
+  } else {
+    parent.appendChild(document.createTextNode(String(child)));
+  }
 }
 
 /**
