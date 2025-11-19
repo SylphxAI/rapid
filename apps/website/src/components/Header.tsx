@@ -1,4 +1,4 @@
-import { Link } from '@zen/router-zen';
+import { Link } from '@zen/zen';
 import { signal } from '@zen/signal';
 import { Show } from '@zen/zen';
 import { Icon } from './Icon.tsx';

@@ -70,6 +70,10 @@ export { ErrorBoundary } from './components/ErrorBoundary.js';
 export { Suspense } from './components/Suspense.js';
 export { Dynamic } from './components/Dynamic.js';
 
+// Router Components (requires @zen/router)
+export { Router } from './components/Router.js';
+export { Link } from './components/Link.js';
+
 // Context API
 export { createContext, useContext } from './components/Context.js';
 export type { Context } from './components/Context.js';
