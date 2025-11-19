@@ -2,12 +2,23 @@
  * unplugin-zen-signal
  *
  * Universal plugin for using Zen Signals across all frameworks with unified syntax.
- * Transforms `signal.value` accesses to framework-specific reactive patterns at compile time.
+ *
+ * **Runtime Mode (Default):**
+ * - Configures custom JSX runtimes/preprocessors
+ * - No code transformation needed
+ * - Fast builds, easy debugging
+ *
+ * **Compiler Mode:**
+ * - Transforms `signal.value` to framework-specific patterns
+ * - Maximum performance (10-30% faster)
+ * - Build-time transformations
  */
 
 import { createFilter } from '@rollup/pluginutils';
 import MagicString from 'magic-string';
 import { createUnplugin } from 'unplugin';
+import { detectFramework, type Framework } from './auto-detect';
+import { getRuntimeConfig } from './runtime-config';
 import { transformReact } from './transforms/react';
 import { transformSvelte } from './transforms/svelte';
 import { transformVue } from './transforms/vue';
@@ -16,9 +27,24 @@ import { transformZen } from './transforms/zen';
 export interface Options {
   /**
    * Target framework
-   * @default 'react'
+   * @default auto-detected from package.json
    */
-  framework?: 'react' | 'vue' | 'svelte' | 'solid' | 'preact' | 'zen';
+  framework?: Framework;
+
+  /**
+   * Transformation mode
+   * - 'runtime': Use custom JSX runtimes (default, zero config)
+   * - 'compiler': Transform code at build time (faster, harder to debug)
+   * - 'hybrid': Runtime in dev, compiler in prod
+   * @default 'runtime'
+   */
+  mode?: 'runtime' | 'compiler' | 'hybrid';
+
+  /**
+   * Enable auto-detection of framework from package.json
+   * @default true
+   */
+  autoDetect?: boolean;
 
   /**
    * Include patterns (default: all .tsx, .jsx, .vue, .svelte files)
@@ -42,12 +68,92 @@ const defaultExclude = [/node_modules/];
 
 export const unplugin = createUnplugin<Options>((options = {}) => {
   const {
-    framework = 'react',
+    framework: userFramework,
+    mode: userMode = 'runtime',
+    autoDetect = true,
     include = defaultInclude,
     exclude = defaultExclude,
     debug = false,
   } = options;
 
+  // Auto-detect framework if not specified
+  let framework = userFramework;
+  if (!framework && autoDetect) {
+    const detected = detectFramework();
+    if (detected) {
+      framework = detected;
+      if (debug) {
+        console.log(`[zen-signal] Auto-detected framework: ${framework}`);
+      }
+    } else {
+      if (debug) {
+        console.warn('[zen-signal] Could not auto-detect framework, defaulting to react');
+      }
+      framework = 'react';
+    }
+  } else if (!framework) {
+    framework = 'react';
+  }
+
+  // Determine mode (support hybrid)
+  const isDev = process.env.NODE_ENV !== 'production';
+  let mode = userMode;
+  if (mode === 'hybrid') {
+    mode = isDev ? 'runtime' : 'compiler';
+    if (debug) {
+      console.log(`[zen-signal] Hybrid mode: using '${mode}' (${isDev ? 'development' : 'production'})`);
+    }
+  }
+
+  // Runtime mode: configure JSX runtime/preprocessor
+  if (mode === 'runtime') {
+    const runtimeConfig = getRuntimeConfig(framework, debug);
+
+    return {
+      name: runtimeConfig.name,
+
+      // Vite-specific configuration
+      vite: {
+        config() {
+          return runtimeConfig.vite?.() || {};
+        },
+      },
+
+      // Webpack-specific configuration
+      webpack(compiler: any) {
+        const config = runtimeConfig.webpack?.();
+        if (config) {
+          // Merge webpack config
+          Object.assign(compiler.options, config);
+        }
+      },
+
+      // Rollup-specific configuration
+      rollup: {
+        options(options: any) {
+          const config = runtimeConfig.rollup?.();
+          if (config) {
+            Object.assign(options, config);
+          }
+        },
+      },
+
+      // esbuild-specific configuration
+      esbuild: {
+        setup(build: any) {
+          const config = runtimeConfig.esbuild?.();
+          if (config) {
+            build.initialOptions = {
+              ...build.initialOptions,
+              ...config,
+            };
+          }
+        },
+      },
+    };
+  }
+
+  // Compiler mode: transform code at build time
   const filter = createFilter(include, exclude);
 
   return {
@@ -71,13 +177,14 @@ export const unplugin = createUnplugin<Options>((options = {}) => {
       }
 
       if (debug) {
+        console.log(`[zen-signal] Transforming ${id}`);
       }
 
       const s = new MagicString(code);
+
       // Apply framework-specific transformation
       switch (framework) {
         case 'react':
-        case 'preact':
           transformReact(code, s, id, debug);
           break;
         case 'vue':
@@ -89,9 +196,6 @@ export const unplugin = createUnplugin<Options>((options = {}) => {
         case 'zen':
           transformZen(code, s, id, debug);
           break;
-        case 'solid':
-          // Solid.js signals work natively, no transformation needed
-          return null;
         default:
           throw new Error(`Unsupported framework: ${framework}`);
       }
@@ -108,7 +212,14 @@ export const unplugin = createUnplugin<Options>((options = {}) => {
   };
 });
 
+// Export for different bundlers
 export const vitePlugin = unplugin.vite;
 export const rollupPlugin = unplugin.rollup;
 export const webpackPlugin = unplugin.webpack;
 export const esbuildPlugin = unplugin.esbuild;
+
+// Default export
+export default unplugin;
+
+// Re-export types
+export type { Framework } from './auto-detect';
