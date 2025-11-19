@@ -3,8 +3,14 @@
  * Powered by @zen/router
  */
 
-import { $router, defineRoutes, startHistoryListener, stopHistoryListener } from '@zen/router';
-import type { RouteConfig } from '@zen/router/dist/matcher.js';
+import {
+  $router,
+  defineRoutes,
+  matchRoutes,
+  startHistoryListener,
+  stopHistoryListener,
+} from '@zen/router';
+import type { RouteConfig } from '@zen/router';
 import { effect, untrack } from '@zen/signal';
 import { disposeNode, onCleanup, onMount } from '@zen/zen/lifecycle';
 
@@ -49,8 +55,11 @@ export function Router(props: RouterProps): Node {
     startHistoryListener();
 
     // Set up effect after mount to ensure marker is in DOM
+    // Subscribe to path changes via selectKey for fine-grained reactivity
+    const pathSignal = $router.selectKey('path');
+
     effectDispose = effect(() => {
-      const { path } = $router.value;
+      const path = pathSignal.value;
 
       // Cleanup previous node
       if (currentNode) {
@@ -61,17 +70,14 @@ export function Router(props: RouterProps): Node {
         currentNode = null;
       }
 
-      // Find matching route
-      const route = routes.find((r) => {
-        // Simple path matching - @zen/router handles this internally
-        // We just need to find the component for the matched route
-        return r.path === path;
-      });
+      // Find matching route using @zen/router matcher
+      const match = matchRoutes(path, routeConfigs);
+      const matchedRoute = match ? routes.find((r) => r.path === match.route.path) : null;
 
       // Render new route
       currentNode = untrack(() => {
-        if (route) {
-          return route.component();
+        if (matchedRoute) {
+          return matchedRoute.component();
         }
         if (fallback) {
           return fallback();

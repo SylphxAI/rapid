@@ -7,9 +7,9 @@ import { open } from '@zen/router';
 
 export interface LinkProps {
   href: string;
-  children: Node | string;
+  children: Node | Node[] | string;
   class?: string;
-  [key: string]: string | Node | undefined;
+  [key: string]: string | Node | Node[] | undefined;
 }
 
 /**
@@ -39,6 +39,12 @@ export function Link(props: LinkProps): Node {
   // Append children
   if (typeof children === 'string') {
     a.textContent = children;
+  } else if (Array.isArray(children)) {
+    for (const child of children) {
+      if (child instanceof Node) {
+        a.appendChild(child);
+      }
+    }
   } else if (children instanceof Node) {
     a.appendChild(children);
   }

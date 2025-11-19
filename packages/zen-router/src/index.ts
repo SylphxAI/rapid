@@ -35,6 +35,7 @@ export const $router: MapStore<RouterState> = map({
 // Functions
 export { defineRoutes } from './routes';
 export { open, redirect, startHistoryListener, stopHistoryListener } from './history';
+export { matchRoutes, pathToRegexp } from './matcher';
 
-// Types (already exported above)
-// Types are exported via their declarations above
+// Types
+export type { RouteConfig, RouteMatch } from './matcher';

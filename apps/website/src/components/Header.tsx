@@ -5,13 +5,13 @@ export function Header() {
     <header class="sticky top-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border">
       <div class="max-w-screen-xl mx-auto px-6">
         <nav class="flex items-center justify-between h-16">
-          <a
-            href="#/"
+          <Link
+            href="/"
             class="flex items-center gap-2 text-xl font-bold text-text hover:text-primary transition-colors"
           >
             <span class="text-2xl">⚡</span>
             <span>Zen</span>
-          </a>
+          </Link>
           <div class="flex items-center gap-8">
             <Link href="/" class="text-text-muted hover:text-text transition-colors">
               Home
