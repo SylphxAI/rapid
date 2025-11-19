@@ -425,22 +425,24 @@ import { cart, total, itemCount, removeFromCart } from './store.js';
 
 ## Zen Framework
 
-### Basic Counter (Native Support)
+### Basic Counter (NO PLUGIN NEEDED!)
 
 **1. Install dependencies:**
 ```bash
 npm install vite @zen/zen @zen/signal
 ```
 
-**2. Configure Vite:**
+**2. Configure Vite (OPTIONAL):**
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { zenSignal } from 'unplugin-zen-signal/vite';
+// NO PLUGIN NEEDED! Zen has native signal support.
+// Only add zenSignal() if you want compiler mode (~10% faster):
+// import { zenSignal } from 'unplugin-zen-signal/vite';
 
 export default defineConfig({
   plugins: [
-    zenSignal(),  // Optional: enables compiler mode for extra speed
+    // zenSignal(),  // OPTIONAL: enables compiler mode for extra speed
   ],
 });
 ```
@@ -464,7 +466,7 @@ export function Counter() {
 }
 ```
 
-**Note:** Zen has native signal support - plugin is optional for performance boost.
+**That's it!** Signals work natively in Zen - no plugin configuration required.
 
 ---
 

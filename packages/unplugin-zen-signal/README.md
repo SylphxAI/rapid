@@ -22,7 +22,9 @@ npm install unplugin-zen-signal @zen/signal
 
 ### One-Line Setup
 
-**Vite:**
+> **Note:** Zen framework users don't need this plugin - signals work natively! Only add it for compiler mode optimizations.
+
+**Vite (React/Vue/Svelte):**
 ```ts
 // vite.config.ts
 import { zenSignal } from 'unplugin-zen-signal/vite';
@@ -281,9 +283,10 @@ $: count$ = count.value;
 
 ### Zen Framework
 
-**Native support - no configuration needed!**
+**Native support - NO PLUGIN NEEDED!**
 
 ```tsx
+// No plugin configuration required!
 import { signal } from '@zen/signal';
 
 function Counter() {
@@ -298,7 +301,7 @@ function Counter() {
 }
 ```
 
-Both runtime and compiler modes work, with compiler providing ~10% speedup.
+**Plugin is optional:** Only add `zenSignal()` if you want compiler mode for ~10% performance boost.
 
 ---
 
