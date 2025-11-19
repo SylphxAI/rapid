@@ -6,7 +6,6 @@
  */
 
 import type { Framework } from './auto-detect';
-import type { UnpluginFactory } from 'unplugin';
 
 export interface RuntimeConfig {
   name: string;
@@ -14,6 +13,66 @@ export interface RuntimeConfig {
   webpack?: () => any;
   rollup?: () => any;
   esbuild?: () => any;
+}
+
+type BundlerName = 'Vite' | 'Webpack' | 'Rollup' | 'esbuild';
+
+/**
+ * Log runtime configuration (with optional extra messages)
+ */
+function logRuntime(
+  debug: boolean,
+  framework: string,
+  bundler: BundlerName,
+  extraMessages?: string[],
+): void {
+  if (!debug) return;
+
+  console.log(`[zen-signal] Configuring ${framework} runtime mode (${bundler})`);
+
+  if (extraMessages) {
+    for (const msg of extraMessages) {
+      console.log(`[zen-signal] ${msg}`);
+    }
+  }
+}
+
+/**
+ * Create runtime config with consistent logging
+ */
+function createRuntimeConfig(
+  framework: string,
+  debug: boolean,
+  configs: {
+    vite?: { config?: any; logs?: string[] };
+    webpack?: { config?: any; logs?: string[] };
+    rollup?: { config?: any; logs?: string[] };
+    esbuild?: { config?: any; logs?: string[] };
+  },
+): RuntimeConfig {
+  return {
+    name: `zen-signal-runtime:${framework}`,
+
+    vite() {
+      logRuntime(debug, framework, 'Vite', configs.vite?.logs);
+      return configs.vite?.config ?? {};
+    },
+
+    webpack() {
+      logRuntime(debug, framework, 'Webpack', configs.webpack?.logs);
+      return configs.webpack?.config ?? {};
+    },
+
+    rollup() {
+      logRuntime(debug, framework, 'Rollup', configs.rollup?.logs);
+      return configs.rollup?.config ?? {};
+    },
+
+    esbuild() {
+      logRuntime(debug, framework, 'esbuild', configs.esbuild?.logs);
+      return configs.esbuild?.config ?? {};
+    },
+  };
 }
 
 /**
@@ -39,29 +98,16 @@ export function getRuntimeConfig(framework: Framework, debug: boolean): RuntimeC
  * Sets up custom JSX runtime
  */
 function getReactRuntimeConfig(debug: boolean): RuntimeConfig {
-  return {
-    name: 'zen-signal-runtime:react',
+  const jsxImportSource = 'unplugin-zen-signal/jsx-runtime/react';
 
-    vite() {
-      if (debug) {
-        console.log('[zen-signal] Configuring React runtime mode (Vite)');
-      }
-
-      return {
-        esbuild: {
-          jsxImportSource: 'unplugin-zen-signal/jsx-runtime/react',
-        },
-      };
+  return createRuntimeConfig('react', debug, {
+    vite: {
+      config: {
+        esbuild: { jsxImportSource },
+      },
     },
-
-    webpack() {
-      if (debug) {
-        console.log('[zen-signal] Configuring React runtime mode (Webpack)');
-      }
-
-      // Webpack requires babel or swc configuration
-      // Return loader configuration
-      return {
+    webpack: {
+      config: {
         module: {
           rules: [
             {
@@ -75,7 +121,7 @@ function getReactRuntimeConfig(debug: boolean): RuntimeConfig {
                       '@babel/preset-react',
                       {
                         runtime: 'automatic',
-                        importSource: 'unplugin-zen-signal/jsx-runtime/react',
+                        importSource: jsxImportSource,
                       },
                     ],
                   ],
@@ -84,32 +130,17 @@ function getReactRuntimeConfig(debug: boolean): RuntimeConfig {
             },
           ],
         },
-      };
+      },
     },
-
-    rollup() {
-      if (debug) {
-        console.log('[zen-signal] Configuring React runtime mode (Rollup)');
-      }
-
-      // Rollup uses esbuild plugin
-      return {
-        esbuild: {
-          jsxImportSource: 'unplugin-zen-signal/jsx-runtime/react',
-        },
-      };
+    rollup: {
+      config: {
+        esbuild: { jsxImportSource },
+      },
     },
-
-    esbuild() {
-      if (debug) {
-        console.log('[zen-signal] Configuring React runtime mode (esbuild)');
-      }
-
-      return {
-        jsxImportSource: 'unplugin-zen-signal/jsx-runtime/react',
-      };
+    esbuild: {
+      config: { jsxImportSource },
     },
-  };
+  });
 }
 
 /**
@@ -117,51 +148,19 @@ function getReactRuntimeConfig(debug: boolean): RuntimeConfig {
  * Templates work natively, JSX needs alias
  */
 function getVueRuntimeConfig(debug: boolean): RuntimeConfig {
-  return {
-    name: 'zen-signal-runtime:vue',
-
-    vite() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Vue runtime mode (Vite)');
-        console.log('[zen-signal] Vue templates work natively, no config needed');
-      }
-
-      // Vue templates work natively
-      // Only configure if using JSX
-      return {
+  return createRuntimeConfig('vue', debug, {
+    vite: {
+      logs: ['Vue templates work natively, no config needed'],
+      config: {
         resolve: {
           alias: {
             // Only alias for JSX usage (optional)
             // Templates work without this
           },
         },
-      };
+      },
     },
-
-    webpack() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Vue runtime mode (Webpack)');
-      }
-
-      return {};
-    },
-
-    rollup() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Vue runtime mode (Rollup)');
-      }
-
-      return {};
-    },
-
-    esbuild() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Vue runtime mode (esbuild)');
-      }
-
-      return {};
-    },
-  };
+  });
 }
 
 /**
@@ -169,47 +168,14 @@ function getVueRuntimeConfig(debug: boolean): RuntimeConfig {
  * Injects preprocessor
  */
 function getSvelteRuntimeConfig(debug: boolean): RuntimeConfig {
-  return {
-    name: 'zen-signal-runtime:svelte',
+  const preprocessorNote = 'Note: Svelte preprocessor should be added to svelte.config.js';
 
-    vite() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Svelte runtime mode (Vite)');
-        console.log('[zen-signal] Note: Svelte preprocessor should be added to svelte.config.js');
-      }
-
-      // Svelte preprocessor is configured in svelte.config.js
-      // We can't inject it from here, so just log a warning
-      return {};
-    },
-
-    webpack() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Svelte runtime mode (Webpack)');
-        console.log('[zen-signal] Note: Svelte preprocessor should be added to svelte.config.js');
-      }
-
-      return {};
-    },
-
-    rollup() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Svelte runtime mode (Rollup)');
-        console.log('[zen-signal] Note: Svelte preprocessor should be added to svelte.config.js');
-      }
-
-      return {};
-    },
-
-    esbuild() {
-      if (debug) {
-        console.log('[zen-signal] Configuring Svelte runtime mode (esbuild)');
-        console.log('[zen-signal] Note: Svelte preprocessor should be added to svelte.config.js');
-      }
-
-      return {};
-    },
-  };
+  return createRuntimeConfig('svelte', debug, {
+    vite: { logs: [preprocessorNote] },
+    webpack: { logs: [preprocessorNote] },
+    rollup: { logs: [preprocessorNote] },
+    esbuild: { logs: [preprocessorNote] },
+  });
 }
 
 /**
@@ -217,40 +183,18 @@ function getSvelteRuntimeConfig(debug: boolean): RuntimeConfig {
  * Native support, no configuration needed
  */
 function getZenRuntimeConfig(debug: boolean): RuntimeConfig {
-  return {
-    name: 'zen-signal-runtime:zen',
-
-    vite() {
-      if (debug) {
-        console.log('[zen-signal] Zen framework has native signal support');
-        console.log('[zen-signal] No runtime configuration needed');
-      }
-
-      return {};
+  return createRuntimeConfig('zen', debug, {
+    vite: {
+      logs: ['Zen framework has native signal support', 'No runtime configuration needed'],
     },
-
-    webpack() {
-      if (debug) {
-        console.log('[zen-signal] Zen framework has native signal support');
-      }
-
-      return {};
+    webpack: {
+      logs: ['Zen framework has native signal support'],
     },
-
-    rollup() {
-      if (debug) {
-        console.log('[zen-signal] Zen framework has native signal support');
-      }
-
-      return {};
+    rollup: {
+      logs: ['Zen framework has native signal support'],
     },
-
-    esbuild() {
-      if (debug) {
-        console.log('[zen-signal] Zen framework has native signal support');
-      }
-
-      return {};
+    esbuild: {
+      logs: ['Zen framework has native signal support'],
     },
-  };
+  });
 }
