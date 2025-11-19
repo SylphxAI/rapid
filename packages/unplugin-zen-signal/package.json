@@ -66,7 +66,7 @@
     "svelte"
   ],
   "scripts": {
-    "build": "bunup --entry 'src/{index,vite,webpack,rollup,esbuild}.ts' --format esm,cjs --dts --target node --minify",
+    "build": "bunup --entry 'src/{index,vite,webpack,rollup,esbuild}.ts' --format esm,cjs --dts --target node --minify && bun scripts/fix-cjs.mjs",
     "dev": "bunup --entry 'src/{index,vite,webpack,rollup,esbuild}.ts' --format esm,cjs --dts --target node --watch",
     "clean": "bun rimraf dist .turbo"
   },
