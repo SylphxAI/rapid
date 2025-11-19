@@ -5,6 +5,7 @@ import { GetStarted } from '../components/GetStarted.tsx';
 import { InteractiveDemo } from '../components/InteractiveDemo.tsx';
 import { MigrationPaths } from '../components/MigrationPaths.tsx';
 import { NewHero } from '../components/NewHero.tsx';
+import { PerformanceDemo } from '../components/PerformanceDemo.tsx';
 import { StandalonePackages } from '../components/StandalonePackages.tsx';
 
 export function NewHome() {
@@ -19,13 +20,16 @@ export function NewHome() {
       {/* 3. Features - 核心優勢 */}
       <Features />
 
-      {/* 4. Migration Paths - 降低遷移障礙 */}
+      {/* 4. Performance Demo - 展示效能 */}
+      <PerformanceDemo />
+
+      {/* 5. Migration Paths - 降低遷移障礙 */}
       <MigrationPaths />
 
-      {/* 5. Standalone Packages - 獨立套件價值 */}
+      {/* 6. Standalone Packages - 獨立套件價值 */}
       <StandalonePackages />
 
-      {/* 6. Ecosystem Integrations - 生態系統整合 */}
+      {/* 7. Ecosystem Integrations - 生態系統整合 */}
       <EcosystemIntegrations />
 
       {/* 7. Comparison - 競品對比 */}
