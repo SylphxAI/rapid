@@ -11,12 +11,22 @@
     "coderag": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@sylphx/coderag-mcp"],
+      "args": [
+        "-y",
+        "@sylphx/coderag-mcp"
+      ],
       "env": {
         "OPENAI_API_KEY": "",
         "CODEBASE_ROOT": ".",
         "INDEX_PATH": ".coderag"
       }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     }
   }
 }
