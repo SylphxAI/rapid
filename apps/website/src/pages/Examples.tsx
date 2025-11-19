@@ -43,22 +43,22 @@ export function Examples() {
           </aside>
 
           <main class="examples-content">
-            <Show when={activeExample.value === 'counter'}>
+            <Show when={() => activeExample.value === 'counter'}>
               <CounterExample />
             </Show>
-            <Show when={activeExample.value === 'todo'}>
+            <Show when={() => activeExample.value === 'todo'}>
               <TodoExample />
             </Show>
-            <Show when={activeExample.value === 'form'}>
+            <Show when={() => activeExample.value === 'form'}>
               <FormExample />
             </Show>
-            <Show when={activeExample.value === 'async'}>
+            <Show when={() => activeExample.value === 'async'}>
               <AsyncExample />
             </Show>
-            <Show when={activeExample.value === 'router'}>
+            <Show when={() => activeExample.value === 'router'}>
               <RouterExample />
             </Show>
-            <Show when={activeExample.value === 'portal'}>
+            <Show when={() => activeExample.value === 'portal'}>
               <PortalExample />
             </Show>
           </main>

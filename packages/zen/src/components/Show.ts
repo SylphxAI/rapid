@@ -45,44 +45,44 @@ export function Show<T>(props: ShowProps<T>): Node {
   // Defer effect until marker is in DOM (same fix as Router component)
   queueMicrotask(() => {
     dispose = effect(() => {
-    // Evaluate condition
-    const condition = typeof when === 'function' ? (when as Function)() : when;
+      // Evaluate condition
+      const condition = typeof when === 'function' ? (when as Function)() : when;
 
-    // Cleanup previous node
-    if (currentNode) {
-      if (currentNode.parentNode) {
-        currentNode.parentNode.removeChild(currentNode);
+      // Cleanup previous node
+      if (currentNode) {
+        if (currentNode.parentNode) {
+          currentNode.parentNode.removeChild(currentNode);
+        }
+        // Dispose child component's owner
+        disposeNode(currentNode);
+        currentNode = null;
       }
-      // Dispose child component's owner
-      disposeNode(currentNode);
-      currentNode = null;
-    }
 
-    // Render appropriate branch
-    if (condition) {
-      // Truthy - render children
-      currentNode = untrack(() => {
-        if (typeof children === 'function') {
-          return children(condition as T);
-        }
-        return children;
-      });
-    } else if (fallback) {
-      // Falsy - render fallback
-      currentNode = untrack(() => {
-        if (typeof fallback === 'function') {
-          return fallback();
-        }
-        return fallback;
-      });
-    }
+      // Render appropriate branch
+      if (condition) {
+        // Truthy - render children
+        currentNode = untrack(() => {
+          if (typeof children === 'function') {
+            return children(condition as T);
+          }
+          return children;
+        });
+      } else if (fallback) {
+        // Falsy - render fallback
+        currentNode = untrack(() => {
+          if (typeof fallback === 'function') {
+            return fallback();
+          }
+          return fallback;
+        });
+      }
 
-    // Insert into DOM
-    if (currentNode && marker.parentNode) {
-      marker.parentNode.insertBefore(currentNode, marker);
-    }
+      // Insert into DOM
+      if (currentNode && marker.parentNode) {
+        marker.parentNode.insertBefore(currentNode, marker);
+      }
 
-    return undefined;
+      return undefined;
     });
   });
 

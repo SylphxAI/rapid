@@ -45,9 +45,11 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
 
   // Get parent for DOM operations
   let parent: Node | null = null;
+  let dispose: (() => void) | undefined;
 
-  // Effect to update list
-  const dispose = effect(() => {
+  // Defer effect until marker is in DOM (same fix as Router and Show components)
+  queueMicrotask(() => {
+    dispose = effect(() => {
     // Handle signal, function, or plain array
     let array: T[];
     if (typeof each === 'function') {
@@ -135,11 +137,14 @@ export function For<T, U extends Node>(props: ForProps<T, U>): Node {
     parent.insertBefore(fragment, marker);
 
     return undefined;
+    });
   });
 
   // Register cleanup via owner system
   onCleanup(() => {
-    dispose();
+    if (dispose) {
+      dispose();
+    }
     for (const [, entry] of items) {
       if (entry.node.parentNode) {
         entry.node.parentNode.removeChild(entry.node);
