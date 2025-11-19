@@ -1,0 +1,56 @@
+{
+  "name": "@zen/router-react",
+  "version": "0.0.0",
+  "description": "React hooks for Zen Router with auto-intercepting navigation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bunup --format esm,cjs --dts --target node --minify",
+    "clean": "bun rimraf dist .turbo"
+  },
+  "keywords": [
+    "zen",
+    "router",
+    "routing",
+    "react",
+    "hooks",
+    "navigation"
+  ],
+  "author": "Sylphx <hi@sylphx.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SylphxAI/zen.git",
+    "directory": "packages/zen-router-react"
+  },
+  "homepage": "https://github.com/SylphxAI/zen/tree/main/packages/zen-router-react#readme",
+  "bugs": {
+    "url": "https://github.com/SylphxAI/zen/issues"
+  },
+  "peerDependencies": {
+    "@zen/router": "^0.0.0",
+    "@zen/signal": "^0.0.0",
+    "react": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@zen/router": "workspace:*",
+    "@zen/signal": "workspace:*",
+    "@types/react": "^19.0.1",
+    "bunup": "^0.15.13",
+    "react": "^19.2.0",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

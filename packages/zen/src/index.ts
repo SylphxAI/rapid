@@ -8,19 +8,58 @@
 // Import JSX types (global augmentation)
 import './jsx-types.js';
 
-// Re-export lifecycle-aware primitives from @zen/signal-zen
-export {
-  signal,
-  computed,
-  effect,
+// Import raw primitives from @zen/signal
+import {
+  signal as rawSignal,
+  computed as rawComputed,
+  effect as rawEffect,
   batch,
   untrack,
   peek,
   subscribe,
-} from '@zen/signal-zen';
+} from '@zen/signal';
+import type { Signal, Computed } from '@zen/signal';
+import { getOwner, onCleanup } from './lifecycle.js';
 
-// Re-export raw effect for advanced users who need manual control
-export { rawEffect } from '@zen/signal-zen';
+// ============================================================================
+// LIFECYCLE-AWARE EFFECT
+// ============================================================================
+
+/**
+ * Lifecycle-aware effect that automatically registers cleanup with owner system.
+ *
+ * When used inside a Zen component, cleanup is automatic.
+ * When used outside components, behaves like raw effect.
+ *
+ * @example
+ * ```tsx
+ * function Component() {
+ *   effect(() => {
+ *     console.log('Effect running');
+ *     return () => console.log('Cleanup automatically registered');
+ *   });
+ * }
+ * ```
+ */
+export function effect(callback: () => undefined | (() => void)): () => void {
+  const dispose = rawEffect(callback);
+
+  // If we have an owner context, register cleanup automatically
+  const owner = getOwner();
+  if (owner) {
+    onCleanup(dispose);
+  }
+
+  return dispose;
+}
+
+// Re-export primitives (signal and computed don't need lifecycle awareness)
+export const signal = rawSignal;
+export const computed = rawComputed;
+export { batch, untrack, peek, subscribe };
+
+// Export raw effect for advanced users who want manual control
+export { rawEffect };
 
 // Components
 export { For } from './components/For.js';

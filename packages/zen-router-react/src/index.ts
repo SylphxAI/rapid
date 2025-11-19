@@ -1,9 +1,9 @@
 /**
- * Preact adapter for Zen Router
+ * React adapter for Zen Router
  *
  * @example
  * ```tsx
- * import { useRouter, useParams } from '@zen/router-adapters/preact';
+ * import { useRouter, useParams } from '@zen/router-adapters/react';
  *
  * function UserProfile() {
  *   const params = useParams();
@@ -12,15 +12,15 @@
  * ```
  */
 
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState } from 'react';
 import {
   createUseNavigate,
   createUseParams,
   createUseRouter,
   createUseSearchParams,
-} from '../core/create-hooks';
+} from './core/create-hooks';
 
-// Create Preact-specific hooks
+// Create React-specific hooks
 const hooks = { useState, useEffect };
 
 export const useRouter: () => import('@zen/router').RouterState = createUseRouter(hooks);
