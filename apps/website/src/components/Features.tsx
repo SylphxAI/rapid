@@ -42,12 +42,12 @@ export function Features() {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <For each={features}>
             {(feature) => (
-              <div class="bg-bg-light border border-border rounded-zen p-8 hover:border-primary transition-colors">
-                <div class="mb-4">
+              <div class="bg-bg-light dark:bg-bg-dark-light border border-border dark:border-border-dark rounded-zen p-8 hover:border-primary hover-lift hover-glow dark:hover:shadow-zen-lg group animate-fade-in-up">
+                <div class="mb-4 group-hover:scale-110 transition-transform duration-300">
                   <Icon icon={feature.icon} width="48" height="48" class="text-primary" />
                 </div>
-                <h3 class="text-xl font-semibold mb-3 text-text">{feature.title}</h3>
-                <p class="text-text-muted leading-relaxed">{feature.description}</p>
+                <h3 class="text-xl font-semibold mb-3 text-text dark:text-text-dark">{feature.title}</h3>
+                <p class="text-text-muted dark:text-text-dark-muted leading-relaxed">{feature.description}</p>
               </div>
             )}
           </For>
