@@ -1,9 +1,9 @@
 import { computed, effect, signal } from '@zen/signal';
 import { For } from '@zen/zen';
 import { Icon } from '../components/Icon';
-import gettingStartedMd from '../docs/getting-started.md?raw';
-import coreConceptsMd from '../docs/core-concepts.md?raw';
 import apiReferenceMd from '../docs/api-reference.md?raw';
+import coreConceptsMd from '../docs/core-concepts.md?raw';
+import gettingStartedMd from '../docs/getting-started.md?raw';
 import { renderMarkdown } from '../utils/markdown';
 
 interface DocSection {

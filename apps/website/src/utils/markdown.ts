@@ -1,9 +1,9 @@
-import { marked } from 'marked';
 import hljs from 'highlight.js/lib/core';
-import typescript from 'highlight.js/lib/languages/typescript';
-import javascript from 'highlight.js/lib/languages/javascript';
 import bash from 'highlight.js/lib/languages/bash';
+import javascript from 'highlight.js/lib/languages/javascript';
 import json from 'highlight.js/lib/languages/json';
+import typescript from 'highlight.js/lib/languages/typescript';
+import { marked } from 'marked';
 
 // Register languages
 hljs.registerLanguage('typescript', typescript);
@@ -17,9 +17,7 @@ marked.setOptions({
     if (lang && hljs.getLanguage(lang)) {
       try {
         return hljs.highlight(code, { language: lang }).value;
-      } catch (err) {
-        console.error('Highlight error:', err);
-      }
+      } catch (_err) {}
     }
     return code;
   },
@@ -36,8 +34,7 @@ export async function loadMarkdownDoc(path: string): Promise<string> {
     const response = await fetch(path);
     if (!response.ok) throw new Error(`Failed to load ${path}`);
     return await response.text();
-  } catch (error) {
-    console.error('Failed to load markdown:', error);
+  } catch (_error) {
     return '# Error\n\nFailed to load documentation.';
   }
 }
