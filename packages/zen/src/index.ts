@@ -19,6 +19,9 @@ export {
   subscribe,
 } from '@zen/signal-zen';
 
+// Re-export raw effect for advanced users who need manual control
+export { rawEffect } from '@zen/signal-zen';
+
 // Components
 export { For } from './components/For.js';
 export { Show } from './components/Show.js';
@@ -53,9 +56,12 @@ export { lazy } from './lazy.js';
 // Reactive utilities
 export { resolve, isSignal } from './reactive-utils.js';
 export type { Reactive, MaybeReactive } from './reactive-utils.js';
+export { mergeProps, splitProps } from './utils/props.js';
+export { selector } from './utils/selector.js';
+export { runWithOwner } from './utils/runWithOwner.js';
 
 // Server utilities
-export { isServer, createUniqueId } from './server-utils.js';
+export { isServer, createUniqueId, setServerIdPrefix, resetIdCounter } from './server-utils.js';
 
 // Types
 export type { Signal, Computed } from '@zen/signal';

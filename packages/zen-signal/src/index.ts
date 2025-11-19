@@ -18,3 +18,6 @@ export {
 } from './zen';
 
 export type { Signal, ReadonlySignal, Computed } from './zen';
+
+// Legacy compatibility exports
+export type { ZenValue } from './types';

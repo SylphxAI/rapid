@@ -82,6 +82,13 @@ export function jsx(type: string | Function, props: Props | null): Node {
 
       return element;
     }
+
+    // Mismatch warning in dev only
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+      console.warn(
+        `Hydration mismatch: expected <${type}> but found ${node?.nodeName || 'null'}`
+      );
+    }
   }
 
   // Normal mode: create new element
@@ -216,7 +223,18 @@ function appendChild(parent: Element, child: any, hydrating: boolean): void {
   }
 
   // Text - very common
-  if (!hydrating) {
+  if (hydrating) {
+    const node = getNextHydrateNode();
+    if (
+      typeof process !== 'undefined' &&
+      process.env?.NODE_ENV === 'development' &&
+      (!node || node.nodeType !== Node.TEXT_NODE)
+    ) {
+      console.warn(
+        `Hydration mismatch: expected text node "${String(child)}" but found ${node?.nodeName || 'null'}`
+      );
+    }
+  } else {
     parent.appendChild(document.createTextNode(String(child)));
   }
 }
