@@ -19,15 +19,18 @@ import { effect } from '@zen/signal';
 import { For, Show, computed, signal } from '@zen/zen';
 import * as Zen from '@zen/zen';
 import { Fragment, jsx } from '@zen/zen/jsx-runtime';
-import { categories, examples } from '../data/examples.ts';
 import { Icon } from '../components/Icon.tsx';
+import { categories, examples } from '../data/examples.ts';
 
 export function Playground() {
   // Convert examples array to templates object for compatibility
-  const templates = examples.reduce((acc, ex) => {
-    acc[ex.id] = ex.code;
-    return acc;
-  }, {} as Record<string, string>);
+  const templates = examples.reduce(
+    (acc, ex) => {
+      acc[ex.id] = ex.code;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   const selectedCategory = signal<string>('basic');
   const selectedExampleId = signal<string>('counter');
@@ -311,7 +314,9 @@ export function Playground() {
                   </div>
                   <div class="text-center">
                     <div class="text-text-muted">Ops/sec</div>
-                    <div class="font-bold text-secondary">{opsPerSecond.value.toLocaleString()}</div>
+                    <div class="font-bold text-secondary">
+                      {opsPerSecond.value.toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </Show>
@@ -334,7 +339,11 @@ export function Playground() {
                       code.value = selectedExample.value.code;
                       if (editorView) {
                         editorView.dispatch({
-                          changes: { from: 0, to: editorView.state.doc.length, insert: selectedExample.value.code },
+                          changes: {
+                            from: 0,
+                            to: editorView.state.doc.length,
+                            insert: selectedExample.value.code,
+                          },
                         });
                       }
                     }}

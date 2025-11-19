@@ -83,14 +83,17 @@ export function SearchModal(props: SearchModalProps) {
   const results = computed(() => {
     const query = searchQuery.value.toLowerCase().trim();
 
-    if (!query) return MOCK_DOCS;
+    if (!query) {
+      return MOCK_DOCS;
+    }
 
-    return MOCK_DOCS.filter(
+    const filtered = MOCK_DOCS.filter(
       (doc) =>
         doc.title.toLowerCase().includes(query) ||
         doc.description.toLowerCase().includes(query) ||
         doc.category.toLowerCase().includes(query),
     );
+    return filtered;
   });
 
   const handleSelect = (result: SearchResult) => {
@@ -120,7 +123,7 @@ export function SearchModal(props: SearchModalProps) {
             }}
             ref={(el) => {
               // Auto-focus search input when modal opens
-              if (props.isOpen && el) {
+              if (el) {
                 setTimeout(() => el.focus(), 100);
               }
             }}

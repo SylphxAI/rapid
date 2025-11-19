@@ -15,6 +15,7 @@ function getInitialTheme(): Theme {
 export const theme = signal<Theme>(getInitialTheme());
 
 export function toggleTheme() {
+  const _oldTheme = theme.value;
   theme.value = theme.value === 'dark' ? 'light' : 'dark';
 }
 
@@ -29,7 +30,6 @@ export function initTheme() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-
     localStorage.setItem('theme', currentTheme);
   });
 

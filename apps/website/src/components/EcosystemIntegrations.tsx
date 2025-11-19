@@ -301,7 +301,12 @@ const doubled = computed(() => count.value * 2)  // Computed<number>`,
               <div class="bg-bg-light border border-border rounded-zen overflow-hidden hover:border-primary/50 transition-colors">
                 <div class="bg-bg-lighter border-b border-border px-6 py-4">
                   <div class="flex items-center gap-3 mb-2">
-                    <Icon icon={integration.logo} width="40" height="40" class="text-primary flex-shrink-0" />
+                    <Icon
+                      icon={integration.logo}
+                      width="40"
+                      height="40"
+                      class="text-primary flex-shrink-0"
+                    />
                     <div>
                       <h3 class="text-xl font-bold text-text">{integration.name}</h3>
                       <p class="text-sm text-text-muted">{integration.description}</p>
