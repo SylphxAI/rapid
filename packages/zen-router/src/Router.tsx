@@ -32,9 +32,28 @@ interface RouterProps {
 export function Router(props: RouterProps): Node {
   const { routes, fallback } = props;
 
-  const marker = document.createComment('router');
+  const container = document.createElement('div');
+  container.className = 'zen-router-container';
   let currentNode: Node | null = null;
   let effectDispose: (() => void) | undefined;
+
+  // Helper to find and render matching route
+  function renderRoute(path: string): Node {
+    const route = routes.find((r) => r.path === path);
+
+    if (route) {
+      return route.component();
+    }
+    if (fallback) {
+      return fallback();
+    }
+    return document.createTextNode('404 Not Found');
+  }
+
+  // Render initial route based on current URL
+  const initialPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+  currentNode = renderRoute(initialPath);
+  container.appendChild(currentNode);
 
   // Initialize router
   onMount(() => {
@@ -47,7 +66,7 @@ export function Router(props: RouterProps): Node {
     defineRoutes(routeConfigs);
     startHistoryListener();
 
-    // Set up effect after mount to ensure marker is in DOM
+    // Set up effect for reactive navigation
     effectDispose = effect(() => {
       const { path } = $router.value;
 
@@ -60,27 +79,12 @@ export function Router(props: RouterProps): Node {
         currentNode = null;
       }
 
-      // Find matching route
-      const route = routes.find((r) => {
-        // Simple path matching - @zen/router handles this internally
-        // We just need to find the component for the matched route
-        return r.path === path;
-      });
-
       // Render new route
-      currentNode = untrack(() => {
-        if (route) {
-          return route.component();
-        }
-        if (fallback) {
-          return fallback();
-        }
-        return document.createTextNode('404 Not Found');
-      });
+      currentNode = untrack(() => renderRoute(path));
 
-      // Insert into DOM
-      if (currentNode && marker.parentNode) {
-        marker.parentNode.insertBefore(currentNode, marker);
+      // Insert into container
+      if (currentNode && container) {
+        container.appendChild(currentNode);
       }
 
       return undefined;
@@ -107,5 +111,5 @@ export function Router(props: RouterProps): Node {
     }
   });
 
-  return marker;
+  return container;
 }
