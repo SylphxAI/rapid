@@ -150,8 +150,10 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
   // Get dimensions from style or use defaults
   const width = typeof node.style?.width === 'number' ? node.style.width : parentWidth || 80;
   const padding = node.style?.padding || 1;
-  const paddingLeft = node.style?.paddingLeft || padding;
-  const paddingTop = node.style?.paddingTop || padding;
+  const paddingX = node.style?.paddingX || padding;
+  const paddingY = node.style?.paddingY || padding;
+  const paddingLeft = paddingX;
+  const paddingTop = paddingY;
 
   const lines: string[] = [];
 
@@ -215,5 +217,6 @@ export function render(node: TUINode, options: { width?: number } = {}): string 
  * Render and display in terminal
  */
 export function renderToTerminal(node: TUINode): void {
-  const _output = render(node);
+  const output = render(node);
+  console.log(output);
 }

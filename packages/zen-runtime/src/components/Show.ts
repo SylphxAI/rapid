@@ -11,8 +11,8 @@
 
 import { effect, untrack } from '@zen/signal';
 import { disposeNode, onCleanup } from '@zen/signal';
-import { type Reactive, resolve } from '../reactive-utils.js';
 import { getPlatformOps } from '../platform-ops.js';
+import { type Reactive, resolve } from '../reactive-utils.js';
 
 interface ShowProps<T> {
   when: Reactive<T>;

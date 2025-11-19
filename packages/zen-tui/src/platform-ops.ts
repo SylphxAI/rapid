@@ -37,7 +37,11 @@ export const tuiPlatformOps: PlatformOps<TUINode, TUIMarker, TUIFragment> = {
     return [];
   },
 
-  insertBefore(parent: TUINode, child: TUINode | TUIFragment, reference: TUINode | TUIMarker): void {
+  insertBefore(
+    parent: TUINode,
+    child: TUINode | TUIFragment,
+    reference: TUINode | TUIMarker,
+  ): void {
     // Find reference index
     const refIndex = parent.children.findIndex((c) => c === reference);
 

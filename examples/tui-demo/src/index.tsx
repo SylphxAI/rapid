@@ -1,12 +1,12 @@
 /**
  * TUI Demo - Testing cross-platform architecture
  *
- * Simple demo using only TUI-specific components (Box, Text).
- * Note: @zen/runtime components (For, Show, etc.) currently have DOM dependencies
- * and need to be refactored to be platform-agnostic.
+ * Demonstrates TUI rendering with the platform abstraction layer.
+ * Now supports both TUI-specific components (Box, Text) and
+ * @zen/runtime components (For, Show, Switch) thanks to platform ops!
  */
 
-import { render, signal } from '@zen/tui';
+import { renderToTerminal, signal } from '@zen/tui';
 import { Box } from '@zen/tui';
 import { Text } from '@zen/tui';
 
@@ -54,4 +54,4 @@ function App() {
 }
 
 // Render to terminal
-const _output = render(<App />);
+renderToTerminal(<App />);

@@ -103,10 +103,7 @@ export function useContext<T>(context: Context<T>): T {
  * }
  * ```
  */
-export function Provider<T>(
-  context: Context<T>,
-  props: { value: T; children: any | any[] },
-): any {
+export function Provider<T>(context: Context<T>, props: { value: T; children: any | any[] }): any {
   const { value, children } = props;
   const owner = getOwner();
 
