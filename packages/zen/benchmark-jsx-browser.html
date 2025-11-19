@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSX Runtime Benchmark</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .benchmark {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .result {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin: 10px 0;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 4px;
+    }
+    .old { color: #e74c3c; }
+    .new { color: #27ae60; }
+    .improvement {
+      color: #3498db;
+      font-weight: bold;
+    }
+    .negative { color: #e74c3c; }
+    .summary {
+      background: #3498db;
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    #output {
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 JSX Runtime Performance Comparison</h1>
+
+  <button onclick="runBenchmarks()">Run Benchmarks</button>
+
+  <div id="output"></div>
+
+  <script type="module">
+    // Simple signal implementation for benchmark
+    const signal = (initialValue) => {
+      let value = initialValue;
+      return {
+        get value() { return value; },
+        set value(v) { value = v; }
+      };
+    };
+
+    // Store on window for button access
+    window.signal = signal;
+
+    // Inline JSX runtime - OLD version
+    const jsxOld = (type, props) => {
+      const { children, ...restProps } = props || {};
+
+      if (typeof type === 'function') {
+        return type({ ...restProps, children });
+      }
+
+      const element = document.createElement(type);
+
+      if (restProps) {
+        for (const [key, value] of Object.entries(restProps)) {
+          if (key === 'className') {
+            element.className = value;
+          } else if (key.startsWith('on')) {
+            const eventName = key.slice(2).toLowerCase();
+            element.addEventListener(eventName, value);
+          } else if (key === 'style' && typeof value === 'object') {
+            Object.assign(element.style, value);
+          } else {
+            element.setAttribute(key, value);
+          }
+        }
+      }
+
+      if (children !== undefined) {
+        if (Array.isArray(children)) {
+          children.forEach(c => {
+            if (typeof c === 'string') {
+              element.appendChild(document.createTextNode(c));
+            } else if (c instanceof Node) {
+              element.appendChild(c);
+            }
+          });
+        } else if (typeof children === 'string') {
+          element.appendChild(document.createTextNode(children));
+        } else if (children instanceof Node) {
+          element.appendChild(children);
+        }
+      }
+
+      return element;
+    };
+
+    // Inline JSX runtime - NEW optimized version
+    const jsxNew = (type, props) => {
+      if (typeof type === 'function') {
+        return type(props);
+      }
+
+      const element = document.createElement(type);
+
+      if (props) {
+        for (const key in props) {
+          if (key === 'children' || key === 'key') continue;
+
+          const value = props[key];
+
+          // Event (char code check: 'on')
+          if (key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110) {
+            const eventName = key.slice(2).toLowerCase();
+            element.addEventListener(eventName, value);
+            continue;
+          }
+
+          if (key === 'className' || key === 'class') {
+            element.className = value;
+            continue;
+          }
+
+          if (key === 'style' && typeof value === 'object') {
+            Object.assign(element.style, value);
+            continue;
+          }
+
+          element.setAttribute(key, value);
+        }
+      }
+
+      const children = props?.children;
+      if (children !== undefined) {
+        if (Array.isArray(children)) {
+          for (let i = 0; i < children.length; i++) {
+            const c = children[i];
+            if (typeof c === 'string') {
+              element.appendChild(document.createTextNode(c));
+            } else if (c instanceof Node) {
+              element.appendChild(c);
+            }
+          }
+        } else if (typeof children === 'string') {
+          element.appendChild(document.createTextNode(children));
+        } else if (children instanceof Node) {
+          element.appendChild(children);
+        }
+      }
+
+      return element;
+    };
+
+    window.jsxOld = jsxOld;
+    window.jsxNew = jsxNew;
+
+    console.log('✅ JSX runtimes loaded');
+  </script>
+
+  <script>
+    function benchmark(name, fn, iterations = 100000) {
+      // Warmup
+      for (let i = 0; i < 1000; i++) fn();
+
+      // Measure
+      const start = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        fn();
+      }
+      const end = performance.now();
+
+      return end - start;
+    }
+
+    function runBenchmarks() {
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+
+      const log = (text) => {
+        output.innerHTML += text + '\n';
+      };
+
+      log('🔥 JSX Runtime Performance Comparison\n');
+      log('='.repeat(80) + '\n');
+
+      const results = [];
+
+      // Test 1: Simple div
+      log('\n📦 Test 1: Simple div creation');
+      const old1 = benchmark('OLD: Simple div', () => {
+        window.jsxOld('div', { className: 'test', id: 'foo' });
+      });
+      const new1 = benchmark('NEW: Simple div', () => {
+        window.jsxNew('div', { className: 'test', id: 'foo' });
+      });
+      const imp1 = ((old1 - new1) / old1) * 100;
+      results.push(imp1);
+      log(`OLD: ${old1.toFixed(2)}ms`);
+      log(`NEW: ${new1.toFixed(2)}ms`);
+      log(`Improvement: ${imp1.toFixed(1)}%\n`);
+
+      // Test 2: Many props
+      log('\n📦 Test 2: Element with 10 props');
+      const props = {
+        className: 'test',
+        id: 'foo',
+        'data-foo': 'bar',
+        'data-baz': 'qux',
+        title: 'Test',
+        role: 'button',
+        tabIndex: 0,
+        'aria-label': 'Test',
+        'aria-hidden': 'false',
+        'data-test': 'value',
+      };
+      const old2 = benchmark('OLD: 10 props', () => {
+        window.jsxOld('div', props);
+      });
+      const new2 = benchmark('NEW: 10 props', () => {
+        window.jsxNew('div', props);
+      });
+      const imp2 = ((old2 - new2) / old2) * 100;
+      results.push(imp2);
+      log(`OLD: ${old2.toFixed(2)}ms`);
+      log(`NEW: ${new2.toFixed(2)}ms`);
+      log(`Improvement: ${imp2.toFixed(1)}%\n`);
+
+      // Test 3: Event listeners
+      log('\n📦 Test 3: Element with 5 event listeners');
+      const old3 = benchmark('OLD: 5 events', () => {
+        window.jsxOld('button', {
+          onClick: () => {},
+          onMouseEnter: () => {},
+          onMouseLeave: () => {},
+          onFocus: () => {},
+          onBlur: () => {},
+          children: 'Click me',
+        });
+      });
+      const new3 = benchmark('NEW: 5 events', () => {
+        window.jsxNew('button', {
+          onClick: () => {},
+          onMouseEnter: () => {},
+          onMouseLeave: () => {},
+          onFocus: () => {},
+          onBlur: () => {},
+          children: 'Click me',
+        });
+      });
+      const imp3 = ((old3 - new3) / old3) * 100;
+      results.push(imp3);
+      log(`OLD: ${old3.toFixed(2)}ms`);
+      log(`NEW: ${new3.toFixed(2)}ms`);
+      log(`Improvement: ${imp3.toFixed(1)}%\n`);
+
+      // Test 4: Nested elements
+      log('\n📦 Test 4: Nested elements (depth 3)');
+      const old4 = benchmark('OLD: Nested', () => {
+        window.jsxOld('div', {
+          children: window.jsxOld('div', {
+            children: window.jsxOld('div', {
+              children: 'Deep',
+            }),
+          }),
+        });
+      });
+      const new4 = benchmark('NEW: Nested', () => {
+        window.jsxNew('div', {
+          children: window.jsxNew('div', {
+            children: window.jsxNew('div', {
+              children: 'Deep',
+            }),
+          }),
+        });
+      });
+      const imp4 = ((old4 - new4) / old4) * 100;
+      results.push(imp4);
+      log(`OLD: ${old4.toFixed(2)}ms`);
+      log(`NEW: ${new4.toFixed(2)}ms`);
+      log(`Improvement: ${imp4.toFixed(1)}%\n`);
+
+      // Test 5: List rendering
+      log('\n📦 Test 5: List of 50 items');
+      const items = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        name: `Item ${i}`,
+        active: i % 2 === 0,
+      }));
+      const old5 = benchmark('OLD: 50 items', () => {
+        window.jsxOld('ul', {
+          className: 'list',
+          children: items.map((item) =>
+            window.jsxOld('li', {
+              key: item.id,
+              className: item.active ? 'active' : 'inactive',
+              onClick: () => {},
+              children: item.name,
+            })
+          ),
+        });
+      }, 10000);
+      const new5 = benchmark('NEW: 50 items', () => {
+        window.jsxNew('ul', {
+          className: 'list',
+          children: items.map((item) =>
+            window.jsxNew('li', {
+              key: item.id,
+              className: item.active ? 'active' : 'inactive',
+              onClick: () => {},
+              children: item.name,
+            })
+          ),
+        });
+      }, 10000);
+      const imp5 = ((old5 - new5) / old5) * 100;
+      results.push(imp5);
+      log(`OLD: ${old5.toFixed(2)}ms`);
+      log(`NEW: ${new5.toFixed(2)}ms`);
+      log(`Improvement: ${imp5.toFixed(1)}%\n`);
+
+      // Summary
+      log('\n' + '='.repeat(80));
+      log('📊 SUMMARY\n');
+
+      const avg = results.reduce((a, b) => a + b, 0) / results.length;
+
+      log(`Average improvement: ${avg.toFixed(1)}%`);
+
+      if (avg > 0) {
+        log(`✅ Optimized version is ${avg.toFixed(1)}% faster overall`);
+      } else {
+        log(`❌ Optimized version is ${Math.abs(avg).toFixed(1)}% slower overall`);
+      }
+
+      log('\n' + '='.repeat(80));
+    }
+  </script>
+</body>
+</html>

@@ -1,14 +1,18 @@
 /**
- * ZenJS JSX Runtime
+ * ZenJS JSX Runtime - Optimized
  *
- * Renders JSX to fine-grained reactive DOM
- * Powered by @zen/signal reactive core
+ * Performance optimizations:
+ * 1. Avoid Object.entries() allocation
+ * 2. Cache hydration state
+ * 3. Optimize string operations
+ * 4. Remove unnecessary checks
+ * 5. Reorder conditions by frequency
  */
 
 import { effect } from '@zen/signal';
 import type { AnyZen } from '@zen/signal';
+import { enterHydrateParent, getNextHydrateNode, isHydrating } from './hydrate.js';
 import { attachNodeToOwner, createOwner, setOwner } from './lifecycle.js';
-import { isHydrating, getNextHydrateNode, enterHydrateParent } from './hydrate.js';
 
 export { Fragment } from './core/fragment.js';
 
@@ -17,71 +21,72 @@ type Child = Node | string | number | boolean | null | undefined;
 type ReactiveValue = AnyZen;
 
 /**
- * Check if value is a reactive signal/computed from @zen/signal
- * Zen signals have _value and _kind properties
+ * Fast reactive check - inline for better performance
+ * Check _kind first (faster than _value lookup)
  */
 function isReactive(value: any): value is ReactiveValue {
-  return value !== null && typeof value === 'object' && '_value' in value && '_kind' in value;
+  return value !== null && typeof value === 'object' && '_kind' in value;
 }
 
 /**
- * JSX factory function
+ * JSX factory function - optimized
  */
 export function jsx(type: string | Function, props: Props | null): Node {
-  const { children, ...restProps } = props || {};
-
   // Component
   if (typeof type === 'function') {
-    // Create owner for component lifecycle
     const owner = createOwner();
     setOwner(owner);
 
     try {
-      const node = type({ ...restProps, children });
-
-      // Attach node to owner for cleanup tracking
+      const node = type(props);
       attachNodeToOwner(node, owner);
-
       return node;
     } finally {
-      // Clear owner context
       setOwner(null);
     }
   }
+
+  // Cache hydration state (avoid repeated calls)
+  const hydrating = isHydrating();
 
   // Element
   let element: Element;
 
   // Hydration mode: reuse existing node
-  if (isHydrating()) {
+  if (hydrating) {
     const node = getNextHydrateNode();
 
-    // Verify node matches expected type
-    if (node && node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName.toLowerCase() === type) {
+    if (
+      node &&
+      node.nodeType === Node.ELEMENT_NODE &&
+      (node as Element).tagName.toLowerCase() === type
+    ) {
       element = node as Element;
 
-      // Set up reactive attributes and event listeners
-      // (SSR rendered static HTML, need to attach interactivity)
-      if (restProps) {
-        for (const [key, value] of Object.entries(restProps)) {
-          setAttribute(element, key, value);
+      // Set up interactivity (avoid props extraction)
+      if (props) {
+        // Direct iteration - no Object.entries() allocation
+        for (const key in props) {
+          if (key !== 'children' && key !== 'key') {
+            setAttribute(element, key, props[key]);
+          }
         }
       }
 
-      // Enter element for child hydration
+      // Handle children
+      const children = props?.children;
       if (children !== undefined) {
         enterHydrateParent(element);
-        appendChild(element, children);
+        appendChild(element, children, hydrating);
       }
 
       return element;
     }
 
-    // Mismatch: log warning in development
+    // Mismatch warning in dev only
     if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
       console.warn(
-        `Hydration mismatch: expected <${type}> but found ${node?.nodeName || 'null'}. ` +
-          'Falling back to client-side rendering.'
+        `Hydration mismatch: expected <${type}> but found ${node?.nodeName || 'null'}`
       );
     }
   }
@@ -89,16 +94,19 @@ export function jsx(type: string | Function, props: Props | null): Node {
   // Normal mode: create new element
   element = document.createElement(type);
 
-  // Set properties and attributes
-  if (restProps) {
-    for (const [key, value] of Object.entries(restProps)) {
-      setAttribute(element, key, value);
+  // Set attributes (avoid props extraction)
+  if (props) {
+    for (const key in props) {
+      if (key !== 'children' && key !== 'key') {
+        setAttribute(element, key, props[key]);
+      }
     }
   }
 
   // Append children
+  const children = props?.children;
   if (children !== undefined) {
-    appendChild(element, children);
+    appendChild(element, children, hydrating);
   }
 
   return element;
@@ -108,9 +116,35 @@ export const jsxs = jsx;
 export const jsxDEV = jsx;
 
 /**
- * Set attribute/property on element
+ * Set attribute - optimized
  */
 function setAttribute(element: Element, key: string, value: any): void {
+  // Fast path: most common cases first
+
+  // Event listener (most common in interactive apps)
+  if (key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110) {
+    // 'on' prefix check via char codes (faster than startsWith)
+    const eventName = key.slice(2).toLowerCase();
+    element.addEventListener(eventName, value);
+    return;
+  }
+
+  // Class name (very common)
+  if (key === 'className' || key === 'class') {
+    element.className = String(value);
+    return;
+  }
+
+  // Style (common)
+  if (key === 'style') {
+    if (typeof value === 'string') {
+      (element as HTMLElement).style.cssText = value;
+    } else if (value) {
+      Object.assign((element as HTMLElement).style, value);
+    }
+    return;
+  }
+
   // Ref callback
   if (key === 'ref') {
     if (typeof value === 'function') {
@@ -119,31 +153,19 @@ function setAttribute(element: Element, key: string, value: any): void {
     return;
   }
 
-  // Event listener
-  if (key.startsWith('on')) {
-    const eventName = key.slice(2).toLowerCase();
-    element.addEventListener(eventName, value);
-    return;
-  }
-
-  // Reactive value (Signal or Computed)
+  // Reactive value
   if (isReactive(value)) {
-    // Special handling for form control values
-    // Use effect but only update when DOM value actually differs
-    // This prevents cursor position issues while maintaining reactivity
+    // Special case: form control values
     if (
       key === 'value' &&
       (element instanceof HTMLInputElement ||
         element instanceof HTMLTextAreaElement ||
         element instanceof HTMLSelectElement)
     ) {
-      // Set initial value
       (element as any)[key] = value.value;
 
-      // Create effect that only updates when value actually changes
       effect(() => {
         const newValue = value.value;
-        // Only update if DOM value is different (prevents cursor issues)
         if ((element as any)[key] !== newValue) {
           (element as any)[key] = newValue;
         }
@@ -153,36 +175,20 @@ function setAttribute(element: Element, key: string, value: any): void {
     }
 
     effect(() => {
-      setStaticAttribute(element, key, value.value);
+      setStaticValue(element, key, value.value);
       return undefined;
     });
     return;
   }
 
   // Static value
-  setStaticAttribute(element, key, value);
+  setStaticValue(element, key, value);
 }
 
 /**
- * Set static attribute value
+ * Set static value - extracted to avoid duplication
  */
-function setStaticAttribute(element: Element, key: string, value: any): void {
-  // Class name
-  if (key === 'className' || key === 'class') {
-    element.className = String(value);
-    return;
-  }
-
-  // Style
-  if (key === 'style') {
-    if (typeof value === 'string') {
-      (element as HTMLElement).style.cssText = value;
-    } else if (typeof value === 'object') {
-      Object.assign((element as HTMLElement).style, value);
-    }
-    return;
-  }
-
+function setStaticValue(element: Element, key: string, value: any): void {
   // Property vs attribute
   if (key in element) {
     (element as any)[key] = value;
@@ -192,69 +198,65 @@ function setStaticAttribute(element: Element, key: string, value: any): void {
 }
 
 /**
- * Append child to element
+ * Append child - optimized
  */
-function appendChild(parent: Element, child: any): void {
-  if (child === null || child === undefined || child === false) {
+function appendChild(parent: Element, child: any, hydrating: boolean): void {
+  // Null/undefined/false - most common in conditional rendering
+  if (child == null || child === false) {
     return;
   }
 
-  // Array of children
+  // Array of children - common in lists
   if (Array.isArray(child)) {
-    for (const c of child) {
-      appendChild(parent, c);
+    for (let i = 0; i < child.length; i++) {
+      appendChild(parent, child[i], hydrating);
     }
     return;
   }
 
-  // Reactive child (Signal or Computed)
-  if (isReactive(child)) {
-    let textNode: Text;
-
-    if (isHydrating()) {
-      // Hydration: reuse existing text node
-      const node = getNextHydrateNode();
-      if (node && node.nodeType === Node.TEXT_NODE) {
-        textNode = node as Text;
-      } else {
-        // Mismatch: create new text node
-        textNode = document.createTextNode('');
-        parent.appendChild(textNode);
-      }
-    } else {
-      // Normal: create new text node
-      textNode = document.createTextNode('');
-      parent.appendChild(textNode);
-    }
-
-    // Set up reactive subscription
-    effect(() => {
-      const value = child.value;
-      textNode.data = String(value ?? '');
-      return undefined;
-    });
-    return;
-  }
-
-  // Node
+  // Node - common for components
   if (child instanceof Node) {
-    if (!isHydrating()) {
+    if (!hydrating) {
       parent.appendChild(child);
     }
     return;
   }
 
-  // Text
-  if (isHydrating()) {
-    // Skip - text already in DOM
-    const node = getNextHydrateNode();
-    // Verify it's a text node (development mode)
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
-      if (!node || node.nodeType !== Node.TEXT_NODE) {
-        console.warn(
-          `Hydration mismatch: expected text node "${String(child)}" but found ${node?.nodeName || 'null'}`
-        );
+  // Reactive child - less common
+  if (isReactive(child)) {
+    let textNode: Text;
+
+    if (hydrating) {
+      const node = getNextHydrateNode();
+      if (node && node.nodeType === Node.TEXT_NODE) {
+        textNode = node as Text;
+      } else {
+        textNode = document.createTextNode('');
+        parent.appendChild(textNode);
       }
+    } else {
+      textNode = document.createTextNode('');
+      parent.appendChild(textNode);
+    }
+
+    effect(() => {
+      textNode.data = String(child.value ?? '');
+      return undefined;
+    });
+    return;
+  }
+
+  // Text - very common
+  if (hydrating) {
+    const node = getNextHydrateNode();
+    if (
+      typeof process !== 'undefined' &&
+      process.env?.NODE_ENV === 'development' &&
+      (!node || node.nodeType !== Node.TEXT_NODE)
+    ) {
+      console.warn(
+        `Hydration mismatch: expected text node "${String(child)}" but found ${node?.nodeName || 'null'}`
+      );
     }
   } else {
     parent.appendChild(document.createTextNode(String(child)));
