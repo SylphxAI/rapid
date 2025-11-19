@@ -25,13 +25,11 @@ export function transformZen(code: string, s: MagicString, _id: string, debug: b
 
   if (signals.size === 0) {
     if (debug) {
-      console.log('  No signals found in Zen file');
     }
     return;
   }
 
   if (debug) {
-    console.log('  Found signals:', Array.from(signals));
   }
 
   // Step 2: Find all .value accesses in JSX children context
@@ -50,7 +48,7 @@ export function transformZen(code: string, s: MagicString, _id: string, debug: b
       const fullMatch = match[0];
       const valueExpr = match[1];
       const startPos = match.index;
-      const endPos = startPos + fullMatch.length;
+      const _endPos = startPos + fullMatch.length;
 
       // Find the actual position of signal.value within the braces
       const valueStart = startPos + fullMatch.indexOf(valueExpr);
@@ -66,13 +64,11 @@ export function transformZen(code: string, s: MagicString, _id: string, debug: b
 
   if (usages.size === 0) {
     if (debug) {
-      console.log('  No {signal.value} usages found in JSX');
     }
     return;
   }
 
   if (debug) {
-    console.log('  Found JSX usages:', Array.from(usages.keys()));
   }
 
   // Step 3: Wrap each signal.value in arrow function
