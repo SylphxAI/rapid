@@ -16,7 +16,7 @@ Provide production-ready reactive primitives with:
 ## Who
 **Users:** Frontend developers needing lightweight, fast reactive state
 **Use cases:**
-- Cross-framework state management (React, Vue, Svelte, Preact, Solid)
+- Cross-framework state management (React, Vue, Preact, or framework-agnostic)
 - Fine-grained UI frameworks (Zen framework)
 - Performance-critical applications
 
@@ -35,8 +35,9 @@ Provide production-ready reactive primitives with:
 **In scope:**
 - Core reactive primitives (signal, computed, effect)
 - Auto-tracking dependency system
-- Framework integrations (React, Vue, Svelte, Preact, Solid, Zen)
-- Utility packages (patterns, persistence, routing, craft)
+- Framework integrations (React, Vue, Preact, Zen)
+- Signal extensions (patterns, persistence, craft)
+- Routing (core + framework adapters)
 - Universal bundler plugin (unplugin-zen-signal)
 
 **Out of scope:**

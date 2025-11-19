@@ -55,6 +55,21 @@ Core primitive: `signal<T>()` creates reactive state. Derived values via `comput
 **Where:** `packages/unplugin-zen-signal/`
 **Trade-off:** Runtime overhead (~5-10%) vs zero-config experience. Worth it: Developer experience, easier debugging, compiler can optimize later.
 
+### Pattern: Framework-Specific Adapter Packages
+**Why:** Avoid npm warnings from optional peerDependencies, follow industry standard (TanStack, Nanostores)
+**Where:** `packages/zen-signal-{react,vue,preact}/`, `packages/zen-router-{react,vue,preact}/`
+**Trade-off:** More packages to maintain vs clean npm install experience. Worth it: Users only install what they need, no warnings, clearer separation.
+
+### Pattern: unplugin for Universal Bundler Support
+**Why:** Write once, support all bundlers (Vite, Webpack, Rollup, esbuild) automatically
+**Where:** `packages/unplugin-zen-signal/` (internal dependency, re-exported by framework packages)
+**Trade-off:** Extra abstraction layer vs writing separate plugins for each bundler. Worth it: DRY principle, consistent behavior across bundlers.
+
+### Pattern: Native Framework Integration
+**Why:** Zen framework doesn't need separate adapter, lifecycle integration built-in
+**Where:** `packages/zen/src/index.ts` - lifecycle-aware `effect()` wraps raw effect with owner tracking
+**Trade-off:** Zen-specific code in core framework vs separate adapter. Worth it: Eliminates circular dependency, simpler architecture for native framework.
+
 ## Boundaries
 
 **In scope:**
@@ -66,9 +81,9 @@ Core primitive: `signal<T>()` creates reactive state. Derived values via `comput
 - Framework integrations (runtime + compiler modes)
 
 **Out of scope:**
-- Framework-specific state patterns (Redux, Zustand-style stores) - see `@zen/signal-patterns`
-- Persistence - see `@zen/signal-persistent`
-- Immutability helpers - see `@zen/signal-craft`
+- Framework-specific state patterns (Redux, Zustand-style stores) - see `@zen/signal-extensions/patterns`
+- Persistence - see `@zen/signal-extensions/persistent`
+- Immutability helpers - see `@zen/signal-extensions/craft`
 - Routing - see `@zen/router`
 - DevTools - future package
 
@@ -76,25 +91,24 @@ Core primitive: `signal<T>()` creates reactive state. Derived values via `comput
 
 ```
 packages/
+  # Core
   zen-signal/              @zen/signal - Core reactive primitives
-  zen/                     @zen/zen - Fine-grained framework
+  zen/                     @zen/zen - Fine-grained framework (native integration)
 
-  # Framework integrations
-  zen-signal-zen/          @zen/signal-zen - Zen framework adapter
+  # Signal Framework Adapters (includes unplugin)
+  zen-signal-react/        @zen/signal-react - React integration + auto-unwrap
+  zen-signal-vue/          @zen/signal-vue - Vue integration + auto-unwrap
+  zen-signal-preact/       @zen/signal-preact - Preact integration + auto-unwrap
+
+  # Router Framework Adapters
+  zen-router/              @zen/router - Core router
+  zen-router-react/        @zen/router-react - React hooks
+  zen-router-vue/          @zen/router-vue - Vue composables
+  zen-router-preact/       @zen/router-preact - Preact hooks
 
   # Utilities
-  zen-signal-patterns/     @zen/signal-patterns - Store, async, map patterns
-  zen-signal-persistent/   @zen/signal-persistent - localStorage/sessionStorage
-  zen-signal-craft/        @zen/signal-craft - Immutable updates
-
-  # Routing
-  zen-router/              @zen/router - Core router
-  zen-router-react/        @zen/router-react - React bindings
-  zen-router-preact/       @zen/router-preact - Preact bindings
-  zen-router-zen/          @zen/router-zen - Zen framework bindings
-
-  # Universal plugin
-  unplugin-zen-signal/     unplugin-zen-signal - Runtime-first, all frameworks
+  zen-signal-extensions/   @zen/signal-extensions - Patterns, persistent, craft
+  unplugin-zen-signal/     unplugin-zen-signal - Universal bundler plugin (internal)
 ```
 
 ## Performance Characteristics
