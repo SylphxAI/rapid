@@ -1,4 +1,4 @@
-import { type Zen, subscribe } from '@zen/signal';
+import { type Signal, subscribe } from '@zen/signal';
 import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 
 /**
@@ -11,7 +11,7 @@ import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
  *
  * @example
  * ```tsx
- * import { zen } from '@zen/signal';
+ * import { signal } from '@zen/signal';
  * import { useStore } from '@zen/zen-solid';
  *
  * const count = zen(0);
@@ -22,7 +22,7 @@ import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
  * }
  * ```
  */
-export function useStore<Value>(store: Zen<Value>): () => Value {
+export function useStore<Value>(store: Signal<Value>): () => Value {
   const [value, setValue] = createSignal<Value>(store.value);
 
   // Subscribe on mount
@@ -52,7 +52,7 @@ export function useStore<Value>(store: Zen<Value>): () => Value {
  *
  * @example
  * ```tsx
- * import { zen } from '@zen/signal';
+ * import { signal } from '@zen/signal';
  * import { fromStore } from '@zen/zen-solid';
  *
  * const count = zen(0);
@@ -63,7 +63,7 @@ export function useStore<Value>(store: Zen<Value>): () => Value {
  * }
  * ```
  */
-export function fromStore<Value>(store: Zen<Value>): () => Value {
+export function fromStore<Value>(store: Signal<Value>): () => Value {
   const [value, setValue] = createSignal<Value>(store.value, { equals: false });
 
   // Subscribe immediately (runs before mount)

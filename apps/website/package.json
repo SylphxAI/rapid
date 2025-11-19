@@ -11,7 +11,8 @@
   "dependencies": {
     "@zen/zen": "workspace:*",
     "@zen/signal": "workspace:*",
-    "@zen/router": "workspace:*"
+    "@zen/router": "workspace:*",
+    "@zen/router-zen": "workspace:*"
   },
   "devDependencies": {
     "vite": "^7.2.2",

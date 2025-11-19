@@ -1,4 +1,4 @@
-import { type Zen, subscribe } from '@zen/signal';
+import { type Signal, subscribe } from '@zen/signal';
 
 /**
  * Svelte-compatible store interface
@@ -18,7 +18,7 @@ export interface Readable<T> {
  * @example
  * ```svelte
  * <script>
- *   import { zen } from '@zen/signal';
+ *   import { signal } from '@zen/signal';
  *   import { fromZen } from '@zen/zen-svelte';
  *
  *   const count = zen(0);
@@ -28,7 +28,7 @@ export interface Readable<T> {
  * <div>{$svelteCount}</div>
  * ```
  */
-export function fromZen<Value>(store: Zen<Value>): Readable<Value> {
+export function fromZen<Value>(store: Signal<Value>): Readable<Value> {
   return {
     subscribe(subscriber: (value: Value) => void): () => void {
       // Immediately call with current value (Svelte store contract)
@@ -53,7 +53,7 @@ export function fromZen<Value>(store: Zen<Value>): Readable<Value> {
  * @example
  * ```svelte
  * <script>
- *   import { zen } from '@zen/signal';
+ *   import { signal } from '@zen/signal';
  *   import { useStore } from '@zen/zen-svelte';
  *
  *   const count = zen(0);
@@ -63,6 +63,6 @@ export function fromZen<Value>(store: Zen<Value>): Readable<Value> {
  * <div>{$store}</div>
  * ```
  */
-export function useStore<Value>(store: Zen<Value>): Readable<Value> {
+export function useStore<Value>(store: Signal<Value>): Readable<Value> {
   return fromZen(store);
 }

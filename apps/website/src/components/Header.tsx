@@ -1,4 +1,4 @@
-import { Link } from '@zen/zen';
+import { Link } from '@zen/router-zen';
 
 export function Header() {
   return (

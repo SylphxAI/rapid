@@ -1,4 +1,4 @@
-import { type Zen, subscribe } from '@zen/signal';
+import { type Signal, subscribe } from '@zen/signal';
 import { useEffect, useState } from 'preact/hooks';
 
 /**
@@ -11,7 +11,7 @@ import { useEffect, useState } from 'preact/hooks';
  *
  * @example
  * ```tsx
- * import { zen } from '@zen/signal';
+ * import { signal } from '@zen/signal';
  * import { useStore } from '@zen/zen-preact';
  *
  * const count = zen(0);
@@ -22,7 +22,7 @@ import { useEffect, useState } from 'preact/hooks';
  * }
  * ```
  */
-export function useStore<Value>(store: Zen<Value>): Value {
+export function useStore<Value>(store: Signal<Value>): Value {
   const [value, setValue] = useState(() => store.value);
 
   useEffect(() => {

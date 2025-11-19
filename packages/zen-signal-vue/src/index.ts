@@ -1,4 +1,4 @@
-import { type Zen, subscribe } from '@zen/signal';
+import { type Signal, subscribe } from '@zen/signal';
 import { type Ref, onMounted, onUnmounted, ref } from 'vue';
 
 /**
@@ -8,7 +8,7 @@ import { type Ref, onMounted, onUnmounted, ref } from 'vue';
  * @param store The Zen store to subscribe to.
  * @returns A reactive Vue ref containing the store's current value.
  */
-export function useStore<Value>(store: Zen<Value>): Ref<Value> {
+export function useStore<Value>(store: Signal<Value>): Ref<Value> {
   // Get the initial value synchronously
   const initialValue: Value = store.value;
   // Create a reactive ref with the initial value

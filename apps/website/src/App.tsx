@@ -1,4 +1,4 @@
-import { Router } from '@zen/zen';
+import { Router } from '@zen/router-zen';
 import { Footer } from './components/Footer.tsx';
 import { Header } from './components/Header.tsx';
 import { Docs } from './pages/Docs.tsx';

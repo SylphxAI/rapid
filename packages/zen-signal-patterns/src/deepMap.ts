@@ -1,5 +1,5 @@
-import { computed, subscribe, zen } from '@zen/signal';
-import type { Computed, Unsubscribe, Zen } from '@zen/signal';
+import { computed, signal, subscribe } from '@zen/signal';
+import type { Computed, Signal, Unsubscribe } from '@zen/signal';
 
 export type Path = string | (string | number)[];
 
@@ -9,7 +9,7 @@ export interface DeepMapStore<T extends object> {
   setPath(path: Path, value: any): void;
   // biome-ignore lint/suspicious/noExplicitAny: Path values can be any type
   selectPath(path: Path): Computed<any>;
-  _state: Zen<T>;
+  _state: Signal<T>;
   // biome-ignore lint/suspicious/noExplicitAny: Cache stores computed values of unknown types
   _cache: Map<string, Computed<any>>;
 }
@@ -102,7 +102,7 @@ const setDeep = (obj: any, path: Path, value: any): any => {
  * ```
  */
 export function deepMap<T extends object>(initial: T): DeepMapStore<T> {
-  const state = zen(initial);
+  const state = signal(initial);
   // biome-ignore lint/suspicious/noExplicitAny: Cache stores computed values of unknown types
   const cache = new Map<string, Computed<any>>();
 

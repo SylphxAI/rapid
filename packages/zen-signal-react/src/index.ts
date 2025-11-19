@@ -1,4 +1,4 @@
-import { type Zen, subscribe } from '@zen/signal';
+import { type Signal, subscribe } from '@zen/signal';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
 /**
@@ -22,7 +22,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
  * }
  * ```
  */
-export function useStore<Value>(store: Zen<Value>): Value {
+export function useStore<Value>(store: Signal<Value>): Value {
   // Use React 18's useSyncExternalStore if available for better concurrent mode support
   if (typeof useSyncExternalStore !== 'undefined') {
     return useSyncExternalStore(

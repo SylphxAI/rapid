@@ -35,6 +35,10 @@
     "./hydrate": {
       "types": "./dist/hydrate.d.ts",
       "import": "./dist/hydrate.js"
+    },
+    "./lifecycle": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "files": ["dist"],

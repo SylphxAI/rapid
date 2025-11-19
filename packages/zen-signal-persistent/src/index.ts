@@ -1,5 +1,5 @@
 // Combined imports
-import { type Zen, subscribe, zen } from '@zen/signal';
+import { type Signal, signal, subscribe } from '@zen/signal';
 import { type MapStore, map } from '@zen/zen-patterns';
 
 // --- Types ---
@@ -37,7 +37,7 @@ const GenericJSONSerializer = {
 /** @internal Handles storage event updates for persistentZen */
 function _handleStorageEventUpdate<Value>(
   event: StorageEvent,
-  baseZen: Zen<Value>,
+  baseZen: Signal<Value>,
   serializer: Serializer<Value>,
   initialValue: Value, // Needed for reset case
 ): void {
@@ -71,14 +71,14 @@ export function persistentZen<Value>(
   key: string,
   initialValue: Value,
   options?: PersistentOptions<Value>,
-): Zen<Value> {
+): Signal<Value> {
   // Use Zen<Value> type
   const storage = options?.storage ?? (typeof window !== 'undefined' ? localStorage : undefined);
   const serializer = options?.serializer ?? GenericJSONSerializer;
   const shouldListen = options?.listen ?? true;
 
   if (typeof window === 'undefined' || !storage) {
-    return zen<Value>(initialValue); // Fallback to regular zen if no storage
+    return signal<Value>(initialValue); // Fallback to regular signal if no storage
   }
 
   // --- Revised Initialization ---
@@ -95,7 +95,7 @@ export function persistentZen<Value>(
   }
 
   const actualInitialValue = initialValueFromStorage ?? initialValue;
-  const baseZen = zen<Value>(actualInitialValue);
+  const baseZen = signal<Value>(actualInitialValue);
   // --- End Revised Initialization ---
 
   let ignoreNextStorageEvent = false; // Flag to prevent echo from self-triggered events

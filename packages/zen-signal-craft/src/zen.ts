@@ -1,5 +1,5 @@
 import { craft, craftWithPatches } from '@sylphx/craft';
-import type { Zen } from '@zen/signal';
+import type { Signal } from '@zen/signal';
 import type { CraftOptions, Patch } from './types';
 
 /**
@@ -12,16 +12,16 @@ import type { CraftOptions, Patch } from './types';
  * @param options Options to enable patch generation.
  * @returns When options.patches or options.inversePatches is true, returns [Patch[], Patch[]]. Otherwise returns void.
  */
-export function craftZen<T>(targetZen: Zen<T>, recipe: (draft: T) => undefined): void;
+export function craftZen<T>(targetZen: Signal<T>, recipe: (draft: T) => undefined): void;
 
 export function craftZen<T>(
-  targetZen: Zen<T>,
+  targetZen: Signal<T>,
   recipe: (draft: T) => undefined,
   options: CraftOptions,
 ): [Patch[], Patch[]];
 
 export function craftZen<T>(
-  targetZen: Zen<T>,
+  targetZen: Signal<T>,
   recipe: (draft: T) => undefined,
   options?: CraftOptions,
 ): [Patch[], Patch[]] | undefined {
