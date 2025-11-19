@@ -14,10 +14,13 @@ export default {
           light: '#818cf8',
         },
         secondary: '#8b5cf6',
+        // Framework-level dark mode: Use CSS variables that auto-switch
+        // Components use bg-bg, text-text etc. once, no dark: prefixes needed
         bg: {
-          DEFAULT: '#ffffff',
-          light: '#f9fafb',
-          lighter: '#f3f4f6',
+          DEFAULT: 'var(--color-bg)',
+          light: 'var(--color-bg-light)',
+          lighter: 'var(--color-bg-lighter)',
+          // Keep explicit dark variants for components that already use them
           dark: {
             DEFAULT: '#0a0a0a',
             light: '#1a1a1a',
@@ -25,15 +28,17 @@ export default {
           },
         },
         text: {
-          DEFAULT: '#111827',
-          muted: '#6b7280',
+          DEFAULT: 'var(--color-text)',
+          muted: 'var(--color-text-muted)',
+          // Keep explicit dark variants for components that already use them
           dark: {
             DEFAULT: '#ffffff',
             muted: '#a0a0a0',
           },
         },
         border: {
-          DEFAULT: '#e5e7eb',
+          DEFAULT: 'var(--color-border)',
+          // Keep explicit dark variant for components that already use it
           dark: '#333',
         },
         success: '#10b981',
