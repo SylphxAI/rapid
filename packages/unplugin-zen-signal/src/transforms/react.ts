@@ -12,18 +12,11 @@
  */
 
 import type MagicString from 'magic-string';
-
-interface SignalUsage {
-  name: string;
-  positions: number[];
-  declarationEnd: number;
-}
-
-interface SignalInfo {
-  name: string;
-  start: number;
-  end: number;
-}
+import {
+  type SignalInfo,
+  type SignalUsage,
+  findSignalVariablesWithPositions,
+} from '../utils/common';
 
 export function transformReact(code: string, s: MagicString, _id: string, debug: boolean): void {
   // Step 1: Find all signal variables with their positions
@@ -121,27 +114,6 @@ export function transformReact(code: string, s: MagicString, _id: string, debug:
     // Insert hooks after last signal declaration
     s.appendLeft(lastDeclarationEnd, hooksCode);
   }
-}
-
-/**
- * Find all signal variable declarations with their positions
- * Matches: const x = signal(...)
- * Returns Map of signal name to { name, start, end }
- */
-function findSignalVariablesWithPositions(code: string): Map<string, SignalInfo> {
-  const signals = new Map<string, SignalInfo>();
-  const regex = /const\s+(\w+)\s*=\s*signal\([^)]*\);?/g;
-  const matches = code.matchAll(regex);
-
-  for (const match of matches) {
-    const name = match[1];
-    const start = match.index;
-    const end = start + match[0].length;
-
-    signals.set(name, { name, start, end });
-  }
-
-  return signals;
 }
 
 /**

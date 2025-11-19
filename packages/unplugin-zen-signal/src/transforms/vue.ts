@@ -13,11 +13,7 @@
  */
 
 import type MagicString from 'magic-string';
-
-interface SignalUsage {
-  name: string;
-  positions: number[];
-}
+import { type SignalUsage, findSignalVariables } from '../utils/common';
 
 export function transformVue(code: string, s: MagicString, _id: string, debug: boolean): void {
   // Check if this is a Vue SFC
@@ -95,21 +91,6 @@ export function transformVue(code: string, s: MagicString, _id: string, debug: b
       }
     }
   }
-}
-
-/**
- * Find all signal variable declarations
- */
-function findSignalVariables(code: string): Set<string> {
-  const signals = new Set<string>();
-  const regex = /const\s+(\w+)\s*=\s*signal\(/g;
-  const matches = code.matchAll(regex);
-
-  for (const match of matches) {
-    signals.add(match[1]);
-  }
-
-  return signals;
 }
 
 /**

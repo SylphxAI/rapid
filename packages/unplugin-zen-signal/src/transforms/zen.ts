@@ -13,6 +13,7 @@
  */
 
 import type MagicString from 'magic-string';
+import { findSignalVariables } from '../utils/common';
 
 interface SignalUsage {
   name: string;
@@ -88,19 +89,4 @@ export function transformZen(code: string, s: MagicString, _id: string, debug: b
     // Wrap signal.value with arrow function
     s.overwrite(start, end, `() => ${name}.value`);
   }
-}
-
-/**
- * Find all signal variable declarations
- */
-function findSignalVariables(code: string): Set<string> {
-  const signals = new Set<string>();
-  const regex = /const\s+(\w+)\s*=\s*signal\(/g;
-  const matches = code.matchAll(regex);
-
-  for (const match of matches) {
-    signals.add(match[1]);
-  }
-
-  return signals;
 }
