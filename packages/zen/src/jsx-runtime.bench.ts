@@ -4,12 +4,12 @@
  * Compares old vs optimized implementations
  */
 
-import { describe, bench } from 'bun:test';
+import { bench, describe } from 'bun:test';
 import { signal } from '@zen/signal';
 
+import { jsx as jsxNew } from './jsx-runtime-optimized.js';
 // Import both versions
 import { jsx as jsxOld } from './jsx-runtime.js';
-import { jsx as jsxNew } from './jsx-runtime-optimized.js';
 
 describe('JSX Runtime Benchmarks', () => {
   // Setup
@@ -118,17 +118,13 @@ describe('JSX Runtime Benchmarks', () => {
   // Benchmark 6: Children array
   bench('OLD: Array of 10 children', () => {
     jsxOld('ul', {
-      children: Array.from({ length: 10 }, (_, i) =>
-        jsxOld('li', { children: `Item ${i}` })
-      ),
+      children: Array.from({ length: 10 }, (_, i) => jsxOld('li', { children: `Item ${i}` })),
     });
   });
 
   bench('NEW: Array of 10 children', () => {
     jsxNew('ul', {
-      children: Array.from({ length: 10 }, (_, i) =>
-        jsxNew('li', { children: `Item ${i}` })
-      ),
+      children: Array.from({ length: 10 }, (_, i) => jsxNew('li', { children: `Item ${i}` })),
     });
   });
 
@@ -227,7 +223,7 @@ describe('JSX Runtime Benchmarks', () => {
           className: item.active ? 'active' : 'inactive',
           onClick: () => {},
           children: item.name,
-        })
+        }),
       ),
     });
   });
@@ -247,7 +243,7 @@ describe('JSX Runtime Benchmarks', () => {
           className: item.active ? 'active' : 'inactive',
           onClick: () => {},
           children: item.name,
-        })
+        }),
       ),
     });
   });
