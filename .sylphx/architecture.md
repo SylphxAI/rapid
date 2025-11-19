@@ -23,6 +23,48 @@ Core primitive: `signal<T>()` creates reactive state. Derived values via `comput
 <!-- VERIFY: packages/unplugin-zen-signal/ -->
 - **Universal Plugin** (`packages/unplugin-zen-signal/`): Runtime-first architecture with optional compiler optimizations
 
+## Cross-Platform Architecture
+
+Zen uses a **Runtime-First Core + Optional Compiler DX Layer** architecture to enable cross-platform support.
+
+### Layer 1: Core Reactivity (Platform-Agnostic)
+- `@zen/signal-core`: Pure signals, computed, effect
+- `@zen/signal`: + Lifecycle (onMount, onCleanup, Owner system)
+- No platform dependencies
+
+### Layer 2: Runtime Core (Platform-Agnostic)
+- `@zen/runtime`: Components (Show, For, Switch), utilities, server utils
+- **NO DOM dependencies** - works on web, native, terminal
+- Contains all reactive logic and control flow
+
+### Layer 3: Platform Renderers
+- `@zen/web`: DOM operations, SSR, hydration
+- `@zen/native`: Native elements (iOS/Android)
+- `@zen/tui`: Terminal rendering
+- Each implements platform-specific `jsx()` runtime
+
+### Layer 4: Optional Compiler (DX Enhancement)
+- `@zen/compiler`: JSX syntax transformer
+- Auto-lazy children: `<Show><Child /></Show>` → auto-wrapped
+- Signal auto-unwrap: `{signal}` → `{() => signal.value}`
+- Platform-agnostic: transforms JSX syntax only, not code generation
+- Vite/Webpack/Metro plugins
+
+### Why This Architecture?
+
+**Runtime-First Benefits**:
+- ✅ Works without build tools (CDN usage possible)
+- ✅ Easier debugging (no compiled code)
+- ✅ Gradual adoption (add compiler later)
+- ✅ Cross-platform flexibility
+
+**Compiler Benefits** (when added):
+- ✅ Best-in-class DX (auto-lazy, auto-unwrap)
+- ✅ Same syntax as Solid.js
+- ✅ Works across all platforms (web/native/tui)
+
+**Key Insight**: Compiler is a **syntax transformer**, not a code generator. It outputs platform-agnostic JSX calls, then each renderer handles the platform-specific implementation.
+
 ## Design Patterns
 
 ### Pattern: Prototype-Based Signal Creation
@@ -91,24 +133,46 @@ Core primitive: `signal<T>()` creates reactive state. Derived values via `comput
 
 ```
 packages/
-  # Core
-  zen-signal/              @zen/signal - Core reactive primitives
-  zen/                     @zen/zen - Fine-grained framework (native integration)
-
-  # Signal Framework Adapters (includes unplugin)
-  zen-signal-react/        @zen/signal-react - React integration + auto-unwrap
-  zen-signal-vue/          @zen/signal-vue - Vue integration + auto-unwrap
-  zen-signal-preact/       @zen/signal-preact - Preact integration + auto-unwrap
-
-  # Router Framework Adapters
-  zen-router/              @zen/router - Core router
-  zen-router-react/        @zen/router-react - React hooks
-  zen-router-vue/          @zen/router-vue - Vue composables
-  zen-router-preact/       @zen/router-preact - Preact hooks
-
-  # Utilities
+  # Core Reactivity
+  zen-signal-core/         @zen/signal-core - Pure signals (1.75KB)
+  zen-signal/              @zen/signal - + Lifecycle + Owner system
   zen-signal-extensions/   @zen/signal-extensions - Patterns, persistent, craft
-  unplugin-zen-signal/     unplugin-zen-signal - Universal bundler plugin (internal)
+
+  # Framework Core (NEW - Cross-Platform)
+  zen-runtime/             @zen/runtime - Platform-agnostic runtime
+                           Components (Show, For, Switch, Context, etc.)
+                           Utilities (lazy, mergeProps, selector)
+                           Server utils (SSR support)
+                           NO DOM DEPENDENCIES
+
+  # Platform Renderers (NEW)
+  zen-web/                 @zen/web - Web renderer (DOM, SSR, hydration)
+  zen-native/              @zen/native - Native renderer (iOS, Android)
+  zen-tui/                 @zen/tui - Terminal UI renderer
+
+  # Developer Experience (NEW)
+  zen-compiler/            @zen/compiler - Optional JSX transformer
+                           Auto-lazy children transformation
+                           Signal auto-unwrap
+                           Platform-agnostic syntax transformation
+                           Vite/Webpack/Metro plugins
+
+  # Meta Packages
+  zen/                     @zen/zen - Convenience (re-exports runtime + web)
+  zen-start/               @zen/start - Full-stack meta-framework
+
+  # Router
+  zen-router-core/         @zen/router-core - Core routing
+  zen-router/              @zen/router - Router for Zen
+
+  # Cross-Framework Integration
+  zen-signal-react/        @zen/signal-react - React integration
+  zen-signal-vue/          @zen/signal-vue - Vue integration
+  zen-signal-preact/       @zen/signal-preact - Preact integration
+  zen-router-react/        @zen/router-react - React router
+  zen-router-vue/          @zen/router-vue - Vue router
+  zen-router-preact/       @zen/router-preact - Preact router
+  unplugin-zen-signal/     unplugin-zen-signal - For other frameworks
 ```
 
 ## Performance Characteristics

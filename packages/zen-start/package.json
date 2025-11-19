@@ -1,0 +1,60 @@
+{
+  "name": "@zen/start",
+  "version": "0.0.0",
+  "description": "Full-stack meta-framework for Zen - file-based routing, server functions, SSR",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./router": {
+      "types": "./dist/router.d.ts",
+      "import": "./dist/router.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "import": "./dist/api.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "bun run --watch src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "zen",
+    "fullstack",
+    "meta-framework",
+    "ssr",
+    "routing",
+    "server-functions"
+  ],
+  "author": "Zen Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SylphxAI/zen.git",
+    "directory": "packages/zen-start"
+  },
+  "dependencies": {
+    "@zen/runtime": "workspace:*",
+    "@zen/web": "workspace:*",
+    "@zen/router": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.8.3",
+    "vite": "^7.2.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

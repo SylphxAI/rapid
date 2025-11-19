@@ -2,7 +2,8 @@
 
 ## Index
 
-- [ADR-001: Runtime-First Architecture](#001-runtime-first-architecture)
+- [ADR-001: Runtime-First Architecture](#001-runtime-first-architecture) ✅
+- [ADR-009: Cross-Platform Architecture](#009-cross-platform-architecture) ✅
 - [ADR-002: Reject Duplicate Subscription Checking](#002-reject-duplicate-subscription-checking)
 - [ADR-003: Keep Auto-Batching](#003-keep-auto-batching)
 - [ADR-004: Bitflag Pending State](#004-bitflag-pending-state) ❌ Superseded
@@ -17,6 +18,7 @@
 
 ### Active
 - [001-runtime-first-architecture.md](001-runtime-first-architecture.md) - Runtime-first with optional compiler for framework integrations
+- [009-cross-platform-architecture.md](009-cross-platform-architecture.md) - Cross-platform support (web, native, TUI) with layered architecture
 
 ### Historical (v3.26.0 - superseded by v3.49.0 rewrite)
 - [002-reject-duplicate-checking.md](002-reject-duplicate-checking.md) - Why duplicate check hurts performance
@@ -52,4 +54,10 @@
 - O(n) inline deduplication
 - Superseded ADR-004, ADR-005, ADR-006 (no longer needed)
 
-**Current focus:** Runtime-first framework integrations (ADR-001)
+**v4.0.0 (planned):** Cross-platform architecture (ADR-009)
+- Layered architecture: Signal → Runtime → Renderers
+- Platform-agnostic core (@zen/runtime)
+- Platform-specific renderers (@zen/web, @zen/native, @zen/tui)
+- Optional compiler for DX (@zen/compiler)
+
+**Current focus:** Cross-platform architecture (ADR-009) and runtime-first framework integrations (ADR-001)

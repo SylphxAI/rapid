@@ -1,24 +1,36 @@
 # Project Context
 
 ## What
-Zen - Ultra-fast reactive state management ecosystem with auto-tracking signals.
+Zen - Cross-platform reactive framework with fine-grained reactivity.
 
-**Core Package:** `@zen/signal` - Reactive primitives (signal, computed, effect)
-**Framework:** `@zen/zen` - Fine-grained reactive framework with no virtual DOM
+**Core Packages:**
+- `@zen/signal` - Reactive primitives (signal, computed, effect)
+- `@zen/runtime` - Platform-agnostic components and utilities
+- `@zen/web` - Web renderer (DOM, SSR, hydration)
+- `@zen/native` - Native renderer (iOS, Android)
+- `@zen/tui` - Terminal UI renderer
+- `@zen/compiler` - Optional JSX transformer (auto-lazy, auto-unwrap)
+- `@zen/start` - Full-stack meta-framework
+
+**Convenience Package:** `@zen/zen` - Re-exports runtime + web for easy migration
 
 ## Why
-Provide production-ready reactive primitives with:
-- Minimal bundle size (1.68 KB gzipped for @zen/signal)
+Provide production-ready reactive framework with:
+- Minimal bundle size (1.68 KB for signals, ~5KB total framework)
 - Best-in-class performance (competitive with Solid.js)
 - Auto-tracking dependencies (no manual dependency arrays)
+- **Cross-platform support** (web, native, terminal)
+- **Runtime-first architecture** with optional compiler for DX
 - 100% type safety
 
 ## Who
-**Users:** Frontend developers needing lightweight, fast reactive state
+**Users:** Developers building reactive applications across platforms
 **Use cases:**
-- Cross-framework state management (React, Vue, Preact, or framework-agnostic)
-- Fine-grained UI frameworks (Zen framework)
-- Performance-critical applications
+- Web applications (fine-grained reactivity, no vdom)
+- Native mobile apps (React Native-style with Zen)
+- CLI/TUI applications (Terminal UI with Zen)
+- Full-stack applications (@zen/start meta-framework)
+- Cross-framework state management (React, Vue, Preact integrations)
 
 ## Status
 **Version:** 0.0.0 (managed by changesets)
@@ -34,17 +46,20 @@ Provide production-ready reactive primitives with:
 ## Boundaries
 **In scope:**
 - Core reactive primitives (signal, computed, effect)
-- Auto-tracking dependency system
-- Framework integrations (React, Vue, Preact, Zen)
+- Platform-agnostic runtime (components, utilities, lifecycle)
+- Multi-platform renderers (web, native, terminal)
+- Optional compiler for DX (auto-lazy, auto-unwrap)
+- Framework integrations (React, Vue, Preact)
 - Signal extensions (patterns, persistence, craft)
 - Routing (core + framework adapters)
-- Universal bundler plugin (unplugin-zen-signal)
+- Full-stack meta-framework (@zen/start)
 
 **Out of scope:**
 - Virtual DOM frameworks
-- Server-side rendering (handled separately in @zen/zen)
+- Built-in CSS-in-JS (user choice)
 - Complex state machines (use patterns package)
 - Time-travel debugging (future devtools package)
+- Cloud deployment (use standard tools)
 
 ## Source of Truth
 - Version: `packages/*/package.json` (managed by changesets)
