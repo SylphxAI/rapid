@@ -16,10 +16,10 @@ import {
 } from '@codemirror/view';
 import * as ZenSignal from '@zen/signal';
 import { effect } from '@zen/signal';
-import { Show, signal } from '@zen/zen';
+import { For, Show, computed, signal } from '@zen/zen';
 import * as Zen from '@zen/zen';
 import { Fragment, jsx } from '@zen/zen/jsx-runtime';
-import { examples } from '../data/examples.ts';
+import { categories, examples } from '../data/examples.ts';
 import { Icon } from '../components/Icon.tsx';
 
 export function Playground() {
@@ -29,8 +29,17 @@ export function Playground() {
     return acc;
   }, {} as Record<string, string>);
 
-  const code = signal(templates.finegrained || templates.counter || '');
-  const selectedTemplate = signal('finegrained');
+  const selectedCategory = signal<string>('basic');
+  const selectedExampleId = signal<string>('counter');
+  const code = signal(templates.counter || '');
+
+  const filteredExamples = computed(() =>
+    examples.filter((ex) => ex.category === selectedCategory.value),
+  );
+
+  const selectedExample = computed(
+    () => examples.find((ex) => ex.id === selectedExampleId.value) || examples[0],
+  );
   const error = signal('');
   const executeTime = signal(0);
   const renderTime = signal(0);
@@ -39,9 +48,18 @@ export function Playground() {
   let editorView: EditorView | null = null;
   let autoRunTimer: number | null = null;
 
-  const changeTemplate = (template: string) => {
-    selectedTemplate.value = template;
-    const newCode = templates[template] || templates.counter;
+  const handleCategoryChange = (categoryId: string) => {
+    selectedCategory.value = categoryId;
+    const firstExample = examples.find((ex) => ex.category === categoryId);
+    if (firstExample) {
+      selectedExampleId.value = firstExample.id;
+      loadExample(firstExample.id);
+    }
+  };
+
+  const loadExample = (exampleId: string) => {
+    selectedExampleId.value = exampleId;
+    const newCode = templates[exampleId] || templates.counter;
     code.value = newCode;
 
     // Update CodeMirror
@@ -197,84 +215,163 @@ export function Playground() {
   return (
     <div class="min-h-screen bg-bg py-8">
       <div class="max-w-screen-2xl mx-auto px-6">
-        <div class="flex items-center justify-between mb-8">
-          <div>
-            <h1 class="text-4xl font-bold text-text mb-2">Interactive Playground</h1>
-            <p class="text-text-muted">Edit code and see instant results</p>
-          </div>
-          <div class="flex items-center gap-4">
-            {/* Performance Metrics */}
-            <Show when={executeTime.value > 0}>
-              <div class="flex gap-4 px-4 py-2 bg-bg-light border border-border rounded-zen">
-                <div class="text-center">
-                  <div class="text-sm text-text-muted">Execute</div>
-                  <div class="text-lg font-bold text-success">{executeTime.value.toFixed(2)}ms</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-sm text-text-muted">Total</div>
-                  <div class="text-lg font-bold text-primary">{renderTime.value.toFixed(2)}ms</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-sm text-text-muted">Ops/sec</div>
-                  <div class="text-lg font-bold text-secondary">
-                    {opsPerSecond.value.toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </Show>
-          </div>
+        <div class="mb-8">
+          <h1 class="text-4xl font-bold text-text mb-2">Interactive Playground</h1>
+          <p class="text-text-muted">Browse examples, edit code, and see instant results</p>
         </div>
 
-        <Show when={error.value !== ''}>
-          <div class="my-4 p-4 bg-red-900/20 border border-red-500/50 rounded-zen text-red-400 font-mono whitespace-pre-wrap">
-            <strong>Error:</strong> {error}
-          </div>
-        </Show>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div class="flex flex-col">
-            <div class="flex items-center justify-between bg-bg-lighter border border-border rounded-t-zen px-4 py-2">
-              <span class="text-text font-medium">Code Editor</span>
-              <select
-                class="px-3 py-1 bg-bg border border-border rounded text-text text-sm focus:outline-none focus:border-primary"
-                value={selectedTemplate}
-                onChange={(e) => changeTemplate((e.target as HTMLSelectElement).value)}
-              >
-                <option value="finegrained">⚡ Fine-grained</option>
-                <option value="counter">Counter</option>
-                <option value="todo">Todo App</option>
-                <option value="form">Form</option>
-                <option value="async">Async Data</option>
-              </select>
+        <div class="grid grid-cols-12 gap-6">
+          {/* Sidebar - Categories and Examples */}
+          <aside class="col-span-12 lg:col-span-3 space-y-4">
+            {/* Categories */}
+            <div class="bg-bg-light border border-border rounded-zen p-4">
+              <h3 class="text-sm font-semibold text-text-muted mb-3 uppercase tracking-wide">
+                Categories
+              </h3>
+              <nav class="space-y-1">
+                <For each={categories}>
+                  {(category) => (
+                    <button
+                      type="button"
+                      class={
+                        selectedCategory.value === category.id
+                          ? 'w-full flex items-center gap-2 px-3 py-2 bg-primary text-white rounded transition-colors'
+                          : 'w-full flex items-center gap-2 px-3 py-2 text-text-muted hover:text-text hover:bg-bg-lighter rounded transition-colors'
+                      }
+                      onClick={() => handleCategoryChange(category.id)}
+                    >
+                      <Icon icon={category.icon} width="18" height="18" />
+                      <span class="text-sm font-medium">{category.name}</span>
+                    </button>
+                  )}
+                </For>
+              </nav>
             </div>
-            <div
-              class="flex-1 min-h-[500px] border border-t-0 border-border rounded-b-zen overflow-hidden"
-              ref={(el) => {
-                if (el && !editorView) {
-                  initEditor(el as HTMLDivElement);
-                }
-              }}
-            />
-          </div>
 
-          <div class="flex flex-col">
-            <div class="flex items-center justify-between bg-bg-lighter border border-border rounded-t-zen px-4 py-2">
-              <span class="text-text font-medium">Preview</span>
-              <button
-                type="button"
-                class="px-3 py-1 bg-bg hover:bg-border border border-border text-text text-sm rounded transition-colors"
-                onClick={() => {
-                  document.getElementById('preview').innerHTML = '';
-                }}
-              >
-                Clear
-              </button>
+            {/* Examples List */}
+            <div class="bg-bg-light border border-border rounded-zen p-4">
+              <h3 class="text-sm font-semibold text-text-muted mb-3 uppercase tracking-wide">
+                Examples
+              </h3>
+              <div class="space-y-2">
+                <For each={filteredExamples.value}>
+                  {(example) => (
+                    <button
+                      type="button"
+                      class={
+                        selectedExampleId.value === example.id
+                          ? 'w-full text-left p-3 bg-bg-lighter border-2 border-primary rounded-zen transition-all'
+                          : 'w-full text-left p-3 bg-bg hover:bg-bg-lighter border-2 border-transparent rounded-zen transition-all'
+                      }
+                      onClick={() => loadExample(example.id)}
+                    >
+                      <div class="flex items-start gap-3">
+                        <div
+                          class={
+                            selectedExampleId.value === example.id
+                              ? 'flex-shrink-0 w-8 h-8 flex items-center justify-center bg-primary text-white rounded'
+                              : 'flex-shrink-0 w-8 h-8 flex items-center justify-center bg-bg-lighter text-primary rounded'
+                          }
+                        >
+                          <Icon icon={example.icon} width="18" height="18" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-sm font-semibold text-text truncate">{example.title}</h4>
+                          <p class="text-xs text-text-muted line-clamp-2">{example.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                </For>
+              </div>
             </div>
-            <div
-              id="preview"
-              class="flex-1 min-h-[500px] p-4 bg-bg-lighter border border-t-0 border-border rounded-b-zen overflow-auto"
-            />
-          </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <main class="col-span-12 lg:col-span-9">
+            {/* Current Example Header */}
+            <div class="flex items-center gap-3 mb-4 px-4 py-3 bg-bg-lighter border border-border rounded-zen">
+              <div class="w-10 h-10 flex items-center justify-center bg-primary text-white rounded">
+                <Icon icon={selectedExample.value.icon} width="20" height="20" />
+              </div>
+              <div class="flex-1">
+                <h2 class="text-lg font-semibold text-text">{selectedExample.value.title}</h2>
+                <p class="text-sm text-text-muted">{selectedExample.value.description}</p>
+              </div>
+              {/* Performance Metrics */}
+              <Show when={executeTime.value > 0}>
+                <div class="flex gap-3 text-xs">
+                  <div class="text-center">
+                    <div class="text-text-muted">Execute</div>
+                    <div class="font-bold text-success">{executeTime.value.toFixed(2)}ms</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-text-muted">Total</div>
+                    <div class="font-bold text-primary">{renderTime.value.toFixed(2)}ms</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-text-muted">Ops/sec</div>
+                    <div class="font-bold text-secondary">{opsPerSecond.value.toLocaleString()}</div>
+                  </div>
+                </div>
+              </Show>
+            </div>
+
+            <Show when={error.value !== ''}>
+              <div class="mb-4 p-4 bg-red-900/20 border border-red-500/50 rounded-zen text-red-400 font-mono whitespace-pre-wrap">
+                <strong>Error:</strong> {error}
+              </div>
+            </Show>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="flex flex-col">
+                <div class="flex items-center justify-between bg-bg-lighter border border-border rounded-t-zen px-4 py-2">
+                  <span class="text-text font-medium">Code Editor</span>
+                  <button
+                    type="button"
+                    class="px-3 py-1 bg-bg hover:bg-border border border-border text-text text-sm rounded transition-colors"
+                    onClick={() => {
+                      code.value = selectedExample.value.code;
+                      if (editorView) {
+                        editorView.dispatch({
+                          changes: { from: 0, to: editorView.state.doc.length, insert: selectedExample.value.code },
+                        });
+                      }
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+                <div
+                  class="flex-1 min-h-[500px] border border-t-0 border-border rounded-b-zen overflow-hidden"
+                  ref={(el) => {
+                    if (el && !editorView) {
+                      initEditor(el as HTMLDivElement);
+                    }
+                  }}
+                />
+              </div>
+
+              <div class="flex flex-col">
+                <div class="flex items-center justify-between bg-bg-lighter border border-border rounded-t-zen px-4 py-2">
+                  <span class="text-text font-medium">Live Preview</span>
+                  <button
+                    type="button"
+                    class="px-3 py-1 bg-bg hover:bg-border border border-border text-text text-sm rounded transition-colors"
+                    onClick={() => {
+                      document.getElementById('preview').innerHTML = '';
+                    }}
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div
+                  id="preview"
+                  class="flex-1 min-h-[500px] p-4 bg-bg-lighter border border-t-0 border-border rounded-b-zen overflow-auto"
+                />
+              </div>
+            </div>
+          </main>
         </div>
 
         <div class="bg-bg-light border border-border rounded-zen p-6">

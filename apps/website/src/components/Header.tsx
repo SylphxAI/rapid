@@ -20,9 +20,6 @@ export function Header() {
             <Link href="/docs" class="text-text-muted hover:text-text transition-colors">
               Docs
             </Link>
-            <Link href="/examples" class="text-text-muted hover:text-text transition-colors">
-              Examples
-            </Link>
             <Link href="/playground" class="text-text-muted hover:text-text transition-colors">
               Playground
             </Link>
