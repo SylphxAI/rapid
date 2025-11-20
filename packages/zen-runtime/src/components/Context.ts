@@ -140,9 +140,9 @@ export function Provider<T>(context: Context<T>, props: { value: T; children: an
   if (!owner) {
     throw new Error(
       'Context.Provider must be called within a reactive scope.\n\n' +
-      'Wrap your root component with createRoot():\n' +
-      '  const app = createRoot(() => <App />);\n\n' +
-      'This ensures proper reactivity and context propagation.'
+        'Wrap your root component with createRoot():\n' +
+        '  const app = createRoot(() => <App />);\n\n' +
+        'This ensures proper reactivity and context propagation.',
     );
   }
 
