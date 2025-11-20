@@ -574,7 +574,7 @@ export async function renderToTerminalReactive(
     }
 
     // Dispatch to useInput handlers
-    const { dispatchInput } = require('./useInput.js');
+    const { dispatchInput } = require('./useInput');
     dispatchInput(key);
 
     // Custom key handler

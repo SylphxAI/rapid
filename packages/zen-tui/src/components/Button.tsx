@@ -7,6 +7,7 @@
 import { type Signal, signal } from '@zen/runtime';
 import { useFocusable } from '../focus';
 import type { TUINode } from '../types';
+import { useInput } from '../useInput';
 import { Box } from './Box';
 import { Text } from './Text';
 
@@ -32,6 +33,23 @@ export function Button(props: ButtonProps): TUINode {
     onFocus: () => {
       isPressed.value = false;
     },
+  });
+
+  // Handle keyboard input for this button
+  useInput((input, key) => {
+    // Only handle input if this button is focused
+    if (!isFocused() || disabled) return;
+
+    // Enter or Space to activate
+    if (key.return || input === ' ') {
+      // Visual feedback: press and release
+      isPressed.value = true;
+      setTimeout(() => {
+        isPressed.value = false;
+      }, 100);
+
+      props.onClick?.();
+    }
   });
 
   // Variant colors (computed based on pressed state)

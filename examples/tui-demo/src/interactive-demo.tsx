@@ -16,6 +16,7 @@ import {
   renderToTerminalReactive,
   signal,
   updateSpinner,
+  useInput,
   useFocusContext,
 } from '@zen/tui';
 
@@ -31,6 +32,15 @@ const _spinnerFrame3 = signal(0);
 const _spinnerFrame4 = signal(0);
 
 function AppContent() {
+  const focusContext = useFocusContext();
+
+  // Handle Tab navigation
+  useInput((input, key) => {
+    if (key.tab) {
+      focusContext.focusNext();
+    }
+  });
+
   return (
     <Box
       style={{
@@ -132,11 +142,8 @@ function AppContent() {
 }
 
 function App() {
-  return (
-    <FocusProvider>
-      <AppContent />
-    </FocusProvider>
-  );
+  // Use JSX - FocusProvider's children() helper will handle lazy evaluation
+  return <FocusProvider><AppContent /></FocusProvider>;
 }
 
 // Auto-increment progress when loading
