@@ -12,6 +12,7 @@ import {
   ProgressBar,
   Spinner,
   Text,
+  dispatchInput,
   incrementProgress,
   renderToTerminalReactive,
   signal,
@@ -190,15 +191,14 @@ const cleanup = renderToTerminalReactive(
   },
   {
     onKeyPress: (key) => {
+      // Dispatch to useInput handlers first
+      dispatchInput(key);
+
       // Ctrl+C to exit
       if (key === '\x03') {
         cleanup();
         process.exit(0);
       }
-
-      // Note: Tab navigation and button activation should be handled
-      // by a useInput hook, but for now we use manual handling
-      // This will be improved when we add useInput hook to match React Ink
     },
     fps: 30,
   },
