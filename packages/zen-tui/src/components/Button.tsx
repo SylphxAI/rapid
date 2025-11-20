@@ -55,23 +55,24 @@ export function Button(props: ButtonProps): TUINode {
 
   const colorScheme = colors[variant];
 
-  // Use function call style to avoid circular dependency during build
-  return Box({
-    style: {
-      borderStyle: () => (isFocused() ? 'round' : 'single'),
-      borderColor: () => (disabled ? 'gray' : isFocused() ? colorScheme.border : undefined),
-      backgroundColor: colorScheme.bg,
-      paddingX: 2,
-      paddingY: 0,
-      width,
-      justifyContent: 'center',
-    },
-    children: Text({
-      color: colorScheme.fg,
-      bold: () => !disabled && isFocused(),
-      children: disabled ? `[${props.label}]` : props.label,
-    }),
-  });
+  return (
+    <Box
+      style={{
+        borderStyle: () => (isFocused() ? 'round' : 'single'),
+        borderColor: () => (disabled ? 'gray' : isFocused() ? colorScheme.border : undefined),
+        backgroundColor: colorScheme.bg,
+        paddingX: 2,
+        paddingY: 0,
+        width,
+        justifyContent: 'center',
+      }}
+      props={{ id, disabled, isPressed }}
+    >
+      <Text color={colorScheme.fg} bold={() => !disabled && isFocused()}>
+        {disabled ? `[${props.label}]` : props.label}
+      </Text>
+    </Box>
+  );
 }
 
 /**

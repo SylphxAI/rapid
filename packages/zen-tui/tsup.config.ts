@@ -13,5 +13,13 @@ export default defineConfig({
   target: 'es2022',
   outDir: 'dist',
   treeshake: true,
-  external: ['@zen/runtime', '@zen/signal', 'chalk', 'cli-boxes', 'string-width', 'strip-ansi'],
+  external: [
+    '@zen/runtime',
+    '@zen/signal',
+    '@zen/tui/jsx-runtime', // Allow components to use JSX during build
+    'chalk',
+    'cli-boxes',
+    'string-width',
+    'strip-ansi',
+  ],
 });
