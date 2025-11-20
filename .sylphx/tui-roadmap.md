@@ -8,9 +8,23 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ```
 @zen/tui (core)
-├── Input Components
-├── UI Components
-└── Platform Ops (keyboard, focus, layout)
+├── Rendering engine
+├── Basic components (Box, Text, Static)
+├── Platform ops (stdin/stdout, ANSI)
+└── Layout system (Flexbox)
+
+@zen/tui-inputs (separate)
+├── TextInput
+├── SelectInput
+├── MultiSelect
+├── Checkbox, Radio
+└── Focus management
+
+@zen/tui-components (separate)
+├── Spinner, ProgressBar
+├── Table, Divider, Tabs
+├── Badge, StatusMessage
+└── UI utilities
 
 @zen/tui-markdown (separate)
 ├── Markdown rendering
@@ -22,21 +36,45 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 └── Charts/Sparkline
 ```
 
-## Phase 1: Core Infrastructure (Priority P0)
+**Rationale:**
+- **@zen/tui**: Minimal core for text-only apps (display/logging)
+- **@zen/tui-inputs**: Optional, only for interactive apps
+- **@zen/tui-components**: Optional, for rich UI elements
+- **@zen/tui-markdown**: Optional, for documentation/help screens
+- **@zen/tui-visual**: Optional, for fancy effects
 
-### Keyboard & Input Handling
-- [ ] stdin raw mode management
-- [ ] Key event system (arrow keys, enter, tab, ctrl combinations)
-- [ ] Input buffer for text editing
-- [ ] Cursor position tracking
+## Phase 1: Core Package (@zen/tui) (Priority P0)
 
-### Focus Management
-- [ ] Focus system (which component receives input)
-- [ ] Tab navigation between components
-- [ ] useFocus hook
-- [ ] FocusContext
+### Current Status
+- ✅ Box component (borders, padding, auto-sizing)
+- ✅ Text component (colors, styles)
+- ✅ Basic rendering engine
+- ✅ Diff-based updates (fine-grained reactivity)
+- ✅ Reactive signal integration
 
-### Layout Engine Improvements
+### To Add
+
+#### Static Component
+```tsx
+<Static items={logLines}>
+  {(line, index) => <Text key={index}>{line}</Text>}
+</Static>
+```
+- Render static content that doesn't update
+- For logs, output history
+- Performant for large lists
+
+#### Newline Component
+```tsx
+<Newline count={2} />
+```
+
+#### Spacer Component
+```tsx
+<Spacer />  {/* flexible space */}
+```
+
+#### Layout Engine Improvements
 - [ ] Flexbox-style layout (currently only vertical stacking)
 - [ ] Width/height constraints
 - [ ] Alignment (left, center, right)
@@ -48,7 +86,26 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 2: Input Components (Priority P0)
+---
+
+## Phase 2: Input Package (@zen/tui-inputs) (Priority P0)
+
+### Infrastructure
+
+#### Keyboard & Input Handling
+- [ ] stdin raw mode management
+- [ ] Key event system (arrow keys, enter, tab, ctrl combinations)
+- [ ] Input buffer for text editing
+- [ ] Cursor position tracking
+- [ ] useInput hook
+
+#### Focus Management
+- [ ] Focus system (which component receives input)
+- [ ] Tab navigation between components
+- [ ] useFocus hook
+- [ ] FocusContext
+
+### Components
 
 ### TextInput
 ```tsx
@@ -130,7 +187,9 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 3: UI Components (Priority P1)
+---
+
+## Phase 3: Components Package (@zen/tui-components) (Priority P1)
 
 ### Spinner
 ```tsx
@@ -216,7 +275,9 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 4: Markdown & Syntax (@zen/tui-markdown) (Priority P2)
+---
+
+## Phase 4: Markdown Package (@zen/tui-markdown) (Priority P2)
 
 ### Markdown
 ```tsx
@@ -255,7 +316,9 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 5: Visual Effects (@zen/tui-visual) (Priority P2)
+---
+
+## Phase 5: Visual Package (@zen/tui-visual) (Priority P2)
 
 ### Gradient
 ```tsx
@@ -406,24 +469,90 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
+## Package Dependency Tree
+
+```
+@zen/tui (core)
+  ├── @zen/signal
+  └── @zen/runtime
+
+@zen/tui-inputs
+  └── @zen/tui (peer)
+
+@zen/tui-components
+  └── @zen/tui (peer)
+
+@zen/tui-markdown
+  └── @zen/tui (peer)
+
+@zen/tui-visual
+  └── @zen/tui (peer)
+```
+
+## Use Cases
+
+### Text-only app (logging, output)
+```bash
+npm install @zen/tui
+```
+```tsx
+import { Box, Text } from '@zen/tui';
+// Display only, no interaction needed
+```
+
+### Interactive CLI app
+```bash
+npm install @zen/tui @zen/tui-inputs @zen/tui-components
+```
+```tsx
+import { Box, Text } from '@zen/tui';
+import { TextInput, SelectInput } from '@zen/tui-inputs';
+import { Spinner, ProgressBar } from '@zen/tui-components';
+```
+
+### Documentation/help viewer
+```bash
+npm install @zen/tui @zen/tui-markdown
+```
+```tsx
+import { Box } from '@zen/tui';
+import { Markdown } from '@zen/tui-markdown';
+```
+
+### Fancy dashboard
+```bash
+npm install @zen/tui @zen/tui-components @zen/tui-visual
+```
+```tsx
+import { Box } from '@zen/tui';
+import { Table } from '@zen/tui-components';
+import { Gradient, BigText, BarChart } from '@zen/tui-visual';
+```
+
 ## Comparison with Ink
 
-| Feature | Ink | @zen/tui Status |
-|---------|-----|-----------------|
-| JSX/TSX | ✅ | ✅ |
-| Reactive updates | ✅ (React hooks) | ✅ (Zen signals) |
-| Layout (Flexbox) | ✅ | ⚠️ (vertical only, need to add) |
-| TextInput | ✅ | ❌ (planned P0) |
-| SelectInput | ✅ | ❌ (planned P0) |
-| Spinner | ✅ | ❌ (planned P1) |
-| ProgressBar | ✅ | ❌ (planned P1) |
-| Table | ✅ | ❌ (planned P1) |
-| Markdown | ✅ | ❌ (planned P2) |
-| Syntax Highlight | ✅ | ❌ (planned P2) |
-| Gradient | ✅ | ❌ (planned P2) |
-| BigText | ✅ | ❌ (planned P2) |
-| Focus management | ✅ | ❌ (planned P0) |
-| Hooks | ✅ | ✅ (signals instead) |
+| Feature | Ink | Zen Packages |
+|---------|-----|--------------|
+| **Core** |
+| JSX/TSX | ✅ | ✅ @zen/tui |
+| Reactive updates | ✅ React hooks | ✅ Zen signals |
+| Box, Text | ✅ ink | ✅ @zen/tui |
+| Static | ✅ ink | ⚠️ @zen/tui (planned) |
+| Layout (Flexbox) | ✅ ink | ⚠️ @zen/tui (planned) |
+| **Inputs** |
+| TextInput | ✅ ink-text-input | ❌ @zen/tui-inputs (planned) |
+| SelectInput | ✅ ink-select-input | ❌ @zen/tui-inputs (planned) |
+| Focus management | ✅ ink (useFocus) | ❌ @zen/tui-inputs (planned) |
+| **Components** |
+| Spinner | ✅ ink-spinner | ❌ @zen/tui-components (planned) |
+| ProgressBar | ✅ ink-progress-bar | ❌ @zen/tui-components (planned) |
+| Table | ✅ ink-table | ❌ @zen/tui-components (planned) |
+| **Markdown** |
+| Markdown | ✅ ink-markdown | ❌ @zen/tui-markdown (planned) |
+| Syntax Highlight | ✅ ink-syntax-highlight | ❌ @zen/tui-markdown (planned) |
+| **Visual** |
+| Gradient | ✅ ink-gradient | ❌ @zen/tui-visual (planned) |
+| BigText | ✅ ink-big-text | ❌ @zen/tui-visual (planned) |
 
 ---
 
