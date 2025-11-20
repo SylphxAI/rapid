@@ -53,8 +53,8 @@ export function parseKey(str: string): Key {
     return: str === '\r' || str === '\n',
     escape: str === '\x1B' || str === '\x1B\x1B',
     ctrl: str.charCodeAt(0) < 32 && str !== '\r' && str !== '\n' && str !== '\t',
-    shift: false, // Cannot reliably detect shift alone
-    tab: str === '\t',
+    shift: str === '\x1B[Z', // Shift+Tab sends ESC[Z
+    tab: str === '\t' || str === '\x1B[Z', // Tab or Shift+Tab
     backspace: str === '\x7F' || str === '\b',
     delete: str === '\x1B[3~',
     pageDown: str === '\x1B[6~',

@@ -169,11 +169,7 @@ function AppContent() {
 }
 
 function App() {
-  return (
-    <FocusProvider>
-      <AppContent />
-    </FocusProvider>
-  );
+  return <FocusProvider>{() => <AppContent />}</FocusProvider>;
 }
 
 // Render
