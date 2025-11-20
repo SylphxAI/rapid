@@ -36,7 +36,6 @@ function App() {
     <Box
       style={{
         width: 70,
-        height: 22,
         padding: 2,
         borderStyle: 'double',
         borderColor: 'cyan',
