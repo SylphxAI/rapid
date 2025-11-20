@@ -23,6 +23,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "bun run --watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "keywords": ["zen", "tui", "terminal", "cli", "ink"],
@@ -43,7 +45,8 @@
   },
   "devDependencies": {
     "tsup": "^8.3.5",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   },
   "publishConfig": {
     "access": "public"
