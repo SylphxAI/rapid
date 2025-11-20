@@ -12,11 +12,17 @@
 ## 🚀 運行
 
 ```bash
-# 基礎 reactive demo
+# 基礎 reactive demo（帶鍵盤交互）
 bun examples/tui-demo/src/index.tsx
 
-# 細粒度更新 demo（展示只重繪變化的行）
+# 細粒度更新 demo（多個獨立 counter，展示只重繪變化的行）
 bun examples/tui-demo/src/granular-demo.tsx
+
+# 動態大小測試（內容長度不停變化，測試 fine-grained updates）
+bun examples/tui-demo/src/dynamic-size-demo.tsx
+
+# 簡單 demo（無顏色，用於基礎測試）
+bun examples/tui-demo/src/simple-demo.tsx
 ```
 
 ## ⌨️ 控制
