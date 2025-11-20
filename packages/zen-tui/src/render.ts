@@ -5,12 +5,12 @@
  * Uses simple vertical stacking layout (MVP implementation).
  */
 
+import { createRoot } from '@zen/signal';
 import chalk from 'chalk';
 import cliBoxes from 'cli-boxes';
 import sliceAnsi from 'slice-ansi';
 import stringWidth from 'string-width';
 import stripAnsi from 'strip-ansi';
-import { createRoot } from '@zen/signal';
 import type { RenderOutput, TUINode, TUIStyle } from './types.js';
 
 /**

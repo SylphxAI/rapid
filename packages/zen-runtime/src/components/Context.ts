@@ -135,9 +135,12 @@ export function Provider<T>(context: Context<T>, props: { value: T; children: an
   let owner = getOwner();
 
   // If no owner exists, create a root owner for top-level providers
+  // This handles cases where Provider is called outside createRoot scope
+  // (e.g., when component functions are called directly without jsx-runtime)
   if (!owner) {
-    const { createOwner } = require('@zen/signal');
+    const { createOwner, setOwner } = require('@zen/signal');
     owner = createOwner();
+    setOwner(owner);
   }
 
   // Store context in Provider's own owner.
@@ -171,8 +174,26 @@ export function Provider<T>(context: Context<T>, props: { value: T; children: an
   // Get platform operations
   const ops = getPlatformOps();
 
-  // Resolve children lazily
-  const resolved = c();
+  // Resolve children lazily with new owner context
+  // This ensures children can find the context we just set
+  let resolved = c();
+
+  // If children is a function (lazy children pattern), call it with proper owner context
+  // This handles the runtime-first pattern: <Provider>{() => <Child />}</Provider>
+  if (typeof resolved === 'function') {
+    const { executeComponent } = require('@zen/runtime');
+    const { attachNodeToOwner } = require('@zen/signal');
+    resolved = executeComponent(
+      resolved,
+      // biome-ignore lint/suspicious/noExplicitAny: Generic node from framework
+      (node: any, childOwner: any) => {
+        if (!Array.isArray(node)) {
+          attachNodeToOwner(node, childOwner);
+        }
+      }
+    );
+  }
+
   const childArray = Array.isArray(resolved) ? resolved : [resolved];
 
   const fragment = ops.createFragment();
