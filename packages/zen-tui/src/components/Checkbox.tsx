@@ -46,6 +46,17 @@ export function Checkbox(props: CheckboxProps): TUINode {
   // Checkbox character
   const checkboxChar = checked ? '☑' : '☐';
 
+  // Truncate label to fit within width
+  let displayLabel = props.label;
+  if (props.width && props.label) {
+    // Calculate available width: total - checkbox char (1) - space (1) - padding (focused ? 2*2 : 0) - borders (focused ? 2 : 0)
+    const overhead = 2 + (focused ? 6 : 0); // checkbox + space + padding + borders
+    const maxLabelWidth = props.width - overhead;
+    if (props.label.length > maxLabelWidth) {
+      displayLabel = props.label.slice(0, maxLabelWidth - 3) + '...';
+    }
+  }
+
   return Box({
     style: {
       width: props.width,
@@ -61,9 +72,9 @@ export function Checkbox(props: CheckboxProps): TUINode {
         color: checked ? 'green' : 'white',
         bold: focused,
       }),
-      props.label
+      displayLabel
         ? Text({
-            children: ` ${props.label}`,
+            children: ` ${displayLabel}`,
           })
         : null,
     ].filter(Boolean),
