@@ -190,7 +190,7 @@ export function Provider<T>(context: Context<T>, props: { value: T; children: an
         if (!Array.isArray(node)) {
           attachNodeToOwner(node, childOwner);
         }
-      }
+      },
     );
   }
 
