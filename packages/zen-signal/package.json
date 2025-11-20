@@ -33,9 +33,6 @@
   "dependencies": {
     "@zen/signal-core": "workspace:*"
   },
-  "peerDependencies": {
-    "@zen/zen": ">=0.0.0"
-  },
   "devDependencies": {
     "bunup": "^0.15.13",
     "typescript": "^5.8.3"

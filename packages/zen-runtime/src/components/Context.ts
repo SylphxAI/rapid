@@ -7,7 +7,7 @@
  * Similar to React's Context API and SolidJS's Context API.
  */
 
-import { getOwner, getNodeOwner } from '@zen/signal';
+import { getNodeOwner, getOwner } from '@zen/signal';
 import { getPlatformOps } from '../platform-ops.js';
 
 /**
@@ -104,36 +104,30 @@ export function useContext<T>(context: Context<T>): T {
  * ```
  */
 export function Provider<T>(context: Context<T>, props: { value: T; children: any | any[] }): any {
-  const { value, children } = props;
   const owner = getOwner();
 
   if (!owner) {
     throw new Error('Provider must be used within a component');
   }
 
-  // WORKAROUND FOR EAGER JSX EVALUATION:
-  // Due to JSX evaluating children before the parent component runs, children
-  // and Provider are siblings in the owner tree, not parent-child.
+  // Store context in Provider's own owner FIRST, before accessing children.
+  // With lazy children (via Babel transform getter), children evaluate ONLY
+  // when accessed. We must store the context before accessing props.children
+  // so that when children evaluate, they can find the context value.
   //
-  // Solution: Store context in the Provider's PARENT owner (not Provider's own owner).
-  // This way, both Provider and its JSX children can access the same parent owner,
-  // allowing useContext to find the value even though children execute first.
-  //
-  // Owner tree (with eager JSX):
+  // Owner tree (with lazy children):
   //   App (owner)
-  //   ├─ Provider (owner, parent: App) <- stores context in App
-  //   └─ Children (owner, parent: App) <- searches up to App, finds context!
-  //
-  // This is a compromise that works without custom JSX transform.
-  // SolidJS solves this properly with lazy children via compiler transform.
-  const targetOwner = owner.parent || owner;
-
-  let values = contextMap.get(targetOwner);
+  //   └─ Provider (owner, parent: App) <- stores context HERE
+  //      └─ Children (owner, parent: Provider) <- searches up to Provider, finds context!
+  let values = contextMap.get(owner);
   if (!values) {
     values = new Map();
-    contextMap.set(targetOwner, values);
+    contextMap.set(owner, values);
   }
-  values.set(context.id, value);
+  values.set(context.id, props.value);
+
+  // NOW access children (triggers lazy evaluation)
+  const children = props.children;
 
   // Get platform operations
   const ops = getPlatformOps();

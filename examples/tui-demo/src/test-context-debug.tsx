@@ -3,31 +3,22 @@
  * Debug test for Context re-parenting
  */
 
-import { signal, getOwner, getNodeOwner, createContext, useContext } from '@zen/runtime';
+import { createContext, getNodeOwner, getOwner, signal, useContext } from '@zen/runtime';
 
 const TestContext = createContext({ value: 'default' });
 
 function TestProvider(props: { children: any }) {
-  console.log('=== TestProvider executing ===');
-  const owner = getOwner();
-  console.log('Provider owner:', owner);
-  console.log('Provider owner parent:', owner?.parent);
+  const _owner = getOwner();
 
   return (
-    <TestContext.Provider value={{ value: 'provided' }}>
-      {props.children}
-    </TestContext.Provider>
+    <TestContext.Provider value={{ value: 'provided' }}>{props.children}</TestContext.Provider>
   );
 }
 
 function TestChild() {
-  console.log('=== TestChild executing ===');
-  const owner = getOwner();
-  console.log('Child owner:', owner);
-  console.log('Child owner parent:', owner?.parent);
+  const _owner = getOwner();
 
-  const ctx = useContext(TestContext);
-  console.log('Context value:', ctx.value);
+  const _ctx = useContext(TestContext);
 
   return <box>Child</box>;
 }
@@ -44,8 +35,4 @@ function App() {
 
 // Render
 import { renderToTerminal } from '@zen/tui';
-
-console.log('=== Starting render ===');
-const output = renderToTerminal(<App />);
-console.log('\n=== Render output ===');
-console.log(output);
+const _output = renderToTerminal(<App />);
