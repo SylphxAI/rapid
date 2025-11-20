@@ -566,6 +566,8 @@ export async function renderToTerminalReactive(
 
   // Set up keyboard handler
   const keyHandler = (key: string) => {
+    console.log('[renderToTerminalReactive] keyHandler called, key:', JSON.stringify(key));
+
     // Ctrl+C to exit
     if (key === '\u0003') {
       cleanup();
@@ -579,7 +581,9 @@ export async function renderToTerminalReactive(
     }
 
     // Dispatch to useInput handlers
+    console.log('[renderToTerminalReactive] About to call dispatchInput');
     dispatchInput(key);
+    console.log('[renderToTerminalReactive] dispatchInput called');
 
     // Custom key handler
     if (onKeyPress) {
@@ -590,7 +594,10 @@ export async function renderToTerminalReactive(
   };
 
   if (process.stdin.isTTY) {
+    console.log('[renderToTerminalReactive] Setting up stdin listener');
     process.stdin.on('data', keyHandler);
+  } else {
+    console.log('[renderToTerminalReactive] WARNING: stdin is not TTY!');
   }
 
   // Render loop

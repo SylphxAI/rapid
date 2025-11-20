@@ -72,6 +72,10 @@ export function SelectInput<T = string>(props: SelectInputProps<T>): TUINode {
   const displayLabel = selectedOption?.label || props.placeholder || 'Select...';
 
   // Render current selection
+  // WORKAROUND: Concatenate label and arrow into single Text to avoid flexDirection: 'row' overflow bug
+  const arrow = opened ? '▲' : '▼';
+  const combinedText = `${displayLabel} ${arrow}`;
+
   const selectionDisplay = Box({
     style: {
       width,
@@ -79,21 +83,13 @@ export function SelectInput<T = string>(props: SelectInputProps<T>): TUINode {
       borderColor: focused ? 'cyan' : undefined,
       padding: 0,
       paddingX: 1,
-      flexDirection: 'row',
       ...props.style,
     },
-    children: [
-      Text({
-        children: displayLabel,
-        dim: !selectedOption,
-        style: { flexDirection: 'row' },
-      }),
-      ' ',
-      Text({
-        children: opened ? '▲' : '▼',
-        color: 'cyan',
-      }),
-    ],
+    children: Text({
+      children: combinedText,
+      dim: !selectedOption,
+      color: 'cyan',
+    }),
   });
 
   // Render dropdown if open

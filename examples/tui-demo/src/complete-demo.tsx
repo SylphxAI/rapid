@@ -173,16 +173,7 @@ function App() {
 }
 
 // Render
+// Note: renderToTerminalReactive already handles Ctrl+C and dispatches to useInput handlers
 const cleanup = renderToTerminalReactive(() => App(), {
-  onKeyPress: (key) => {
-    // Dispatch to useInput handlers
-    dispatchInput(key);
-
-    // Ctrl+C to exit
-    if (key === '\u0003') {
-      cleanup();
-      process.exit(0);
-    }
-  },
   fps: 30,
 });
