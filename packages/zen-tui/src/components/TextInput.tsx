@@ -4,11 +4,11 @@
  * Interactive text input with cursor, editing, and keyboard navigation.
  */
 
-import { signal, onCleanup, type Signal } from '@zen/runtime';
-import { Box } from './Box';
-import { Text } from './Text';
+import { type Signal, onCleanup, signal } from '@zen/runtime';
 import { useFocusable } from '../focus';
 import type { TUINode } from '../types';
+import { Box } from './Box';
+import { Text } from './Text';
 
 export interface TextInputProps {
   value?: Signal<string> | string;

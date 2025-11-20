@@ -5,7 +5,7 @@
  * across interactive components (inputs, buttons, etc.)
  */
 
-import { createContext, useContext, signal, type Signal } from '@zen/runtime';
+import { type Signal, createContext, signal, useContext } from '@zen/runtime';
 
 export interface FocusableItem {
   id: string;
@@ -116,7 +116,10 @@ export function useFocusContext(): FocusContextValue {
 /**
  * Hook to make a component focusable
  */
-export function useFocusable(id: string, callbacks?: { onFocus?: () => void; onBlur?: () => void }) {
+export function useFocusable(
+  id: string,
+  callbacks?: { onFocus?: () => void; onBlur?: () => void },
+) {
   const ctx = useFocusContext();
 
   // Register on mount, unregister on cleanup

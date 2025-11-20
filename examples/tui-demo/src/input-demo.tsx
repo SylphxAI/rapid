@@ -11,19 +11,19 @@
 
 import {
   Box,
-  Text,
-  Newline,
-  TextInput,
-  SelectInput,
   Checkbox,
   FocusProvider,
-  useFocusContext,
-  handleTextInput,
-  handleSelectInput,
-  handleCheckbox,
-  signal,
-  renderToTerminalReactive,
+  Newline,
+  SelectInput,
   type SelectOption,
+  Text,
+  TextInput,
+  handleCheckbox,
+  handleSelectInput,
+  handleTextInput,
+  renderToTerminalReactive,
+  signal,
+  useFocusContext,
 } from '@zen/tui';
 
 // Form state
@@ -42,7 +42,7 @@ const roleOptions: SelectOption<string>[] = [
 ];
 
 function Form() {
-  const focusCtx = useFocusContext();
+  const _focusCtx = useFocusContext();
 
   return (
     <Box style={{ width: 60, borderStyle: 'round', padding: 1 }}>
@@ -118,7 +118,8 @@ function Form() {
         </Text>
         <Newline />
         <Text dim>
-          Newsletter: <Text color={subscribe.value ? 'green' : 'red'}>{subscribe.value ? 'Yes' : 'No'}</Text>
+          Newsletter:{' '}
+          <Text color={subscribe.value ? 'green' : 'red'}>{subscribe.value ? 'Yes' : 'No'}</Text>
         </Text>
         <Newline />
         <Text dim>

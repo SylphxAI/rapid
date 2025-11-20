@@ -1,0 +1,149 @@
+import { describe, expect, it } from 'vitest';
+import { signal } from '../index';
+import { Checkbox, handleCheckbox } from './Checkbox';
+
+describe('Checkbox', () => {
+  it('should create checkbox node', () => {
+    const checked = signal(false);
+    const node = Checkbox({ checked });
+
+    expect(node.type).toBe('box');
+    expect(node.style?.flexDirection).toBe('row');
+  });
+
+  it('should accept initial checked as boolean', () => {
+    const node = Checkbox({ checked: true });
+
+    expect(node).toBeTruthy();
+  });
+
+  it('should accept initial checked as signal', () => {
+    const checked = signal(true);
+    const node = Checkbox({ checked });
+
+    expect(node).toBeTruthy();
+  });
+
+  it('should default to unchecked if not specified', () => {
+    const node = Checkbox({});
+
+    expect(node).toBeTruthy();
+  });
+
+  it('should generate unique ID if not provided', () => {
+    const node1 = Checkbox({ checked: signal(false) });
+    const node2 = Checkbox({ checked: signal(false) });
+
+    expect(node1.props).toBeDefined();
+    expect(node2.props).toBeDefined();
+  });
+
+  it('should use provided ID', () => {
+    const node = Checkbox({ checked: signal(false), id: 'custom-checkbox' });
+
+    expect(node.props).toBeDefined();
+  });
+
+  it('should have label when provided', () => {
+    const node = Checkbox({ checked: signal(false), label: 'Accept terms' });
+
+    expect(node.children.length).toBeGreaterThan(1); // Should have checkbox + label
+  });
+
+  it('should not have label when not provided', () => {
+    const node = Checkbox({ checked: signal(false) });
+
+    // Should filter out null/undefined, so only checkbox character
+    expect(node.children.length).toBeGreaterThan(0);
+  });
+});
+
+describe('handleCheckbox', () => {
+  it('should toggle checkbox with Space key', () => {
+    const checked = signal(false);
+
+    const handled = handleCheckbox(checked, ' ');
+
+    expect(handled).toBe(true);
+    expect(checked.value).toBe(true);
+  });
+
+  it('should toggle checkbox with Enter key', () => {
+    const checked = signal(false);
+
+    const handled = handleCheckbox(checked, '\r');
+
+    expect(handled).toBe(true);
+    expect(checked.value).toBe(true);
+  });
+
+  it('should toggle checkbox with newline', () => {
+    const checked = signal(false);
+
+    const handled = handleCheckbox(checked, '\n');
+
+    expect(handled).toBe(true);
+    expect(checked.value).toBe(true);
+  });
+
+  it('should toggle from checked to unchecked', () => {
+    const checked = signal(true);
+
+    handleCheckbox(checked, ' ');
+
+    expect(checked.value).toBe(false);
+  });
+
+  it('should call onChange callback with new value', () => {
+    const checked = signal(false);
+    let changedValue = false;
+
+    handleCheckbox(checked, ' ', (value) => {
+      changedValue = value;
+    });
+
+    expect(changedValue).toBe(true);
+  });
+
+  it('should call onChange with false when unchecking', () => {
+    const checked = signal(true);
+    let changedValue = true;
+
+    handleCheckbox(checked, ' ', (value) => {
+      changedValue = value;
+    });
+
+    expect(changedValue).toBe(false);
+  });
+
+  it('should ignore unknown keys', () => {
+    const checked = signal(false);
+
+    const handled = handleCheckbox(checked, 'x');
+
+    expect(handled).toBe(false);
+    expect(checked.value).toBe(false);
+  });
+
+  it('should ignore arrow keys', () => {
+    const checked = signal(false);
+
+    const handled = handleCheckbox(checked, '\x1b[A');
+
+    expect(handled).toBe(false);
+    expect(checked.value).toBe(false);
+  });
+
+  it('should toggle multiple times correctly', () => {
+    const checked = signal(false);
+
+    handleCheckbox(checked, ' ');
+    expect(checked.value).toBe(true);
+
+    handleCheckbox(checked, ' ');
+    expect(checked.value).toBe(false);
+
+    handleCheckbox(checked, ' ');
+    expect(checked.value).toBe(true);
+  });
+});

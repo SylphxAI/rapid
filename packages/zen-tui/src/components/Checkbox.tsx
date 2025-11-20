@@ -4,11 +4,11 @@
  * Interactive checkbox with keyboard toggle.
  */
 
-import { signal, type Signal } from '@zen/runtime';
-import { Box } from './Box';
-import { Text } from './Text';
+import { type Signal, signal } from '@zen/runtime';
 import { useFocusable } from '../focus';
 import type { TUINode } from '../types';
+import { Box } from './Box';
+import { Text } from './Text';
 
 export interface CheckboxProps {
   checked?: Signal<boolean> | boolean;

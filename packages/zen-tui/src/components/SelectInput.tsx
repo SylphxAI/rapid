@@ -4,11 +4,11 @@
  * Dropdown/select input with keyboard navigation.
  */
 
-import { signal, type Signal } from '@zen/runtime';
-import { Box } from './Box';
-import { Text } from './Text';
+import { type Signal, signal } from '@zen/runtime';
 import { useFocusable } from '../focus';
 import type { TUINode } from '../types';
+import { Box } from './Box';
+import { Text } from './Text';
 
 export interface SelectOption<T = string> {
   label: string;
@@ -109,10 +109,7 @@ export function SelectInput<T = string>(props: SelectInputProps<T>): TUINode {
           paddingX: 1,
         },
         children: Text({
-          children: [
-            isSelected ? '✓ ' : '  ',
-            option.label,
-          ],
+          children: [isSelected ? '✓ ' : '  ', option.label],
           color: isHighlighted ? 'black' : undefined,
           bold: isSelected,
         }),
