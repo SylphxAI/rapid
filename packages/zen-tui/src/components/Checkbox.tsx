@@ -47,38 +47,35 @@ export function Checkbox(props: CheckboxProps): TUINode {
   const checkboxChar = checked ? '☑' : '☐';
 
   // Truncate label to fit within width
-  // TUI rendering in flexDirection: 'row' doesn't clip overflow, so we need aggressive truncation
+  // Avoid overflow by ensuring combined text fits within the box width
   let displayLabel = props.label;
+
   if (props.width && props.label) {
-    // Account for checkbox (1) + space (1) + padding (4 when focused) + borders (2 when focused) + safety margin (10)
-    const overhead = focused ? 18 : 12;
-    const maxLabelWidth = Math.max(10, props.width - overhead);
+    // Account for: checkbox char(1) + space(1) + padding when focused(2) + borders when focused(2) + safety margin
+    const safetyMargin = 20;
+    const maxLabelWidth = Math.max(10, props.width - safetyMargin);
+
     if (props.label.length > maxLabelWidth) {
       displayLabel = `${props.label.slice(0, maxLabelWidth - 3)}...`;
     }
   }
 
+  // WORKAROUND: Concatenate checkbox and label into single Text to avoid flexDirection: 'row' overflow bug
+  const combinedText = displayLabel ? `${checkboxChar} ${displayLabel}` : checkboxChar;
+
   return Box({
     style: {
       width: props.width,
-      flexDirection: 'row',
       borderStyle: focused ? 'round' : 'none',
       borderColor: focused ? 'cyan' : undefined,
       paddingX: focused ? 1 : 0,
       ...props.style,
     },
-    children: [
-      Text({
-        children: checkboxChar,
-        color: checked ? 'green' : 'white',
-        bold: focused,
-      }),
-      displayLabel
-        ? Text({
-            children: ` ${displayLabel}`,
-          })
-        : null,
-    ].filter(Boolean),
+    children: Text({
+      children: combinedText,
+      color: checked ? 'green' : 'white',
+      bold: focused,
+    }),
   });
 }
 
