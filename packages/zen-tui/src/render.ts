@@ -64,9 +64,7 @@ function applyTextStyle(text: string, style: TUIStyle = {}): string {
   if (style.backgroundColor) {
     // Resolve reactive background color values
     const bgColor =
-      typeof style.backgroundColor === 'function'
-        ? style.backgroundColor()
-        : style.backgroundColor;
+      typeof style.backgroundColor === 'function' ? style.backgroundColor() : style.backgroundColor;
     styled = getBgColorFn(bgColor)(styled);
   }
   if (style.bold) {

@@ -49,7 +49,7 @@ function App() {
 
       {/* Status Message */}
       <Box style={{ borderStyle: 'single', padding: 1, width: 66 }}>
-        <Text color={() => (isLoading.value ? 'yellow' : 'green')}>{() => message.value}</Text>
+        <Text color={() => (isLoading.value ? 'yellow' : 'green')}>{message}</Text>
       </Box>
 
       <Box style={{ height: 1 }} />
