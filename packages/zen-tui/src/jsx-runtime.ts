@@ -20,7 +20,8 @@ export function jsx(type: string | ComponentFunction, props: Props | null): TUIN
   if (typeof type === 'function') {
     return executeComponent(
       () => type(props),
-      (node, owner) => attachNodeToOwner(node as any, owner),
+      // biome-ignore lint/suspicious/noExplicitAny: Generic node type from framework
+      (node: any, owner: any) => attachNodeToOwner(node, owner),
     );
   }
 
@@ -64,15 +65,25 @@ export function appendChild(parent: TUINode, child: unknown): void {
 
   // TUI Node
   if (typeof child === 'object' && 'type' in child) {
-    parent.children.push(child);
-    child.parentNode = parent;
+    parent.children.push(child as TUINode);
+    // Try to set parentNode, but don't fail if object is frozen/sealed
+    try {
+      (child as TUINode).parentNode = parent;
+    } catch {
+      // Object is frozen/sealed, skip parentNode assignment
+    }
     return;
   }
 
   // TUI Marker (from runtime components like For, Show, Switch)
-  if (typeof child === 'object' && '_type' in child && child._type === 'marker') {
-    parent.children.push(child);
-    child.parentNode = parent;
+  if (typeof child === 'object' && '_type' in child && (child as any)._type === 'marker') {
+    parent.children.push(child as any);
+    // Try to set parentNode, but don't fail if object is frozen/sealed
+    try {
+      (child as any).parentNode = parent;
+    } catch {
+      // Object is frozen/sealed, skip parentNode assignment
+    }
     return;
   }
 
@@ -89,7 +100,7 @@ export function appendChild(parent: TUINode, child: unknown): void {
 
     // Wrap in effect for reactivity
     effect(() => {
-      textNode.children[0] = String(child.value ?? '');
+      textNode.children[0] = String((child as any).value ?? '');
       return undefined;
     });
     return;
@@ -98,7 +109,8 @@ export function appendChild(parent: TUINode, child: unknown): void {
   // Function - reactive content (from compiler transformation)
   if (typeof child === 'function') {
     // Create a marker node that will hold the reactive content
-    const marker: { _type: string; _kind: string; children: (TUINode | string)[] } = {
+    // biome-ignore lint/suspicious/noExplicitAny: Marker is internal type used by runtime
+    const marker: any = {
       _type: 'marker',
       _kind: 'reactive',
       children: [],
@@ -115,7 +127,7 @@ export function appendChild(parent: TUINode, child: unknown): void {
 
       // Handle TUINode
       if (value && typeof value === 'object' && 'type' in value) {
-        marker.children.push(value);
+        marker.children.push(value as TUINode);
         return undefined;
       }
 

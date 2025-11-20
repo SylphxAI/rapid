@@ -42,7 +42,12 @@ export const tuiPlatformOps: PlatformOps<TUINode, TUIMarker, TUIFragment> = {
         parent.children.push(...child);
       } else {
         parent.children.push(child);
-        child.parentNode = parent;
+        // Try to set parentNode, but don't fail if object is frozen/sealed
+        try {
+          child.parentNode = parent;
+        } catch {
+          // Object is frozen/sealed, skip parentNode assignment
+        }
       }
     } else {
       // Insert before reference
@@ -51,12 +56,22 @@ export const tuiPlatformOps: PlatformOps<TUINode, TUIMarker, TUIFragment> = {
         // Set parent for all nodes in fragment
         for (const node of child) {
           if (typeof node !== 'string') {
-            node.parentNode = parent;
+            // Try to set parentNode, but don't fail if object is frozen/sealed
+            try {
+              node.parentNode = parent;
+            } catch {
+              // Object is frozen/sealed, skip parentNode assignment
+            }
           }
         }
       } else {
         parent.children.splice(refIndex, 0, child);
-        child.parentNode = parent;
+        // Try to set parentNode, but don't fail if object is frozen/sealed
+        try {
+          child.parentNode = parent;
+        } catch {
+          // Object is frozen/sealed, skip parentNode assignment
+        }
       }
     }
   },
@@ -65,7 +80,12 @@ export const tuiPlatformOps: PlatformOps<TUINode, TUIMarker, TUIFragment> = {
     const index = parent.children.findIndex((c) => c === child);
     if (index !== -1) {
       parent.children.splice(index, 1);
-      child.parentNode = undefined;
+      // Try to clear parentNode, but don't fail if object is frozen/sealed
+      try {
+        child.parentNode = undefined;
+      } catch {
+        // Object is frozen/sealed, skip parentNode assignment
+      }
     }
   },
 

@@ -48,7 +48,9 @@ export {
   createUniqueId,
 } from '@zen/runtime';
 
-export type { Signal, Computed, Owner, Context, Reactive, MaybeReactive } from '@zen/runtime';
+// Types: Users can import types directly from @zen/signal and @zen/runtime
+// export type { Signal, Computed, Owner } from '@zen/signal';
+// export type { Context, Reactive, MaybeReactive } from '@zen/runtime';
 
 // TUI-specific: Renderer
 export { render, renderToTerminal, renderToTerminalReactive } from './render.js';
