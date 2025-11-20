@@ -61,5 +61,13 @@ export { Static } from './components/Static.js';
 export { Newline } from './components/Newline.js';
 export { Spacer } from './components/Spacer.js';
 
+// TUI-specific: Input Components
+export { TextInput, handleTextInput } from './components/TextInput.js';
+export { SelectInput, handleSelectInput, type SelectOption } from './components/SelectInput.js';
+export { Checkbox, handleCheckbox } from './components/Checkbox.js';
+
+// TUI-specific: Focus Management
+export { FocusProvider, useFocusContext, useFocusable, type FocusContextValue, type FocusableItem } from './focus.js';
+
 // TUI-specific: Types
 export type { TUINode, TUIStyle, RenderOutput } from './types.js';
