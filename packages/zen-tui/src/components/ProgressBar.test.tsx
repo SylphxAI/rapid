@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { signal } from '../index';
-import {
-  ProgressBar,
-  incrementProgress,
-  setProgress,
-  resetProgress,
-} from './ProgressBar';
+import { ProgressBar, incrementProgress, resetProgress, setProgress } from './ProgressBar';
 
 describe('ProgressBar', () => {
   it('should create progress bar node', () => {

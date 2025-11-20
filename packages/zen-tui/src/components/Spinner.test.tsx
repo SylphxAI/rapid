@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { signal } from '../index';
-import { Spinner, updateSpinner, createAnimatedSpinner } from './Spinner';
+import { Spinner, createAnimatedSpinner, updateSpinner } from './Spinner';
 
 describe('Spinner', () => {
   it('should create spinner node', () => {
