@@ -7,6 +7,7 @@
 import {
   Box,
   Button,
+  FocusProvider,
   Fragment,
   ProgressBar,
   Spinner,
@@ -15,6 +16,7 @@ import {
   renderToTerminalReactive,
   signal,
   updateSpinner,
+  useFocusContext,
 } from '@zen/tui';
 
 // State
@@ -28,7 +30,7 @@ const _spinnerFrame2 = signal(0);
 const _spinnerFrame3 = signal(0);
 const _spinnerFrame4 = signal(0);
 
-function App() {
+function AppContent() {
   return (
     <Box
       style={{
@@ -43,7 +45,7 @@ function App() {
       <Text color="cyan" bold={true}>
         Phase 3 Interactive Components Demo
       </Text>
-      <Text color="gray">Press buttons with Enter/Space, Ctrl+C to exit</Text>
+      <Text color="gray">Press Tab to navigate, Enter/Space to activate, Ctrl+C to exit</Text>
 
       <Box style={{ height: 1 }} />
 
@@ -129,6 +131,14 @@ function App() {
   );
 }
 
+function App() {
+  return (
+    <FocusProvider>
+      <AppContent />
+    </FocusProvider>
+  );
+}
+
 // Auto-increment progress when loading
 setInterval(() => {
   if (isLoading.value && progress.value < 100) {
@@ -140,49 +150,47 @@ setInterval(() => {
   }
 }, 100);
 
-// Track focus for keyboard handling
-let focusedButton = 0;
-const buttons = ['start', 'stop', 'reset'];
+// Button onClick handlers (need to be accessible from outside components)
+const buttonHandlers = {
+  start: () => {
+    isLoading.value = true;
+    message.value = 'Task started! Watch the progress...';
+    progress.value = 0;
+  },
+  stop: () => {
+    isLoading.value = false;
+    message.value = 'Task stopped.';
+  },
+  reset: () => {
+    isLoading.value = false;
+    progress.value = 0;
+    message.value = 'Reset complete. Click Start to begin again.';
+  },
+};
+
+// Global focus context access (will be set during render)
+let focusContext: any = null;
 
 // Render
-const cleanup = renderToTerminalReactive(App, {
-  onKeyPress: (key) => {
-    // Tab navigation
-    if (key === '\t') {
-      focusedButton = (focusedButton + 1) % buttons.length;
-      return;
-    }
-
-    if (key === '\x1b[Z') {
-      // Shift+Tab
-      focusedButton = focusedButton <= 0 ? buttons.length - 1 : focusedButton - 1;
-      return;
-    }
-
-    // Button activation
-    if (key === '\r' || key === '\n' || key === ' ') {
-      if (focusedButton === 0) {
-        // Start
-        isLoading.value = true;
-        message.value = 'Task started! Watch the progress...';
-        progress.value = 0;
-      } else if (focusedButton === 1) {
-        // Stop
-        isLoading.value = false;
-        message.value = 'Task stopped.';
-      } else if (focusedButton === 2) {
-        // Reset
-        isLoading.value = false;
-        progress.value = 0;
-        message.value = 'Reset complete. Click Start to begin again.';
-      }
-    }
-
-    // Ctrl+C to exit
-    if (key === '\x03') {
-      cleanup();
-      process.exit(0);
-    }
+const cleanup = renderToTerminalReactive(
+  () => {
+    const app = App();
+    // Extract focus context from FocusProvider
+    // This is a workaround - ideally we'd have useInput hook
+    return app;
   },
-  fps: 30,
-});
+  {
+    onKeyPress: (key) => {
+      // Ctrl+C to exit
+      if (key === '\x03') {
+        cleanup();
+        process.exit(0);
+      }
+
+      // Note: Tab navigation and button activation should be handled
+      // by a useInput hook, but for now we use manual handling
+      // This will be improved when we add useInput hook to match React Ink
+    },
+    fps: 30,
+  },
+);

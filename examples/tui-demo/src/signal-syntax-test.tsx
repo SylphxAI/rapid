@@ -24,15 +24,15 @@ function App() {
       <Box style={{ height: 1 }} />
 
       <Text color="white">1. Direct signal: {'{count}'}</Text>
-      <Text color="green">   Result: {count}</Text>
+      <Text color="green"> Result: {count}</Text>
       <Box style={{ height: 1 }} />
 
       <Text color="white">2. Signal.value: {'{count.value}'}</Text>
-      <Text color="red">   Result: {count.value}</Text>
+      <Text color="red"> Result: {count.value}</Text>
       <Box style={{ height: 1 }} />
 
       <Text color="white">3. Function: {'{() => count.value}'}</Text>
-      <Text color="green">   Result: {() => count.value}</Text>
+      <Text color="green"> Result: {() => count.value}</Text>
       <Box style={{ height: 1 }} />
 
       <Text color="gray">Press Ctrl+C to exit</Text>
@@ -60,9 +60,5 @@ const cleanup = renderToTerminalReactive(App, {
 setTimeout(() => {
   clearInterval(interval);
   cleanup();
-  console.log('\n\n✅ Test completed:');
-  console.log('   - {count} updated reactively ✅');
-  console.log('   - {count.value} stayed at 0 (non-reactive) ❌');
-  console.log('   - {() => count.value} updated reactively ✅');
   process.exit(0);
 }, 5000);

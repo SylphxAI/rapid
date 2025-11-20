@@ -557,11 +557,16 @@ export async function renderToTerminalReactive(
       process.exit(0);
     }
 
+    // Dispatch to useInput handlers
+    const { dispatchInput } = require('./useInput.js');
+    dispatchInput(key);
+
     // Custom key handler
     if (onKeyPress) {
       onKeyPress(key);
-      needsRender = true;
     }
+
+    needsRender = true;
   };
 
   if (process.stdin.isTTY) {

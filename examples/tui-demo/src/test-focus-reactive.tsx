@@ -17,6 +17,3 @@ function App() {
 }
 
 renderToTerminalReactive(App, { fps: 10 });
-
-console.log('\nPress Ctrl+C to exit');
-console.log('Expected: First button should have round border and be bold (focused)');

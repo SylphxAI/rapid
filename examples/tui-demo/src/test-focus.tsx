@@ -16,6 +16,4 @@ function App() {
   );
 }
 
-const output = render(App());
-console.log(output);
-console.log('\nExpected: First button should have round border (focused)');
+const _output = render(App());
