@@ -38,6 +38,8 @@ export interface TUIStyle {
   marginBottom?: number;
   marginLeft?: number;
 
+  gap?: number; // Gap between children in row/column layout
+
   // Border
   borderStyle?: 'single' | 'double' | 'round' | 'bold' | 'none';
   borderColor?: string;

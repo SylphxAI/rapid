@@ -152,6 +152,50 @@ function insertContent(
 }
 
 /**
+ * Merge multiple boxes side-by-side for row layout
+ * Handles boxes of different heights by padding shorter ones
+ */
+function mergeBoxesSideBySide(boxes: string[], gap = 0): string[] {
+  if (boxes.length === 0) return [];
+  if (boxes.length === 1) return boxes[0].split('\n');
+
+  // Split each box into lines
+  const boxLines = boxes.map((box) => box.split('\n'));
+
+  // Find max height
+  const maxHeight = Math.max(...boxLines.map((lines) => lines.length));
+
+  // Pad shorter boxes to match height
+  const paddedBoxLines = boxLines.map((lines) => {
+    const padding = maxHeight - lines.length;
+    if (padding > 0) {
+      // Get width of first line (or 0 if no lines)
+      const boxWidth = lines.length > 0 ? stringWidth(stripAnsi(lines[0])) : 0;
+      const emptyLine = ' '.repeat(boxWidth);
+      return [...lines, ...Array(padding).fill(emptyLine)];
+    }
+    return lines;
+  });
+
+  // Merge lines horizontally
+  const mergedLines: string[] = [];
+  const gapStr = ' '.repeat(gap);
+
+  for (let i = 0; i < maxHeight; i++) {
+    let line = '';
+    for (let j = 0; j < paddedBoxLines.length; j++) {
+      line += paddedBoxLines[j][i] || '';
+      if (j < paddedBoxLines.length - 1) {
+        line += gapStr;
+      }
+    }
+    mergedLines.push(line);
+  }
+
+  return mergedLines;
+}
+
+/**
  * Render TUI node to string - simplified version
  */
 function renderNode(node: TUINode, parentWidth: number): RenderOutput {
@@ -196,71 +240,45 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
     let currentY = paddingTop;
 
     if (flexDirection === 'row') {
-      // Horizontal layout: concatenate children on same line
-      let rowContent = '';
+      // Horizontal layout: render children side-by-side
+      const childBoxes: string[] = [];
       if (node.children && node.children.length > 0) {
         for (const child of node.children) {
           if (typeof child === 'string') {
             const textContent = applyTextStyle(child, node.style);
-            rowContent += textContent;
+            childBoxes.push(textContent);
           } else if ('_type' in child && child._type === 'marker') {
             // Render marker children
             if ('children' in child && Array.isArray(child.children)) {
               for (const markerChild of child.children) {
                 if (typeof markerChild === 'string') {
-                  rowContent += applyTextStyle(markerChild, node.style);
+                  childBoxes.push(applyTextStyle(markerChild, node.style));
                 } else if (
                   markerChild &&
                   typeof markerChild === 'object' &&
                   'type' in markerChild
                 ) {
                   const childOutput = renderNode(markerChild, width - paddingLeft * 2);
-                  const firstLine = childOutput.text.split('\n')[0] || '';
-                  rowContent += firstLine.trim();
+                  childBoxes.push(childOutput.text);
                 }
               }
             }
           } else {
-            // For text nodes in row layout, just concat their styled content
-            if (child.type === 'text' && child.children) {
-              let textContent = '';
-              for (const textChild of child.children) {
-                if (typeof textChild === 'string') {
-                  textContent += applyTextStyle(textChild, child.style);
-                } else if ('_type' in textChild && textChild._type === 'marker') {
-                  // Handle marker children
-                  if ('children' in textChild && Array.isArray(textChild.children)) {
-                    for (const markerChild of textChild.children) {
-                      if (typeof markerChild === 'string') {
-                        textContent += applyTextStyle(markerChild, child.style);
-                      } else if (
-                        markerChild &&
-                        typeof markerChild === 'object' &&
-                        'type' in markerChild
-                      ) {
-                        const nestedOutput = renderNode(markerChild, 0);
-                        textContent += nestedOutput.text.trim();
-                      }
-                    }
-                  }
-                } else if ('_type' in textChild) {
-                  // Nested text nodes - recurse
-                  const nestedOutput = renderNode(textChild, 0);
-                  textContent += nestedOutput.text.trim();
-                }
-              }
-              rowContent += textContent;
-            } else {
-              // Non-text nodes: render normally and take first line
-              const childOutput = renderNode(child, width - paddingLeft * 2);
-              const firstLine = childOutput.text.split('\n')[0] || '';
-              rowContent += firstLine.trim();
-            }
+            // Render child node
+            const childOutput = renderNode(child, width - paddingLeft * 2);
+            childBoxes.push(childOutput.text);
           }
         }
       }
-      if (rowContent && currentY < lines.length) {
-        insertContent(lines, rowContent, paddingLeft, currentY, width);
+
+      // Merge boxes side-by-side with gap
+      const gap = node.style?.gap || 0;
+      const mergedLines = mergeBoxesSideBySide(childBoxes, gap);
+
+      // Insert merged lines
+      for (let i = 0; i < mergedLines.length && currentY < lines.length; i++) {
+        insertContent(lines, mergedLines[i], paddingLeft, currentY, width);
+        currentY++;
       }
     } else {
       // Vertical layout (default): stack children
@@ -313,72 +331,41 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
     const flexDirection = node.style?.flexDirection || 'column';
 
     if (flexDirection === 'row') {
-      // Horizontal layout: concatenate children on same line
-      let rowContent = '';
+      // Horizontal layout: render children side-by-side
+      const childBoxes: string[] = [];
       if (node.children && node.children.length > 0) {
         for (const child of node.children) {
           if (typeof child === 'string') {
             const textContent = applyTextStyle(child, node.style);
-            rowContent += textContent;
+            childBoxes.push(textContent);
           } else if ('_type' in child && child._type === 'marker') {
             // Render marker children
             if ('children' in child && Array.isArray(child.children)) {
               for (const markerChild of child.children) {
                 if (typeof markerChild === 'string') {
-                  rowContent += applyTextStyle(markerChild, node.style);
+                  childBoxes.push(applyTextStyle(markerChild, node.style));
                 } else if (
                   markerChild &&
                   typeof markerChild === 'object' &&
                   'type' in markerChild
                 ) {
                   const childOutput = renderNode(markerChild, width - paddingLeft * 2);
-                  const firstLine = childOutput.text.split('\n')[0] || '';
-                  rowContent += firstLine.trim();
+                  childBoxes.push(childOutput.text);
                 }
               }
             }
           } else {
-            // For text nodes in row layout, just concat their styled content
-            if (child.type === 'text' && child.children) {
-              let textContent = '';
-              for (const textChild of child.children) {
-                if (typeof textChild === 'string') {
-                  textContent += applyTextStyle(textChild, child.style);
-                } else if ('_type' in textChild && textChild._type === 'marker') {
-                  // Handle marker children
-                  if ('children' in textChild && Array.isArray(textChild.children)) {
-                    for (const markerChild of textChild.children) {
-                      if (typeof markerChild === 'string') {
-                        textContent += applyTextStyle(markerChild, child.style);
-                      } else if (
-                        markerChild &&
-                        typeof markerChild === 'object' &&
-                        'type' in markerChild
-                      ) {
-                        const nestedOutput = renderNode(markerChild, 0);
-                        textContent += nestedOutput.text.trim();
-                      }
-                    }
-                  }
-                } else if ('_type' in textChild) {
-                  // Nested text nodes - recurse
-                  const nestedOutput = renderNode(textChild, 0);
-                  textContent += nestedOutput.text.trim();
-                }
-              }
-              rowContent += textContent;
-            } else {
-              // Non-text nodes: render normally and take first line
-              const childOutput = renderNode(child, width - paddingLeft * 2);
-              const firstLine = childOutput.text.split('\n')[0] || '';
-              rowContent += firstLine.trim();
-            }
+            // Render child node
+            const childOutput = renderNode(child, width - paddingLeft * 2);
+            childBoxes.push(childOutput.text);
           }
         }
       }
-      if (rowContent) {
-        childrenLines.push(rowContent);
-      }
+
+      // Merge boxes side-by-side with gap
+      const gap = node.style?.gap || 0;
+      const mergedLines = mergeBoxesSideBySide(childBoxes, gap);
+      childrenLines.push(...mergedLines);
     } else {
       // Vertical layout (default): stack children
       if (node.children && node.children.length > 0) {

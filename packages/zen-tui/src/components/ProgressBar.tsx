@@ -15,7 +15,7 @@ export interface ProgressBarProps {
   showPercentage?: boolean;
   color?: string;
   completedColor?: string;
-  label?: string;
+  label?: string | (() => string); // Support reactive labels
   char?: string; // Character to use for filled portion
 }
 
@@ -47,6 +47,9 @@ export function ProgressBar(props: ProgressBarProps): TUINode {
 
   const barContent = `${filledBar}${emptyBar}${percentageText}`;
 
+  // Resolve label (support reactive functions)
+  const labelText = typeof props.label === 'function' ? props.label() : props.label;
+
   return Box({
     style: {
       flexDirection: 'column',
@@ -54,9 +57,9 @@ export function ProgressBar(props: ProgressBarProps): TUINode {
     },
     children: [
       // Label (if provided)
-      props.label
+      labelText
         ? Text({
-            children: props.label,
+            children: labelText,
             color: isComplete ? completedColor : color,
             bold: true,
           })
