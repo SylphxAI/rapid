@@ -172,6 +172,7 @@ export function Provider<T>(context: Context<T>, props: { value: T; children: an
   // Resolve children lazily
   const resolved = c();
   const childArray = Array.isArray(resolved) ? resolved : [resolved];
+
   const fragment = ops.createFragment();
   for (const child of childArray) {
     if (child) {

@@ -16,8 +16,8 @@ import {
   renderToTerminalReactive,
   signal,
   updateSpinner,
-  useInput,
   useFocusContext,
+  useInput,
 } from '@zen/tui';
 
 // State
@@ -35,7 +35,7 @@ function AppContent() {
   const focusContext = useFocusContext();
 
   // Handle Tab navigation
-  useInput((input, key) => {
+  useInput((_input, key) => {
     if (key.tab) {
       focusContext.focusNext();
     }
@@ -142,8 +142,11 @@ function AppContent() {
 }
 
 function App() {
-  // Use JSX - FocusProvider's children() helper will handle lazy evaluation
-  return <FocusProvider><AppContent /></FocusProvider>;
+  // Use children prop as a function to make children lazy
+  // This is required when using Bun's React JSX runtime because it eagerly evaluates JSX children
+  // The function delays evaluation until Provider's children() helper calls it
+  // biome-ignore lint/correctness/noChildrenProp: Required for lazy evaluation with React JSX runtime
+  return <FocusProvider children={() => <AppContent />} />;
 }
 
 // Auto-increment progress when loading
@@ -176,7 +179,7 @@ const _buttonHandlers = {
 };
 
 // Global focus context access (will be set during render)
-const _focusContext: any = null;
+const _focusContext: unknown = null;
 
 // Render
 const cleanup = renderToTerminalReactive(

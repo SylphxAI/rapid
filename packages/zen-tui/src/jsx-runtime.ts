@@ -12,6 +12,24 @@ import type { TUINode } from './types.js';
 type Props = Record<string, unknown>;
 type ComponentFunction = (props: Props | null) => TUINode | TUINode[];
 
+interface ReactElement {
+  $$typeof: symbol;
+  type: ComponentFunction;
+  props: Props;
+}
+
+interface TUIMarker {
+  _type: 'marker';
+  _kind: string;
+  children: (TUINode | string)[];
+  parentNode?: TUINode;
+}
+
+interface SignalLike {
+  _kind: string;
+  value: unknown;
+}
+
 /**
  * JSX factory for TUI
  */
@@ -52,16 +70,110 @@ export function jsx(type: string | ComponentFunction, props: Props | null): TUIN
 export const jsxs = jsx;
 export const jsxDEV = jsx;
 
+function isReactElement(child: unknown): child is ReactElement {
+  return typeof child === 'object' && child !== null && 'type' in child && '$$typeof' in child;
+}
+
+function isTUINode(child: unknown): child is TUINode {
+  return typeof child === 'object' && child !== null && 'type' in child && !('$$typeof' in child);
+}
+
+function isTUIMarker(child: unknown): child is TUIMarker {
+  return (
+    typeof child === 'object' &&
+    child !== null &&
+    '_type' in child &&
+    (child as TUIMarker)._type === 'marker'
+  );
+}
+
+function handleReactElement(parent: TUINode, reactEl: ReactElement): void {
+  if (typeof reactEl.type === 'function') {
+    const result = executeComponent(
+      () => reactEl.type(reactEl.props),
+      // biome-ignore lint/suspicious/noExplicitAny: Generic node type from framework
+      (node: any, owner: any) => {
+        if (!Array.isArray(node)) {
+          attachNodeToOwner(node, owner);
+        }
+      },
+    );
+    appendChild(parent, result);
+  }
+}
+
+function handleTUINode(parent: TUINode, node: TUINode): void {
+  parent.children.push(node);
+  try {
+    node.parentNode = parent;
+  } catch {
+    // Object is frozen/sealed, skip parentNode assignment
+  }
+}
+
+function handleTUIMarker(parent: TUINode, marker: TUIMarker): void {
+  parent.children.push(marker);
+  try {
+    marker.parentNode = parent;
+  } catch {
+    // Object is frozen/sealed, skip parentNode assignment
+  }
+}
+
+function handleSignal(parent: TUINode, signal: SignalLike): void {
+  const textNode: TUINode = {
+    type: 'text',
+    props: {},
+    children: [''],
+  };
+
+  parent.children.push(textNode);
+
+  effect(() => {
+    textNode.children[0] = String(signal.value ?? '');
+    return undefined;
+  });
+}
+
+function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
+  const marker: TUIMarker = {
+    _type: 'marker',
+    _kind: 'reactive',
+    children: [],
+  };
+
+  parent.children.push(marker);
+
+  effect(() => {
+    const value = fn();
+    marker.children = [];
+
+    if (value && typeof value === 'object' && 'type' in value) {
+      marker.children.push(value as TUINode);
+      return undefined;
+    }
+
+    if (Array.isArray(value)) {
+      marker.children.push(...value);
+      return undefined;
+    }
+
+    if (value != null && value !== false) {
+      marker.children.push(String(value));
+    }
+
+    return undefined;
+  });
+}
+
 /**
  * Append child to TUI node
  */
 export function appendChild(parent: TUINode, child: unknown): void {
-  // Null/undefined/false
   if (child == null || child === false) {
     return;
   }
 
-  // Array of children
   if (Array.isArray(child)) {
     for (let i = 0; i < child.length; i++) {
       appendChild(parent, child[i]);
@@ -69,103 +181,31 @@ export function appendChild(parent: TUINode, child: unknown): void {
     return;
   }
 
-  // React element descriptor (from Bun's React JSX runtime)
-  // Shape: { $$typeof, type, props }
-  if (typeof child === 'object' && 'type' in child && '$$typeof' in child) {
-    const reactEl = child as any;
-    // Call the component function to get the actual TUI node
-    if (typeof reactEl.type === 'function') {
-      const result = reactEl.type(reactEl.props);
-      appendChild(parent, result);
-      return;
-    }
-  }
-
-  // TUI Node
-  if (typeof child === 'object' && 'type' in child) {
-    parent.children.push(child as TUINode);
-    // Try to set parentNode, but don't fail if object is frozen/sealed
-    try {
-      (child as TUINode).parentNode = parent;
-    } catch {
-      // Object is frozen/sealed, skip parentNode assignment
-    }
+  if (isReactElement(child)) {
+    handleReactElement(parent, child);
     return;
   }
 
-  // TUI Marker (from runtime components like For, Show, Switch)
-  if (typeof child === 'object' && '_type' in child && (child as any)._type === 'marker') {
-    parent.children.push(child as any);
-    // Try to set parentNode, but don't fail if object is frozen/sealed
-    try {
-      (child as any).parentNode = parent;
-    } catch {
-      // Object is frozen/sealed, skip parentNode assignment
-    }
+  if (isTUIMarker(child)) {
+    handleTUIMarker(parent, child);
     return;
   }
 
-  // Reactive signal - auto-unwrap (runtime-first)
+  if (isTUINode(child)) {
+    handleTUINode(parent, child);
+    return;
+  }
+
   if (isSignal(child)) {
-    // Create a text node that updates reactively
-    const textNode: TUINode = {
-      type: 'text',
-      props: {},
-      children: [''],
-    };
-
-    parent.children.push(textNode);
-
-    // Wrap in effect for reactivity
-    effect(() => {
-      textNode.children[0] = String((child as any).value ?? '');
-      return undefined;
-    });
+    handleSignal(parent, child as SignalLike);
     return;
   }
 
-  // Function - reactive content (from compiler transformation)
   if (typeof child === 'function') {
-    // Create a marker node that will hold the reactive content
-    // biome-ignore lint/suspicious/noExplicitAny: Marker is internal type used by runtime
-    const marker: any = {
-      _type: 'marker',
-      _kind: 'reactive',
-      children: [],
-    };
-
-    parent.children.push(marker);
-
-    // Wrap in effect for reactivity
-    effect(() => {
-      const value = child();
-
-      // Clear previous children
-      marker.children = [];
-
-      // Handle TUINode
-      if (value && typeof value === 'object' && 'type' in value) {
-        marker.children.push(value as TUINode);
-        return undefined;
-      }
-
-      // Handle array of nodes
-      if (Array.isArray(value)) {
-        marker.children.push(...value);
-        return undefined;
-      }
-
-      // Handle primitive values (text)
-      if (value != null && value !== false) {
-        marker.children.push(String(value));
-      }
-
-      return undefined;
-    });
+    handleReactiveFunction(parent, child);
     return;
   }
 
-  // Plain text
   parent.children.push(String(child));
 }
 

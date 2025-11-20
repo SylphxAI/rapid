@@ -27,7 +27,7 @@ const FocusContext = createContext(null as FocusContextValue | null);
 /**
  * Focus Provider - manages focus state for child components
  */
-export function FocusProvider(props: { children: any }): any {
+export function FocusProvider(props: { children: unknown }): unknown {
   const focusedId = signal<string | null>(null);
   const items = signal<FocusableItem[]>([]);
 
@@ -92,9 +92,7 @@ export function FocusProvider(props: { children: any }): any {
     focusPrev,
   };
 
-  // Call Provider directly (not via JSX) because Bun uses React's JSX runtime
-  // which doesn't call component functions. Provider uses children() helper
-  // internally for runtime lazy evaluation.
+  // Provider uses children() helper internally for runtime lazy evaluation
   return FocusContext.Provider({ value: contextValue, children: props.children });
 }
 
