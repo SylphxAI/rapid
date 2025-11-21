@@ -34,7 +34,15 @@ export const $router: MapStore<RouterState> = map({
 });
 // Functions
 export { defineRoutes } from './routes';
-export { open, redirect, replace, back, forward, startHistoryListener, stopHistoryListener } from './history';
+export {
+  open,
+  redirect,
+  replace,
+  back,
+  forward,
+  startHistoryListener,
+  stopHistoryListener,
+} from './history';
 export { matchRoutes, pathToRegexp } from './matcher';
 
 // Types

@@ -21,7 +21,7 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "bunup src/index.ts src/jsx-runtime.ts --format esm --dts --target node --splitting=false --external @zen/runtime --external @zen/signal --external @zen/tui/jsx-runtime --external chalk --external cli-boxes --external string-width --external strip-ansi",
+    "build": "bunup src/index.ts src/jsx-runtime.ts --format esm --dts --target node --splitting=false --external @zen/runtime --external @zen/signal --external @zen/tui/jsx-runtime --external chalk --external cli-boxes --external string-width --external strip-ansi --external yoga-wasm-web --external slice-ansi",
     "dev": "bun run --watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -41,7 +41,8 @@
     "chalk": "^5.3.0",
     "cli-boxes": "^3.0.0",
     "string-width": "^7.2.0",
-    "strip-ansi": "^7.1.0"
+    "strip-ansi": "^7.1.0",
+    "yoga-wasm-web": "^0.3.3"
   },
   "devDependencies": {
     "bunup": "^0.15.13",

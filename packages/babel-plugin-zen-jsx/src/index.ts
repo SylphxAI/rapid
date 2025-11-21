@@ -89,9 +89,7 @@ export default function zenJsxPlugin(babel: typeof BabelCore): BabelCore.PluginO
         // Find the children property
         const childrenPropIndex = propsArg.properties.findIndex(
           (prop) =>
-            t.isObjectProperty(prop) &&
-            t.isIdentifier(prop.key) &&
-            prop.key.name === 'children'
+            t.isObjectProperty(prop) && t.isIdentifier(prop.key) && prop.key.name === 'children',
         );
 
         if (childrenPropIndex === -1) {
@@ -105,8 +103,10 @@ export default function zenJsxPlugin(babel: typeof BabelCore): BabelCore.PluginO
         }
 
         // Skip if children is already a function
-        if (t.isArrowFunctionExpression(childrenProp.value) ||
-            t.isFunctionExpression(childrenProp.value)) {
+        if (
+          t.isArrowFunctionExpression(childrenProp.value) ||
+          t.isFunctionExpression(childrenProp.value)
+        ) {
           return;
         }
 
@@ -116,14 +116,12 @@ export default function zenJsxPlugin(babel: typeof BabelCore): BabelCore.PluginO
           'get',
           t.identifier('children'),
           [],
-          t.blockStatement([
-            t.returnStatement(childrenProp.value as t.Expression)
-          ])
+          t.blockStatement([t.returnStatement(childrenProp.value as t.Expression)]),
         );
 
         // Replace the property with the getter
         propsArg.properties[childrenPropIndex] = getter;
-      }
-    }
+      },
+    },
   };
 }

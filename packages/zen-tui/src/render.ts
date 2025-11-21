@@ -5,87 +5,125 @@
  * Uses simple vertical stacking layout (MVP implementation).
  */
 
-import { createRoot } from '@zen/signal';
+import { createRoot, effect } from '@zen/signal';
+// MUST set environment before importing chalk!
+process.env.FORCE_COLOR = '3';
+import fs from 'node:fs';
 import chalk from 'chalk';
 import cliBoxes from 'cli-boxes';
 import sliceAnsi from 'slice-ansi';
 import stringWidth from 'string-width';
 import stripAnsi from 'strip-ansi';
+import { renderToBuffer } from './layout-renderer.js';
+import { setRenderContext } from './render-context.js';
+import { TerminalBuffer } from './terminal-buffer.js';
 import type { RenderOutput, TUINode, TUIStyle } from './types.js';
 import { dispatchInput } from './useInput.js';
+import { type LayoutMap, computeLayout } from './yoga-layout.js';
+
+// Force chalk color level (Bun workaround - must be after chalk import)
+(chalk as any).level = 3;
+// Also ensure stdout is treated as TTY for color support
+if (!process.stdout.isTTY) {
+  Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: false });
+}
+
+// Debug logging to file
+const DEBUG_LOG = '/tmp/tui-debug.log';
+function debugLog(msg: string) {
+  fs.appendFileSync(DEBUG_LOG, `${msg}\n`);
+}
 
 /**
- * Get chalk color function
+ * Get ANSI color code - using raw ANSI instead of chalk for reliability
  */
-function getColorFn(color: string) {
-  // Map common color names to chalk functions
-  const colorMap: Record<string, any> = {
-    black: chalk.black,
-    red: chalk.red,
-    green: chalk.green,
-    yellow: chalk.yellow,
-    blue: chalk.blue,
-    magenta: chalk.magenta,
-    cyan: chalk.cyan,
-    white: chalk.white,
-    gray: chalk.gray,
-    grey: chalk.grey,
+function getColorCode(color: string): string {
+  // Map common color names to ANSI codes
+  const colorMap: Record<string, string> = {
+    black: '\x1b[30m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m',
+    cyan: '\x1b[36m',
+    white: '\x1b[37m',
+    gray: '\x1b[90m',
+    grey: '\x1b[90m',
   };
 
-  return colorMap[color.toLowerCase()] || chalk.hex(color);
+  return colorMap[color.toLowerCase()] || '\x1b[37m'; // default to white
+}
+
+function getBgColorCode(color: string): string {
+  const bgColorMap: Record<string, string> = {
+    black: '\x1b[40m',
+    red: '\x1b[41m',
+    green: '\x1b[42m',
+    yellow: '\x1b[43m',
+    blue: '\x1b[44m',
+    magenta: '\x1b[45m',
+    cyan: '\x1b[46m',
+    white: '\x1b[47m',
+    gray: '\x1b[100m',
+    grey: '\x1b[100m',
+  };
+
+  return bgColorMap[color.toLowerCase()] || '';
+}
+
+function getColorFn(color: string) {
+  const code = getColorCode(color);
+  return (text: string) => `${code + text}\x1b[39m`; // reset to default color
 }
 
 function getBgColorFn(color: string) {
-  const bgColorMap: Record<string, any> = {
-    black: chalk.bgBlack,
-    red: chalk.bgRed,
-    green: chalk.bgGreen,
-    yellow: chalk.bgYellow,
-    blue: chalk.bgBlue,
-    magenta: chalk.bgMagenta,
-    cyan: chalk.bgCyan,
-    white: chalk.bgWhite,
-    gray: chalk.bgGray,
-    grey: chalk.bgGrey,
-  };
-
-  return bgColorMap[color.toLowerCase()] || chalk.bgHex(color);
+  const code = getBgColorCode(color);
+  return (text: string) => `${code + text}\x1b[49m`; // reset to default bg
 }
 
 /**
- * Apply text styling with chalk
+ * Apply text styling with raw ANSI codes
  */
 function applyTextStyle(text: string, style: TUIStyle = {}): string {
-  let styled = text;
+  let codes = '';
+  let resetCodes = '';
 
   if (style.color) {
     // Resolve reactive color values
     const color = typeof style.color === 'function' ? style.color() : style.color;
-    styled = getColorFn(color)(styled);
+    codes += getColorCode(color);
+    resetCodes = `\x1b[39m${resetCodes}`; // reset color
   }
   if (style.backgroundColor) {
     // Resolve reactive background color values
     const bgColor =
       typeof style.backgroundColor === 'function' ? style.backgroundColor() : style.backgroundColor;
-    styled = getBgColorFn(bgColor)(styled);
+    codes += getBgColorCode(bgColor);
+    resetCodes = `\x1b[49m${resetCodes}`; // reset bg
   }
   if (style.bold) {
-    styled = chalk.bold(styled);
+    codes += '\x1b[1m';
+    resetCodes = `\x1b[22m${resetCodes}`; // reset bold
   }
   if (style.italic) {
-    styled = chalk.italic(styled);
+    codes += '\x1b[3m';
+    resetCodes = `\x1b[23m${resetCodes}`; // reset italic
   }
   if (style.underline) {
-    styled = chalk.underline(styled);
+    codes += '\x1b[4m';
+    resetCodes = `\x1b[24m${resetCodes}`; // reset underline
   }
   if (style.strikethrough) {
-    styled = chalk.strikethrough(styled);
+    codes += '\x1b[9m';
+    resetCodes = `\x1b[29m${resetCodes}`; // reset strikethrough
   }
   if (style.dim) {
-    styled = chalk.dim(styled);
+    codes += '\x1b[2m';
+    resetCodes = `\x1b[22m${resetCodes}`; // reset dim
   }
 
-  return styled;
+  return codes + text + resetCodes;
 }
 
 /**
@@ -498,7 +536,10 @@ export async function renderToTerminalReactive(
     fps?: number;
   } = {},
 ): Promise<() => void> {
-  const { onKeyPress, fps = 10 } = options;
+  const { onKeyPress } = options;
+  try {
+    fs.writeFileSync(DEBUG_LOG, `=== TUI Debug Log - ${new Date().toISOString()} ===\n`);
+  } catch (_err) {}
 
   // Enable raw mode for keyboard input
   if (process.stdin.isTTY) {
@@ -511,58 +552,153 @@ export async function renderToTerminalReactive(
   process.stdout.write('\x1b[?25l');
 
   let isRunning = true;
-  let needsRender = true;
-  let previousLines: string[] = [];
+  const terminalWidth = process.stdout.columns || 80;
+  const terminalHeight = process.stdout.rows || 24;
 
-  // Create component tree once (fine-grained reactivity)
+  // Save current cursor position (React Ink style - render at current position)
+  let _startRow = 0;
+  if (process.stdout.isTTY && process.stdout.getWindowSize) {
+    // Get cursor position - we'll render starting from current line
+    // For simplicity, we'll track the starting row ourselves
+    _startRow = 0; // Will be set after initial render
+  }
+
+  // Create component tree once (fine-grained reactivity - components render only once)
   const node = createRoot(() => createNode());
 
-  // Render function with diff-based updates
-  const doRender = async () => {
-    if (!needsRender || !isRunning) return;
-    needsRender = false;
+  // Compute initial layout
+  let layoutMap = await computeLayout(node, terminalWidth, terminalHeight);
 
-    // Wait for reactive updates to settle
-    await Promise.resolve();
-    await Promise.resolve();
+  // Terminal buffers for diff-based updates
+  let currentBuffer = new TerminalBuffer(terminalWidth, terminalHeight);
+  let previousBuffer = new TerminalBuffer(terminalWidth, terminalHeight);
 
+  // Batched updates - collect all scheduled updates and apply them together
+  let updateScheduled = false;
+  const pendingUpdates = new Map<any, string>();
+
+  const scheduleUpdate = (targetNode: any, content: string) => {
+    pendingUpdates.set(targetNode, content);
+
+    if (!updateScheduled) {
+      updateScheduled = true;
+      queueMicrotask(() => {
+        updateScheduled = false;
+        flushUpdates();
+      });
+    }
+  };
+
+  const flushUpdates = async () => {
+    if (!isRunning) return;
+
+    // Recompute layout with updated tree
+    layoutMap = await computeLayout(node, terminalWidth, terminalHeight);
+
+    // Render using existing render function
     const output = render(node);
     const newLines = output.split('\n');
 
-    // First render: clear screen and draw everything
-    if (previousLines.length === 0) {
-      // Clear screen properly
-      process.stdout.write('\x1b[2J\x1b[H');
-      process.stdout.write(output);
-      process.stdout.write('\n');
-    } else {
-      // Diff-based update: only redraw changed lines
-      const maxLines = Math.max(previousLines.length, newLines.length);
+    // Update buffer from render output
+    currentBuffer.clear();
+    for (let i = 0; i < newLines.length && i < terminalHeight; i++) {
+      currentBuffer.writeAt(0, i, newLines[i], terminalWidth);
+    }
 
-      for (let i = 0; i < maxLines; i++) {
-        const oldLine = previousLines[i] || '';
-        const newLine = newLines[i] || '';
+    // Diff and update only changed lines
+    const changes = currentBuffer.diff(previousBuffer);
 
-        if (oldLine !== newLine) {
-          // Move cursor to line i (1-indexed)
-          process.stdout.write(`\x1b[${i + 1};1H`);
-          // Clear line and write new content
-          process.stdout.write('\x1b[2K');
-          process.stdout.write(newLine);
+    // Fine-grained updates: only update changed lines
+    if (changes.length > 0) {
+      const newLines = output.split('\n');
+      const newOutputHeight = newLines.length;
+
+      // If output height changed, we need full redraw
+      if (newOutputHeight !== lastOutputHeight) {
+        // Erase old output
+        let clear = '';
+        if (lastOutputHeight > 0) {
+          for (let i = 0; i < lastOutputHeight; i++) {
+            clear += '\x1b[2K'; // Clear entire line
+            if (i < lastOutputHeight - 1) {
+              clear += '\x1b[1A'; // Move cursor up one line
+            }
+          }
+          clear += '\x1b[G'; // Move cursor to left edge
         }
-      }
 
-      // If new output is shorter, clear remaining lines
-      if (previousLines.length > newLines.length) {
-        for (let i = newLines.length; i < previousLines.length; i++) {
-          process.stdout.write(`\x1b[${i + 1};1H`);
-          process.stdout.write('\x1b[2K');
+        // Write new output
+        const finalOutput = clear + output;
+        process.stdout.write(finalOutput);
+        lastOutputHeight = newOutputHeight;
+      } else {
+        // Fine-grained: update only changed lines
+        let updateSequence = '';
+
+        // Move cursor to beginning of our output region
+        if (lastOutputHeight > 0) {
+          // Move up to first line
+          for (let i = 0; i < lastOutputHeight - 1; i++) {
+            updateSequence += '\x1b[1A';
+          }
+          updateSequence += '\x1b[G';
         }
+
+        // Update each changed line
+        for (const change of changes) {
+          const lineIndex = change.line;
+          if (lineIndex < newLines.length) {
+            // Move cursor to this line (from top of our region)
+            if (lineIndex > 0) {
+              updateSequence += `\x1b[${lineIndex}B`; // Move down lineIndex lines
+            }
+            updateSequence += '\x1b[G'; // Move to start of line
+            updateSequence += '\x1b[2K'; // Clear line
+            updateSequence += newLines[lineIndex]; // Write new content
+
+            // Move back to top
+            if (lineIndex > 0) {
+              updateSequence += `\x1b[${lineIndex}A`; // Move back up
+            }
+          }
+        }
+
+        // Move cursor to end of output (after last line)
+        updateSequence += `\x1b[${lastOutputHeight - 1}B`;
+        updateSequence += '\x1b[G';
+
+        process.stdout.write(updateSequence);
       }
     }
 
-    previousLines = newLines;
+    // Swap buffers for next update
+    const temp = previousBuffer;
+    previousBuffer = currentBuffer;
+    currentBuffer = temp;
+
+    pendingUpdates.clear();
   };
+
+  // Set render context for fine-grained updates
+  setRenderContext({
+    layoutMap,
+    scheduleUpdate,
+  });
+
+  // Initial render (React Ink style - don't clear screen, render at current position)
+  const initialOutput = render(node);
+
+  // Just write output at current cursor position (don't clear screen)
+  process.stdout.write(initialOutput);
+
+  // Track how many lines we rendered (updated on each render)
+  let lastOutputHeight = initialOutput.split('\n').length;
+
+  // Initialize current buffer with initial output
+  const initialLines = initialOutput.split('\n');
+  for (let i = 0; i < initialLines.length && i < terminalHeight; i++) {
+    currentBuffer.writeAt(0, i, initialLines[i], terminalWidth);
+  }
 
   // Set up keyboard handler
   const keyHandler = (key: string) => {
@@ -583,30 +719,17 @@ export async function renderToTerminalReactive(
     if (onKeyPress) {
       onKeyPress(key);
     }
-
-    needsRender = true;
   };
 
   if (process.stdin.isTTY) {
     process.stdin.on('data', keyHandler);
-  } else {
   }
-
-  // Render loop
-  const renderInterval = setInterval(() => {
-    if (isRunning) {
-      needsRender = true;
-      doRender();
-    }
-  }, 1000 / fps);
-
-  // Initial render
-  await doRender();
 
   // Cleanup function
   const cleanup = () => {
     isRunning = false;
-    clearInterval(renderInterval);
+    // Clear render context
+    setRenderContext(null);
     // Show cursor again
     process.stdout.write('\x1b[?25h');
     if (process.stdin.isTTY) {

@@ -7,6 +7,7 @@
 
 import { executeComponent, isSignal } from '@zen/runtime';
 import { attachNodeToOwner, effect, getOwner } from '@zen/signal';
+import { scheduleNodeUpdate } from './render-context.js';
 import type { TUINode } from './types.js';
 
 type Props = Record<string, unknown>;
@@ -130,7 +131,10 @@ function handleSignal(parent: TUINode, signal: SignalLike): void {
   parent.children.push(textNode);
 
   effect(() => {
-    textNode.children[0] = String(signal.value ?? '');
+    const newValue = String(signal.value ?? '');
+    textNode.children[0] = newValue;
+    // Schedule fine-grained update
+    scheduleNodeUpdate(textNode, newValue);
     return undefined;
   });
 }
@@ -150,16 +154,23 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
 
     if (value && typeof value === 'object' && 'type' in value) {
       marker.children.push(value as TUINode);
+      // Schedule fine-grained update for the marker
+      scheduleNodeUpdate(marker, ''); // Will render the TUINode
       return undefined;
     }
 
     if (Array.isArray(value)) {
       marker.children.push(...value);
+      // Schedule fine-grained update for the marker
+      scheduleNodeUpdate(marker, ''); // Will render the array
       return undefined;
     }
 
     if (value != null && value !== false) {
-      marker.children.push(String(value));
+      const stringValue = String(value);
+      marker.children.push(stringValue);
+      // Schedule fine-grained update for the marker
+      scheduleNodeUpdate(marker, stringValue);
     }
 
     return undefined;

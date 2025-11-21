@@ -5,10 +5,18 @@
  * Uses @zen/runtime components with terminal rendering.
  */
 
+// Force chalk to always output colors BEFORE any imports
+// This must be FIRST to ensure chalk initializes with colors enabled
+process.env.FORCE_COLOR = '3';
+
 // Initialize platform operations for TUI
 import { setPlatformOps } from '@zen/runtime';
 import { tuiPlatformOps } from './platform-ops.js';
 setPlatformOps(tuiPlatformOps);
+
+// Force chalk color level (Bun workaround)
+import chalk from 'chalk';
+(chalk as any).level = 3;
 
 // Re-export runtime for convenience
 export {

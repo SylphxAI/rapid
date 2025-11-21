@@ -5,7 +5,8 @@
  * API matches React Ink, implementation uses signals.
  */
 
-import { createContext, signal, useContext } from '@zen/runtime';
+import { computed, createContext, signal, useContext } from '@zen/runtime';
+import { useInput } from './useInput.js';
 
 export interface FocusableItem {
   id: string;
@@ -30,6 +31,8 @@ const FocusContext = createContext(null as FocusManagerValue | null);
 
 /**
  * Focus Provider - manages focus state for child components
+ *
+ * Automatically handles Tab/Shift+Tab navigation (Ink-compatible behavior)
  */
 export function FocusProvider(props: { children: unknown }): unknown {
   const focusedId = signal<string | null>(null);
@@ -119,6 +122,21 @@ export function FocusProvider(props: { children: unknown }): unknown {
     disableFocus,
   };
 
+  // Automatic Tab navigation (Ink-compatible)
+  // Register global keyboard handler for Tab/Shift+Tab
+  useInput((_input, key) => {
+    if (key.tab && !key.shift) {
+      // Tab - focus next
+      focusNext();
+    } else if (key.tab && key.shift) {
+      // Shift+Tab - focus previous
+      focusPrevious();
+    } else if (key.escape) {
+      // Esc - reset focus (Ink behavior)
+      focusedId.value = null;
+    }
+  });
+
   // Provider uses children() helper internally for runtime lazy evaluation
   return FocusContext.Provider({ value: contextValue, children: props.children });
 }
@@ -186,11 +204,13 @@ export function useFocus(options?: {
     onBlur: options?.onBlur,
   });
 
-  // Return reactive getter for isFocused (Ink-compatible API)
-  // This works because JSX will call the getter during render
+  // Return reactive computed for isFocused
+  // Using computed instead of getter to ensure proper dependency tracking in effects
+  const isFocusedSignal = computed(() => ctx.focusedId.value === id);
+
   return {
     get isFocused() {
-      return ctx.focusedId.value === id;
+      return isFocusedSignal.value;
     },
   };
 }
