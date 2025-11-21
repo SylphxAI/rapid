@@ -15,6 +15,6 @@
     "sourceMap": true,
     "composite": false,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "preserve"
   }
 }
