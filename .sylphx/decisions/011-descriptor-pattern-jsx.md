@@ -498,9 +498,12 @@ Same pattern works for @zen/web, @zen/tui, @zen/native.
 4. Test with questionnaire.tsx ✅
 
 ### Phase 2: Platform Rollout
-1. Update @zen/web jsx-runtime
-2. Update @zen/native jsx-runtime (when ready)
-3. Verify all Context-based features work
+1. Update @zen/web jsx-runtime ✅
+2. Update Fragment component with descriptor support ✅
+3. Update Router component with descriptor support ✅
+4. Create test page for verification ✅
+5. Update @zen/native jsx-runtime (when ready)
+6. Verify all Context-based features work
 
 ### Phase 3: Optimization (Future)
 With compiler:
@@ -570,9 +573,11 @@ Skip descriptor allocation when compiler can guarantee lazy children.
 - ✅ <1% performance overhead
 
 ### Phase 2 (Platform Rollout)
-- ✅ Web Context propagation works
-- ✅ Native Context propagation works
-- ✅ All platforms tested
+- ✅ Web jsx-runtime descriptor support implemented
+- ✅ Web Fragment component descriptor support
+- ✅ Web Router component descriptor support
+- 🚧 Web Context propagation verification (test page created, pending user testing)
+- ⏳ Native Context propagation works (pending @zen/native development)
 
 ### Phase 3 (Production Ready)
 - ✅ No regressions in existing apps
@@ -583,9 +588,13 @@ Skip descriptor allocation when compiler can guarantee lazy children.
 
 ## References
 
-- Implementation: `packages/zen-tui/src/jsx-runtime.ts`
+- TUI Implementation: `packages/zen-tui/src/jsx-runtime.ts`
+- Web Implementation: `packages/zen-web/src/jsx-runtime.ts`
+- Fragment Support: `packages/zen-web/src/core/fragment.ts`
+- Router Support: `packages/zen-router/src/Router.tsx`
 - Executor: `packages/zen-runtime/src/descriptor.ts`
-- Tests: `examples/tui-demo/src/*-test.tsx`
+- TUI Tests: `examples/tui-demo/src/*-test.tsx`
+- Web Tests: `apps/website/src/pages/TestDescriptor.tsx`
 - Related: ADR-001 (Runtime-First Architecture)
 
 ---
@@ -632,6 +641,12 @@ Adopt React-like VDOM + diffing.
 
 ## Changelog
 
-- 2024-12-XX: Initial decision
-- Implementation: In progress
-- Testing: Pending
+- 2024-12-XX: Initial decision and TUI implementation
+- 2025-11-21: Web implementation complete
+  - Implemented descriptor pattern in @zen/web jsx-runtime
+  - Added descriptor support to Fragment component
+  - Added descriptor support to Router component
+  - Created test page at `/test-descriptor`
+  - Fixed cross-platform JSX importSource in compiler
+- Phase 1 (TUI): ✅ Complete
+- Phase 2 (Web): ✅ Implementation complete, pending user verification
