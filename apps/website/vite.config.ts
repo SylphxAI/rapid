@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [
-    zenCompiler(),
+    zenCompiler({ importSource: '@zen/web' }),
     // Icons plugin disabled - requires @svgr/core dependency
     // Icons({
     //   compiler: 'jsx',

@@ -40,4 +40,10 @@ export interface CompilerOptions {
    * @default (name) => name.endsWith('Signal') || name === 'signal'
    */
   isSignal?: (name: string) => boolean;
+
+  /**
+   * JSX importSource for platform-specific jsx-runtime
+   * @example '@zen/web', '@zen/tui', '@zen/native'
+   */
+  importSource?: string;
 }
