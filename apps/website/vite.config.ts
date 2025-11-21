@@ -13,7 +13,7 @@ export default defineConfig({
     // }),
   ],
   esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: '@zen/web',
+    // Disable esbuild's JSX transformation - let zenCompiler (Babel) handle it
+    jsx: 'preserve',
   },
 });
