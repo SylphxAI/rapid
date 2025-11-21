@@ -597,6 +597,32 @@ export async function renderToTerminalReactive(
     }
   };
 
+  // Track console.log output to invalidate buffer when it occurs
+  // This ensures fine-grained updates work correctly after console displacement
+  let consoleLogDetected = false;
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+  const originalConsoleInfo = console.info;
+
+  // Intercept console methods to detect when output occurs
+  console.log = (...args: any[]) => {
+    consoleLogDetected = true;
+    originalConsoleLog(...args);
+  };
+  console.error = (...args: any[]) => {
+    consoleLogDetected = true;
+    originalConsoleError(...args);
+  };
+  console.warn = (...args: any[]) => {
+    consoleLogDetected = true;
+    originalConsoleWarn(...args);
+  };
+  console.info = (...args: any[]) => {
+    consoleLogDetected = true;
+    originalConsoleInfo(...args);
+  };
+
   const flushUpdates = async () => {
     if (!isRunning) return;
 
@@ -612,6 +638,15 @@ export async function renderToTerminalReactive(
     currentBuffer.clear();
     for (let i = 0; i < newLines.length && i < terminalHeight; i++) {
       currentBuffer.writeAt(0, i, newLines[i], terminalWidth);
+    }
+
+    // If console.log occurred, invalidate previous buffer to force full repaint
+    // This handles the displacement issue: console.log pushes app content down,
+    // so we need to redraw everything to resync. This is efficient because
+    // console.log is rare - most updates are still fine-grained.
+    if (consoleLogDetected) {
+      previousBuffer.clear(); // Force full diff on this render
+      consoleLogDetected = false;
     }
 
     // Diff and update only changed lines
@@ -725,6 +760,11 @@ export async function renderToTerminalReactive(
     isRunning = false;
     // Clear render context
     setRenderContext(null);
+    // Restore console methods
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
+    console.info = originalConsoleInfo;
     // Show cursor again
     process.stdout.write('\x1b[?25h');
     if (process.stdin.isTTY) {
