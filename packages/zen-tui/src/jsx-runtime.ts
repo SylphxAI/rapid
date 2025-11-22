@@ -172,6 +172,20 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
     const value = fn();
     marker.children = [];
 
+    // Check if value is a descriptor (component not yet executed)
+    if (isDescriptor(value)) {
+      const node = withParent(marker.parentNode || parent, () => executeDescriptor(value));
+      if (node) {
+        if (Array.isArray(node)) {
+          marker.children.push(...node);
+        } else {
+          marker.children.push(node);
+        }
+      }
+      scheduleNodeUpdate(marker, '');
+      return undefined;
+    }
+
     if (value && typeof value === 'object' && 'type' in value) {
       marker.children.push(value as TUINode);
       // Schedule fine-grained update for the marker

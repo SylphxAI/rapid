@@ -581,7 +581,8 @@ export async function renderToTerminalReactive(
     if (result && typeof result === 'object' && '_jsx' in result && (result as any)._jsx === true) {
       // Import executeDescriptor dynamically to avoid circular dependency
       const { executeDescriptor } = require('@zen/runtime');
-      return executeDescriptor(result);
+      const executed = executeDescriptor(result);
+      return executed;
     }
 
     return result;
