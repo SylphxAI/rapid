@@ -5,11 +5,13 @@ import { Icon } from './Icon';
 export function PerformanceDemo() {
   const isRunning = signal(false);
   const itemCount = signal(1000);
+  const uncappedMode = signal(false);
   const fps = signal(0);
   const updateCount = signal(0);
   const items = signal<Array<{ id: number; value: number }>>([]);
 
   let animationFrameId: number | null = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastFrameTime = performance.now();
   let frameCount = 0;
 
@@ -36,7 +38,11 @@ export function PerformanceDemo() {
     }
 
     if (isRunning.value) {
-      animationFrameId = requestAnimationFrame(measureFPS);
+      if (uncappedMode.value) {
+        timeoutId = setTimeout(measureFPS, 0);
+      } else {
+        animationFrameId = requestAnimationFrame(measureFPS);
+      }
     }
   };
 
@@ -58,7 +64,11 @@ export function PerformanceDemo() {
       return item;
     });
 
-    requestAnimationFrame(animate);
+    if (uncappedMode.value) {
+      timeoutId = setTimeout(animate, 0);
+    } else {
+      requestAnimationFrame(animate);
+    }
   };
 
   const start = () => {
@@ -79,6 +89,11 @@ export function PerformanceDemo() {
     if (animationFrameId !== null) {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
+    }
+
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
     }
   };
 
@@ -143,25 +158,40 @@ export function PerformanceDemo() {
               </button>
             </div>
 
-            <div class="flex items-center gap-3">
-              <label class="text-text dark:text-text-dark font-medium">
-                Items:
+            <div class="flex items-center gap-6">
+              <div class="flex items-center gap-3">
+                <label class="text-text dark:text-text-dark font-medium">
+                  Items:
+                  <input
+                    type="range"
+                    min="100"
+                    max="5000"
+                    step="100"
+                    value={itemCount.value}
+                    disabled={isRunning.value}
+                    onInput={(e: Event) => {
+                      itemCount.value = Number((e.target as HTMLInputElement).value);
+                    }}
+                    class="w-32 ml-2"
+                  />
+                </label>
+                <span class="text-text dark:text-text-dark font-mono font-bold min-w-[60px]">
+                  {itemCount.value}
+                </span>
+              </div>
+
+              <label class="flex items-center gap-2 text-text dark:text-text-dark font-medium cursor-pointer">
                 <input
-                  type="range"
-                  min="100"
-                  max="5000"
-                  step="100"
-                  value={itemCount.value}
-                  disabled={isRunning.value}
-                  onInput={(e: Event) => {
-                    itemCount.value = Number((e.target as HTMLInputElement).value);
+                  type="checkbox"
+                  checked={uncappedMode.value}
+                  onChange={(e: Event) => {
+                    uncappedMode.value = (e.target as HTMLInputElement).checked;
                   }}
-                  class="w-32 ml-2"
+                  disabled={isRunning.value}
+                  class="w-4 h-4"
                 />
+                Uncapped FPS
               </label>
-              <span class="text-text dark:text-text-dark font-mono font-bold min-w-[60px]">
-                {itemCount.value}
-              </span>
             </div>
           </div>
 
@@ -173,7 +203,7 @@ export function PerformanceDemo() {
               </div>
               <div class={`text-4xl font-bold ${fpsColor.value}`}>{fps.value}</div>
               <div class="text-xs text-text-muted dark:text-text-dark-muted mt-1">
-                Display refresh rate
+                {uncappedMode.value ? 'Uncapped mode' : 'Display refresh rate'}
               </div>
             </div>
 
