@@ -47,77 +47,73 @@ export function ErrorBoundary(props: ErrorBoundaryProps): unknown {
   // Track current node and error state
   let currentNode: Node | null = null;
   const error = signal<Error | null>(null);
-  let dispose: (() => void) | undefined;
   let errorHandler: ((event: ErrorEvent) => void) | undefined;
 
   const reset = () => {
     error.value = null;
   };
 
-  // Defer effect until marker is in tree
-  queueMicrotask(() => {
-    dispose = effect(() => {
-      const err = error.value;
+  // ARCHITECTURE: Effects are immediate sync (not deferred)
+  // Parent check happens inside effect - if no parent yet, insertBefore is no-op
+  const dispose = effect(() => {
+    const err = error.value;
 
-      // Cleanup previous node
-      if (currentNode) {
-        const parent = ops.getParent(marker);
-        if (parent) {
-          ops.removeChild(parent, currentNode);
-        }
-        disposeNode(currentNode);
-        currentNode = null;
+    // Cleanup previous node
+    if (currentNode) {
+      const parent = ops.getParent(marker);
+      if (parent) {
+        ops.removeChild(parent, currentNode);
       }
-
-      // Render appropriate content
-      try {
-        if (err) {
-          // Show error fallback
-          currentNode = untrack(() => props.fallback(err, reset));
-        } else {
-          // Show children
-          currentNode = untrack(() => c());
-        }
-      } catch (renderError) {
-        // Caught error during render
-        error.value = renderError as Error;
-        // Retry render with error state
-        currentNode = untrack(() => props.fallback(renderError as Error, reset));
-      }
-
-      // Insert into tree
-      if (currentNode) {
-        const parent = ops.getParent(marker);
-        if (parent) {
-          ops.insertBefore(parent, currentNode, marker);
-        }
-      }
-
-      return undefined;
-    });
-
-    // Global error handler (optional - catches async errors)
-    if (typeof window !== 'undefined') {
-      errorHandler = (event: ErrorEvent) => {
-        const parent = ops.getParent(marker);
-        if (parent && (parent as any).contains && (parent as any).contains(event.target)) {
-          event.preventDefault();
-          error.value = event.error;
-        }
-      };
-
-      window.addEventListener('error', errorHandler);
+      disposeNode(currentNode);
+      currentNode = null;
     }
+
+    // Render appropriate content
+    try {
+      if (err) {
+        // Show error fallback
+        currentNode = untrack(() => props.fallback(err, reset));
+      } else {
+        // Show children
+        currentNode = untrack(() => c());
+      }
+    } catch (renderError) {
+      // Caught error during render
+      error.value = renderError as Error;
+      // Retry render with error state
+      currentNode = untrack(() => props.fallback(renderError as Error, reset));
+    }
+
+    // Insert into tree
+    if (currentNode) {
+      const parent = ops.getParent(marker);
+      if (parent) {
+        ops.insertBefore(parent, currentNode, marker);
+      }
+    }
+
+    return undefined;
   });
+
+  // Global error handler (optional - catches async errors)
+  if (typeof window !== 'undefined') {
+    errorHandler = (event: ErrorEvent) => {
+      const parent = ops.getParent(marker);
+      if (parent && (parent as any).contains && (parent as any).contains(event.target)) {
+        event.preventDefault();
+        error.value = event.error;
+      }
+    };
+
+    window.addEventListener('error', errorHandler);
+  }
 
   // Register cleanup via owner system
   onCleanup(() => {
     if (errorHandler && typeof window !== 'undefined') {
       window.removeEventListener('error', errorHandler);
     }
-    if (dispose) {
-      dispose();
-    }
+    dispose();
     if (currentNode) {
       const parent = ops.getParent(marker);
       if (parent) {

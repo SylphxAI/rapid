@@ -72,7 +72,6 @@ export function Suspense(props: SuspenseProps): any {
   // Track current node and loading state
   let currentNode: any = null;
   const isLoading = signal(false);
-  let dispose: (() => void) | undefined;
   let intervalId: ReturnType<typeof setInterval> | undefined;
 
   // Function to check and update loading state
@@ -86,63 +85,60 @@ export function Suspense(props: SuspenseProps): any {
     }
   };
 
-  // Defer effect until marker is in tree
-  queueMicrotask(() => {
-    dispose = effect(() => {
-      const loading = isLoading.value;
+  // ARCHITECTURE: Effects are immediate sync (not deferred)
+  // Parent check happens inside effect - if no parent yet, insertBefore is no-op
+  const dispose = effect(() => {
+    const loading = isLoading.value;
 
-      // Cleanup previous node
-      if (currentNode) {
-        const parent = ops.getParent(marker);
-        if (parent) {
-          ops.removeChild(parent, currentNode);
-        }
-        disposeNode(currentNode);
-        currentNode = null;
+    // Cleanup previous node
+    if (currentNode) {
+      const parent = ops.getParent(marker);
+      if (parent) {
+        ops.removeChild(parent, currentNode);
       }
+      disposeNode(currentNode);
+      currentNode = null;
+    }
 
-      // Render appropriate content
-      if (loading) {
-        // Show fallback
-        currentNode = untrack(() => {
-          const fb = f();
-          return fb;
-        });
-      } else {
-        // Show children
-        currentNode = untrack(() => {
-          const child = c();
-          return child;
-        });
+    // Render appropriate content
+    if (loading) {
+      // Show fallback
+      currentNode = untrack(() => {
+        const fb = f();
+        return fb;
+      });
+    } else {
+      // Show children
+      currentNode = untrack(() => {
+        const child = c();
+        return child;
+      });
+    }
+
+    // Insert into tree
+    if (currentNode) {
+      const parent = ops.getParent(marker);
+      if (parent) {
+        ops.insertBefore(parent, currentNode, marker);
       }
+    }
 
-      // Insert into tree
-      if (currentNode) {
-        const parent = ops.getParent(marker);
-        if (parent) {
-          ops.insertBefore(parent, currentNode, marker);
-        }
-      }
-
-      return undefined;
-    });
-
-    // Initial render with children
-    isLoading.value = false;
-
-    // Poll for loading state changes
-    // (Lazy components update their loading state asynchronously)
-    intervalId = setInterval(checkLoading, 16); // ~60fps
+    return undefined;
   });
+
+  // Initial render with children
+  isLoading.value = false;
+
+  // Poll for loading state changes
+  // (Lazy components update their loading state asynchronously)
+  intervalId = setInterval(checkLoading, 16); // ~60fps
 
   // Register cleanup via owner system
   onCleanup(() => {
     if (intervalId) {
       clearInterval(intervalId);
     }
-    if (dispose) {
-      dispose();
-    }
+    dispose();
     if (currentNode) {
       const parent = ops.getParent(marker);
       if (parent) {

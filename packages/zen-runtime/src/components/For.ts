@@ -59,101 +59,99 @@ export function For<T, U = any>(props: ForProps<T, U>): any {
 
   // Get parent for operations
   let parent: any = null;
-  let dispose: (() => void) | undefined;
 
-  // Defer effect until marker is in DOM (same fix as Router and Show components)
-  queueMicrotask(() => {
-    dispose = effect(() => {
-      // Resolve array - automatically tracks reactive dependencies
-      const array = resolve(each) as T[];
+  // ARCHITECTURE: Effects are immediate sync (not deferred)
+  // Parent check happens inside effect - if no parent yet, operations are no-ops
+  const dispose = effect(() => {
+    // Resolve array - automatically tracks reactive dependencies
+    const array = resolve(each) as T[];
 
-      // Show fallback if empty
-      if (array.length === 0 && fallback) {
-        // Clear existing items
-        for (const [, entry] of items) {
-          const entryParent = ops.getParent(entry.node as any);
-          if (entryParent) {
-            ops.removeChild(entryParent, entry.node as any);
-          }
-          disposeNode(entry.node as any);
+    // Show fallback if empty
+    if (array.length === 0 && fallback) {
+      // Clear existing items
+      for (const [, entry] of items) {
+        const entryParent = ops.getParent(entry.node as any);
+        if (entryParent) {
+          ops.removeChild(entryParent, entry.node as any);
         }
-        items.clear();
-
-        // Insert fallback
-        if (!parent) parent = ops.getParent(marker);
-        if (parent) {
-          ops.insertBefore(parent, fallback, marker);
-        }
-        return;
+        disposeNode(entry.node as any);
       }
-
-      // Remove fallback if present
-      const fallbackParent = fallback ? ops.getParent(fallback) : null;
-      if (fallbackParent) {
-        ops.removeChild(fallbackParent, fallback);
-      }
-
-      if (!parent) parent = ops.getParent(marker);
-      if (!parent) return;
-
-      // Build new items map
-      const newItems = new Map<any, { node: U; index: number; item: T }>();
-      const fragment = ops.createFragment();
-
-      for (let i = 0; i < array.length; i++) {
-        const item = array[i];
-        // Use custom key function or item itself as key
-        const itemKey = keyFn ? keyFn(item, i) : item;
-        let entry = items.get(itemKey);
-
-        if (entry) {
-          // Reuse existing node
-          entry.index = i;
-          entry.item = item;
-          newItems.set(itemKey, entry);
-        } else {
-          // Create new node
-          const node = children(item, () => {
-            const entry = Array.from(newItems.values()).find((e) => e.item === item);
-            return entry ? entry.index : -1;
-          });
-
-          entry = { node, index: i, item };
-          newItems.set(itemKey, entry);
-        }
-
-        ops.appendToFragment(fragment, entry.node as any);
-      }
-
-      // Remove items no longer in array
-      for (const [itemKey, entry] of items) {
-        if (!newItems.has(itemKey)) {
-          const entryParent = ops.getParent(entry.node as any);
-          if (entryParent) {
-            ops.removeChild(entryParent, entry.node as any);
-          }
-          disposeNode(entry.node as any);
-        }
-      }
-
-      // Update items map
       items.clear();
-      for (const [itemKey, entry] of newItems) {
-        items.set(itemKey, entry);
+
+      // Insert fallback
+      if (!parent) parent = ops.getParent(marker);
+      if (parent) {
+        ops.insertBefore(parent, fallback, marker);
+      }
+      return;
+    }
+
+    // Remove fallback if present
+    const fallbackParent = fallback ? ops.getParent(fallback) : null;
+    if (fallbackParent) {
+      ops.removeChild(fallbackParent, fallback);
+    }
+
+    if (!parent) parent = ops.getParent(marker);
+    if (!parent) {
+      return;
+    }
+
+    // Build new items map
+    const newItems = new Map<any, { node: U; index: number; item: T }>();
+    const fragment = ops.createFragment();
+
+    for (let i = 0; i < array.length; i++) {
+      const item = array[i];
+      // Use custom key function or item itself as key
+      const itemKey = keyFn ? keyFn(item, i) : item;
+      let entry = items.get(itemKey);
+
+      if (entry) {
+        // Reuse existing node
+        entry.index = i;
+        entry.item = item;
+        newItems.set(itemKey, entry);
+      } else {
+        // Create new node
+        const node = children(item, () => {
+          const entry = Array.from(newItems.values()).find((e) => e.item === item);
+          return entry ? entry.index : -1;
+        });
+
+        entry = { node, index: i, item };
+        newItems.set(itemKey, entry);
       }
 
-      // Insert all nodes in correct order
-      ops.insertBefore(parent, fragment, marker);
+      ops.appendToFragment(fragment, entry.node as any);
+    }
 
-      return undefined;
-    });
+    // Remove items no longer in array
+    for (const [itemKey, entry] of items) {
+      if (!newItems.has(itemKey)) {
+        const entryParent = ops.getParent(entry.node as any);
+        if (entryParent) {
+          ops.removeChild(entryParent, entry.node as any);
+        }
+        disposeNode(entry.node as any);
+      }
+    }
+
+    // Update items map
+    items.clear();
+    for (const [itemKey, entry] of newItems) {
+      items.set(itemKey, entry);
+    }
+
+    // Insert all nodes in correct order
+    ops.insertBefore(parent, fragment, marker);
+
+    return undefined;
   });
 
   // Register cleanup via owner system
   onCleanup(() => {
-    if (dispose) {
-      dispose();
-    }
+    dispose();
     for (const [, entry] of items) {
       const entryParent = ops.getParent(entry.node as any);
       if (entryParent) {

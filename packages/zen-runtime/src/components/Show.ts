@@ -9,7 +9,7 @@
  * - Supports fallback
  */
 
-import { effect, untrack } from '@zen/signal';
+import { computed, effect, untrack } from '@zen/signal';
 import { disposeNode, onCleanup } from '@zen/signal';
 import { getPlatformOps } from '../platform-ops.js';
 import { type Reactive, resolve } from '../reactive-utils.js';
@@ -48,70 +48,69 @@ export function Show<T>(props: ShowProps<T>): any {
   // Anchor to mark position
   const marker = ops.createMarker('show');
 
-  // Track current node
+  // Track current node and condition
   let currentNode: any = null;
-  let dispose: (() => void) | undefined;
+  let previousCondition = false;
 
-  // Defer effect until marker is in tree (same fix as Router component)
-  queueMicrotask(() => {
-    dispose = effect(() => {
-      // Resolve condition - automatically tracks reactive dependencies
-      const condition = resolve(props.when);
+  // ARCHITECTURE: Effects are immediate sync (not deferred)
+  // Parent check happens inside effect - if no parent yet, insertBefore is no-op
+  const dispose = effect(() => {
+    const condition = resolve(props.when);
+    const conditionBool = !!condition;
 
-      // Cleanup previous node
-      if (currentNode) {
-        const parent = ops.getParent(marker);
-        if (parent) {
-          ops.removeChild(parent, currentNode);
-        }
-        // Dispose child component's owner
-        disposeNode(currentNode);
-        currentNode = null;
+    // Only cleanup if condition changed
+    if (currentNode && previousCondition !== conditionBool) {
+      const parent = ops.getParent(marker);
+      if (parent) {
+        ops.removeChild(parent, currentNode);
       }
+      // Dispose child component's owner
+      disposeNode(currentNode);
+      currentNode = null;
+    }
 
-      // Render appropriate branch
-      if (condition) {
-        // Truthy - render children
-        // Only now do we read props.children (via c())
-        // This triggers the lazy getter from descriptor pattern
+    previousCondition = conditionBool;
+
+    // Render appropriate branch (only if no current node)
+    if (conditionBool && !currentNode) {
+      // Truthy - render children
+      // Only now do we read props.children (via c())
+      // This triggers the lazy getter from descriptor pattern
+      currentNode = untrack(() => {
+        const child = c();
+        if (typeof child === 'function') {
+          return child(condition as T);
+        }
+        return child;
+      });
+    } else if (!conditionBool && !currentNode) {
+      // Falsy - render fallback (only if no current node)
+      // Only read fallback if condition is false
+      const fb = f();
+      if (fb) {
         currentNode = untrack(() => {
-          const child = c();
-          if (typeof child === 'function') {
-            return child(condition as T);
+          if (typeof fb === 'function') {
+            return fb();
           }
-          return child;
+          return fb;
         });
-      } else {
-        // Falsy - render fallback
-        // Only read fallback if condition is false
-        const fb = f();
-        if (fb) {
-          currentNode = untrack(() => {
-            if (typeof fb === 'function') {
-              return fb();
-            }
-            return fb;
-          });
-        }
       }
+    }
 
-      // Insert into tree
-      if (currentNode) {
-        const parent = ops.getParent(marker);
-        if (parent) {
-          ops.insertBefore(parent, currentNode, marker);
-        }
+    // Insert into tree
+    if (currentNode) {
+      const parent = ops.getParent(marker);
+      if (parent) {
+        ops.insertBefore(parent, currentNode, marker);
       }
+    }
 
-      return undefined;
-    });
+    return undefined;
   });
 
   // Register cleanup via owner system
   onCleanup(() => {
-    if (dispose) {
-      dispose();
-    }
+    dispose();
     if (currentNode) {
       const parent = ops.getParent(marker);
       if (parent) {
