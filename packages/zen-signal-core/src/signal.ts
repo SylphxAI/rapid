@@ -218,9 +218,9 @@ export function subscribe<A extends AnySignal>(
   zenData._listeners.push(listener as any);
 
   // Force initial computation for computed signals (without notification)
-  // Skip if in batch - let the batch flush handle it
-  if (zen._kind === 'computed' && zen._dirty && batchState.batchDepth === 0) {
-    // Compute WITHOUT notifying (just evaluate the value)
+  if (zen._kind === 'computed' && zen._unsubs === undefined) {
+    // Need to compute to discover dependencies (auto-tracking)
+    // Skip notification but do compute
     const prevListener = currentListener;
     currentListener = zen as any;
 
@@ -237,13 +237,10 @@ export function subscribe<A extends AnySignal>(
       currentListener = prevListener;
     }
 
-    // Subscribe to sources after initial computation
-    if (zen._unsubs === undefined && (zen as any)._sources.length > 0) {
+    // Subscribe to sources after discovering them
+    if ((zen as any)._sources.length > 0) {
       subscribeToSources(zen as any);
     }
-  } else if (zen._kind === 'computed' && zen._unsubs === undefined && (zen as any)._sources.length > 0) {
-    // In batch or not dirty - just subscribe to sources without computing
-    subscribeToSources(zen as any);
   }
 
   // BREAKING CHANGE: No initial notification
@@ -282,7 +279,10 @@ export function batch<T>(fn: () => T): T {
       // Keep flushing until no more work is pending
       // This handles effects that modify signals during execution
       let maxIterations = 100; // Prevent infinite loops
-      while ((batchState.pendingNotifications.size > 0 || batchState.pendingEffects.length > 0) && maxIterations-- > 0) {
+      while (
+        (batchState.pendingNotifications.size > 0 || batchState.pendingEffects.length > 0) &&
+        maxIterations-- > 0
+      ) {
         // Flush all pending notifications
         if (batchState.pendingNotifications.size > 0) {
           // Mark all computed listeners as dirty first
