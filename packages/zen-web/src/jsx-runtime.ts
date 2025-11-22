@@ -260,14 +260,60 @@ function appendChild(parent: Element, child: unknown, hydrating: boolean): void 
 
   // Reactive signal - auto-unwrap (runtime-first)
   if (isSignal(child)) {
-    const textNode = document.createTextNode('');
+    // Create a marker comment node to track position
+    const marker = document.createComment('signal');
     if (!hydrating) {
-      parent.appendChild(textNode);
+      parent.appendChild(marker);
     }
+
+    let currentNodes: Node[] = [];
 
     // Wrap in effect for reactivity
     effect(() => {
-      textNode.data = String(child.value ?? '');
+      const value = child.value;
+
+      // Remove previous nodes
+      for (const node of currentNodes) {
+        if (node.parentNode === parent) {
+          parent.removeChild(node);
+        }
+      }
+      currentNodes = [];
+
+      // Handle different value types
+      // Null/undefined/false - remove nodes (already cleared above)
+      if (value == null || value === false) {
+        return undefined;
+      }
+
+      // Array - append each item
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item instanceof Node) {
+            if (!hydrating) {
+              parent.insertBefore(item, marker);
+            }
+            currentNodes.push(item);
+          }
+        }
+        return undefined;
+      }
+
+      // Node - append directly
+      if (value instanceof Node) {
+        if (!hydrating) {
+          parent.insertBefore(value, marker);
+        }
+        currentNodes.push(value);
+        return undefined;
+      }
+
+      // Primitive - create text node
+      const textNode = document.createTextNode(String(value));
+      if (!hydrating) {
+        parent.insertBefore(textNode, marker);
+      }
+      currentNodes.push(textNode);
       return undefined;
     });
     return;
