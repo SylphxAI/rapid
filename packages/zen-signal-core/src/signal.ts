@@ -47,9 +47,21 @@ let currentListener: ComputedCore<any> | null = null;
 // BATCHING
 // ============================================================================
 
-let batchDepth = 0;
-const pendingNotifications = new Map<AnySignal, any>();
-const pendingEffects: Array<() => void> = [];
+// HMR-compatible: Use globalThis to survive Vite HMR reloads
+// biome-ignore lint/suspicious/noExplicitAny: HMR global storage
+const getGlobalBatchState = () => {
+  const g = globalThis as any;
+  if (!g.__ZEN_BATCH_STATE__) {
+    g.__ZEN_BATCH_STATE__ = {
+      batchDepth: 0,
+      pendingNotifications: new Map<AnySignal, any>(),
+      pendingEffects: [] as Array<() => void>,
+    };
+  }
+  return g.__ZEN_BATCH_STATE__;
+};
+
+const batchState = getGlobalBatchState();
 
 function notifyListeners<T>(zen: SignalCore<T>, newValue: T, oldValue: T): void {
   const listeners = zen._listeners;
@@ -114,24 +126,24 @@ const zenProto = {
     // MICRO-BATCHING (from v3.48.0)
     // Key insight: Automatically batch observer notifications
     // This makes Extreme Write fast without sacrificing reactive pattern performance
-    if (batchDepth > 0) {
+    if (batchState.batchDepth > 0) {
       // Already in batch - just queue
-      if (!pendingNotifications.has(this)) {
-        pendingNotifications.set(this, oldValue);
+      if (!batchState.pendingNotifications.has(this)) {
+        batchState.pendingNotifications.set(this, oldValue);
       }
     } else {
       // NOT in explicit batch - create micro-batch for this write
       // This batches any downstream computed updates
-      batchDepth++;
+      batchState.batchDepth++;
       notifyListeners(this, newValue, oldValue);
-      batchDepth--;
+      batchState.batchDepth--;
 
       // Flush computed notifications that were queued during micro-batch
-      if (pendingNotifications.size > 0) {
+      if (batchState.pendingNotifications.size > 0) {
         // Deduplicate listeners to avoid multiple updates
         const listenerMap = new Map<any, { zen: any; oldValue: any }>();
 
-        for (const [zen, oldVal] of pendingNotifications) {
+        for (const [zen, oldVal] of batchState.pendingNotifications) {
           const listeners = zen._listeners;
           if (listeners) {
             const len = listeners.length;
@@ -149,16 +161,19 @@ const zenProto = {
           listener(zen._value, oldVal);
         }
 
-        pendingNotifications.clear();
+        batchState.pendingNotifications.clear();
       }
 
       // Flush any effects that were queued during micro-batch
-      if (pendingEffects.length > 0) {
-        const len = pendingEffects.length;
+      if (batchState.pendingEffects.length > 0) {
+        // Copy the array to avoid issues when effects modify pendingEffects during iteration
+        const effectsToRun = batchState.pendingEffects.slice();
+        batchState.pendingEffects.length = 0;
+
+        const len = effectsToRun.length;
         for (let i = 0; i < len; i++) {
-          pendingEffects[i]();
+          effectsToRun[i]();
         }
-        pendingEffects.length = 0;
       }
     }
   },
@@ -220,19 +235,19 @@ export function subscribe<A extends AnySignal>(
 // ============================================================================
 
 export function batch<T>(fn: () => T): T {
-  batchDepth++;
+  batchState.batchDepth++;
   try {
     return fn();
   } finally {
-    batchDepth--;
-    if (batchDepth === 0) {
+    batchState.batchDepth--;
+    if (batchState.batchDepth === 0) {
       // Flush all pending notifications
-      if (pendingNotifications.size > 0) {
+      if (batchState.pendingNotifications.size > 0) {
         // OPTIMIZATION: Deduplicate listeners to avoid multiple updates
         // Collect all unique listeners with their signal context
         const listenerMap = new Map<any, { zen: any; oldValue: any }>();
 
-        for (const [zen, oldValue] of pendingNotifications) {
+        for (const [zen, oldValue] of batchState.pendingNotifications) {
           const listeners = zen._listeners;
           if (listeners) {
             const len = listeners.length;
@@ -251,16 +266,19 @@ export function batch<T>(fn: () => T): T {
           listener(zen._value, oldValue);
         }
 
-        pendingNotifications.clear();
+        batchState.pendingNotifications.clear();
       }
 
       // Flush effects after notifications
-      if (pendingEffects.length > 0) {
-        const len = pendingEffects.length;
+      if (batchState.pendingEffects.length > 0) {
+        // Copy the array to avoid issues when effects modify pendingEffects during iteration
+        const effectsToRun = batchState.pendingEffects.slice();
+        batchState.pendingEffects.length = 0;
+
+        const len = effectsToRun.length;
         for (let i = 0; i < len; i++) {
-          pendingEffects[i]();
+          effectsToRun[i]();
         }
-        pendingEffects.length = 0;
       }
     }
   }
@@ -304,9 +322,9 @@ function updateComputed<T>(c: ComputedCore<T>): void {
     c._value = newValue;
 
     // Batching support
-    if (batchDepth > 0) {
-      if (!pendingNotifications.has(c)) {
-        pendingNotifications.set(c, oldValue);
+    if (batchState.batchDepth > 0) {
+      if (!batchState.pendingNotifications.has(c)) {
+        batchState.pendingNotifications.set(c, oldValue);
       }
     } else {
       notifyListeners(c, newValue, oldValue);
@@ -410,6 +428,13 @@ export type Computed<T> = ComputedCore<T>;
 // EFFECT (Side Effects with Auto-tracking)
 // ============================================================================
 
+// Use WeakMap to store execute functions to avoid race conditions
+// HMR-compatible: Store on globalThis to survive Vite HMR reloads
+// biome-ignore lint/suspicious/noExplicitAny: HMR global storage
+const effectExecutors: WeakMap<EffectCore, () => void> =
+  (globalThis as any).__ZEN_EFFECT_EXECUTORS__ ||
+  ((globalThis as any).__ZEN_EFFECT_EXECUTORS__ = new WeakMap());
+
 type EffectCore = {
   _sources: AnySignal[];
   _unsubs?: Unsubscribe[];
@@ -418,7 +443,6 @@ type EffectCore = {
   _cancelled: boolean;
   _autoTrack: boolean;
   _queued: boolean;
-  _execute: () => void;
 };
 
 function executeEffect(e: EffectCore): void {
@@ -465,9 +489,10 @@ function runEffect(e: EffectCore): void {
   if (e._cancelled || e._queued) return;
 
   // If in batch, queue for later
-  if (batchDepth > 0) {
+  if (batchState.batchDepth > 0) {
     e._queued = true;
-    pendingEffects.push(e._execute);
+    const executor = effectExecutors.get(e);
+    if (executor) batchState.pendingEffects.push(executor);
     return;
   }
 
@@ -479,27 +504,17 @@ export function effect(
   callback: () => undefined | (() => void),
   explicitDeps?: AnySignal[],
 ): Unsubscribe {
-  // Create execute function FIRST before creating the effect object
-  // This prevents race conditions where runEffect could be called
-  // before _execute is initialized
-  let executeRef: (() => void) | null = null;
-
   const e: EffectCore = {
     _sources: explicitDeps || [],
     _callback: callback,
     _cancelled: false,
     _autoTrack: !explicitDeps, // Only auto-track if no explicit deps provided
     _queued: false,
-    get _execute() {
-      return executeRef!;
-    },
-    set _execute(_val) {
-      // no-op setter for type compatibility
-    },
   };
 
-  // Set the execute function
-  executeRef = () => executeEffect(e);
+  // Set the execute function in WeakMap immediately
+  // This must happen before any code that might trigger runEffect
+  effectExecutors.set(e, () => executeEffect(e));
 
   // Run effect immediately (synchronously for initial run)
   const prevListener = currentListener;
