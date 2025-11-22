@@ -13,13 +13,15 @@ export function PerformanceDemo() {
   let lastFrameTime = performance.now();
   let frameCount = 0;
 
-  // Initialize items
+  // Initialize items (only when not running)
   effect(() => {
     const count = itemCount.value;
-    items.value = Array.from({ length: count }, (_, i) => ({
-      id: i,
-      value: Math.random() * 100,
-    }));
+    if (!isRunning.value) {
+      items.value = Array.from({ length: count }, (_, i) => ({
+        id: i,
+        value: Math.random() * 100,
+      }));
+    }
   });
 
   // FPS counter
@@ -105,7 +107,7 @@ export function PerformanceDemo() {
             Performance Demo
           </h2>
           <p class="text-xl text-text-muted dark:text-text-dark-muted max-w-3xl mx-auto">
-            Watch Zen handle thousands of reactive updates while maintaining 60fps+
+            Watch Zen handle thousands of reactive updates at maximum performance
           </p>
         </div>
 
@@ -171,7 +173,7 @@ export function PerformanceDemo() {
               </div>
               <div class={`text-4xl font-bold ${fpsColor.value}`}>{fps.value}</div>
               <div class="text-xs text-text-muted dark:text-text-dark-muted mt-1">
-                Target: 60fps
+                Display refresh rate
               </div>
             </div>
 
@@ -238,8 +240,9 @@ export function PerformanceDemo() {
               updates the DOM elements that changed. No diffing, no reconciliation overhead.
             </p>
             <p>
-              <strong class="text-text dark:text-text-dark">60fps+:</strong> Even with thousands of
-              items and hundreds of updates per second, Zen maintains smooth 60fps performance.
+              <strong class="text-text dark:text-text-dark">Smooth performance:</strong> Even with
+              thousands of items and hundreds of updates per second, Zen maintains peak performance
+              at your display's maximum refresh rate.
             </p>
             <p class="text-sm pt-2 border-t border-border dark:border-border-dark">
               Try increasing the item count and watch the FPS stay high. This is the power of
