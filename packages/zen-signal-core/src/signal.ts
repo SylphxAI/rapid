@@ -31,6 +31,7 @@ type ComputedCore<T> = SignalCore<T | null> & {
   _sources: AnySignal[];
   _calc: () => T;
   _unsubs?: Unsubscribe[];
+  _staticDepsCount?: number; // Consecutive times deps were static (0 = unknown, 1-2 = verifying, 3+ = trusted static)
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: Union type for any signal or computed value
@@ -67,9 +68,19 @@ function notifyListeners<T>(zen: SignalCore<T>, newValue: T, oldValue: T): void 
   const listeners = zen._listeners;
   if (!listeners) return;
 
-  // Copy listeners array to avoid issues when listeners modify the array during iteration
+  // Mark computed listeners as dirty first (same as signal setter does)
+  // This ensures lazy evaluation works: downstream computeds see dirty flag
+  const len = listeners.length;
+  for (let i = 0; i < len; i++) {
+    const listener = listeners[i];
+    if ((listener as any)._computedZen) {
+      (listener as any)._computedZen._dirty = true;
+    }
+  }
+
+  // Then notify all listeners
+  // Copy to avoid issues when listeners modify array during iteration
   const listenersCopy = listeners.slice();
-  const len = listenersCopy.length;
   for (let i = 0; i < len; i++) {
     listenersCopy[i](newValue, oldValue);
   }
@@ -140,6 +151,19 @@ const zenProto = {
 
       // Flush computed notifications that were queued during micro-batch
       if (batchState.pendingNotifications.size > 0) {
+        // Mark all computed listeners as dirty first
+        for (const [zen] of batchState.pendingNotifications) {
+          const listeners = zen._listeners;
+          if (listeners) {
+            for (let i = 0; i < listeners.length; i++) {
+              const listener = listeners[i];
+              if ((listener as any)._computedZen) {
+                (listener as any)._computedZen._dirty = true;
+              }
+            }
+          }
+        }
+
         // Deduplicate listeners to avoid multiple updates
         const listenerMap = new Map<any, { zen: any; oldValue: any }>();
 
@@ -243,6 +267,19 @@ export function batch<T>(fn: () => T): T {
     if (batchState.batchDepth === 0) {
       // Flush all pending notifications
       if (batchState.pendingNotifications.size > 0) {
+        // Mark all computed listeners as dirty first
+        for (const [zen] of batchState.pendingNotifications) {
+          const listeners = zen._listeners;
+          if (listeners) {
+            for (let i = 0; i < listeners.length; i++) {
+              const listener = listeners[i];
+              if ((listener as any)._computedZen) {
+                (listener as any)._computedZen._dirty = true;
+              }
+            }
+          }
+        }
+
         // OPTIMIZATION: Deduplicate listeners to avoid multiple updates
         // Collect all unique listeners with their signal context
         const listenerMap = new Map<any, { zen: any; oldValue: any }>();
@@ -291,6 +328,7 @@ export function batch<T>(fn: () => T): T {
 function updateComputed<T>(c: ComputedCore<T>): void {
   // For auto-tracked computed, unsubscribe and reset sources for re-tracking
   const needsResubscribe = c._unsubs !== undefined;
+  const oldSources = needsResubscribe ? c._sources.slice() : [];
   if (needsResubscribe) {
     unsubscribeFromSources(c);
     c._sources = []; // Reset for re-tracking
@@ -304,9 +342,27 @@ function updateComputed<T>(c: ComputedCore<T>): void {
     const newValue = c._calc();
     c._dirty = false;
 
-    // Re-subscribe to newly tracked sources
-    if (needsResubscribe && c._sources.length > 0) {
-      subscribeToSources(c);
+    // OPTIMIZATION: Track static dependencies with confidence counter
+    if (c._sources.length > 0) {
+      if (needsResubscribe) {
+        // Re-computation - check if sources changed
+        const sourcesChanged =
+          oldSources.length !== c._sources.length ||
+          oldSources.some((s, i) => s !== c._sources[i]);
+
+        if (sourcesChanged) {
+          // Dynamic deps detected - reset counter
+          c._staticDepsCount = 0;
+        } else {
+          // Static this time - increment counter
+          c._staticDepsCount = (c._staticDepsCount || 0) + 1;
+        }
+
+        subscribeToSources(c);
+      } else if (c._staticDepsCount === undefined) {
+        // First computation - start at 0 (unknown)
+        c._staticDepsCount = 0;
+      }
     }
 
     // OPTIMIZATION: Inline Object.is check
@@ -363,9 +419,55 @@ function attachListener(sources: AnySignal[], callback: any): Unsubscribe[] {
 
 function subscribeToSources(c: ComputedCore<any>): void {
   const onSourceChange = () => {
-    c._dirty = true;
-    // Notify computed's own listeners (lazy evaluation - don't recompute yet)
-    notifyListeners(c as any, c._value, c._value);
+    // OPTIMIZATION: Always compute for equality check (minimal notifications!)
+    // NEVER track dependencies here - let updateComputed handle re-tracking
+    // For static deps (count >= 2): clear dirty to skip updateComputed (1x computation)
+    // For dynamic deps (count < 2): keep dirty to force updateComputed re-track (2x computation)
+
+    const staticCount = c._staticDepsCount || 0;
+    const trustedStatic = staticCount >= 2;
+
+    // Compute for equality check WITHOUT tracking
+    // updateComputed will handle all dependency tracking
+    const prevListener = currentListener;
+    currentListener = null;
+
+    try {
+      const newValue = c._calc();
+
+      // OPTIMIZATION: Inline Object.is check
+      const valueChanged = !(
+        c._value !== null &&
+        // biome-ignore lint/suspicious/noSelfCompare: Intentional NaN check (IEEE 754)
+        (newValue === c._value || (newValue !== newValue && c._value !== c._value))
+      );
+
+      if (valueChanged) {
+        const oldValue = c._value;
+        c._value = newValue;
+
+        // Clear dirty only if trusted static (skip updateComputed)
+        // Keep dirty for dynamic deps (force updateComputed to re-track)
+        if (trustedStatic) {
+          c._dirty = false;
+        }
+        // Note: dirty flag stays true for non-trusted (forces updateComputed)
+
+        // Only notify if value actually changed
+        if (batchState.batchDepth > 0) {
+          if (!batchState.pendingNotifications.has(c)) {
+            batchState.pendingNotifications.set(c, oldValue);
+          }
+        } else {
+          notifyListeners(c as any, newValue, oldValue);
+        }
+      } else {
+        // Value unchanged - always clear dirty (no need to recompute)
+        c._dirty = false;
+      }
+    } finally {
+      currentListener = prevListener;
+    }
   };
   (onSourceChange as any)._computedZen = c;
 
