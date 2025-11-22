@@ -1,3 +1,4 @@
+import { Show } from '@zen/web';
 import { theme, toggleTheme } from '../theme';
 import { Icon } from './Icon';
 
@@ -9,11 +10,12 @@ export function ThemeToggle() {
       class="p-2 rounded-zen hover:bg-bg-lighter dark:hover:bg-bg-light transition-colors"
       aria-label="Toggle theme"
     >
-      {theme.value === 'dark' ? (
+      <Show when={() => theme.value === 'dark'}>
         <Icon icon="lucide:sun" width="20" height="20" class="text-text" />
-      ) : (
+      </Show>
+      <Show when={() => theme.value === 'light'}>
         <Icon icon="lucide:moon" width="20" height="20" class="text-text" />
-      )}
+      </Show>
     </button>
   );
 }
