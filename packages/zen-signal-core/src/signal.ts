@@ -122,74 +122,13 @@ const zenProto = {
 
     this._value = newValue;
 
-    // Mark computed dependents as dirty (v3.1.1 style - FAST)
-    const listeners = this._listeners;
-    if (listeners) {
-      const len = listeners.length;
-      for (let i = 0; i < len; i++) {
-        const listener = listeners[i];
-        if ((listener as any)._computedZen) {
-          (listener as any)._computedZen._dirty = true;
-        }
-      }
-    }
-
-    // MICRO-BATCHING (from v3.48.0)
-    // Key insight: Automatically batch observer notifications
-    // This makes Extreme Write fast without sacrificing reactive pattern performance
+    // Batching support
     if (batchState.batchDepth > 0) {
-      // Already in batch - just queue
       if (!batchState.pendingNotifications.has(this)) {
         batchState.pendingNotifications.set(this, oldValue);
       }
     } else {
-      // NOT in explicit batch - create micro-batch for this write
-      // This batches any downstream computed updates
-      batchState.batchDepth++;
       notifyListeners(this, newValue, oldValue);
-      batchState.batchDepth--;
-
-      // Flush computed notifications that were queued during micro-batch
-      if (batchState.pendingNotifications.size > 0) {
-        // Mark all computed listeners as dirty first
-        for (const [zen] of batchState.pendingNotifications) {
-          const listeners = zen._listeners;
-          if (listeners) {
-            for (let i = 0; i < listeners.length; i++) {
-              const listener = listeners[i];
-              if ((listener as any)._computedZen) {
-                (listener as any)._computedZen._dirty = true;
-              }
-            }
-          }
-        }
-
-        // Call listeners for each signal that changed
-        for (const [zen, oldVal] of batchState.pendingNotifications) {
-          const listeners = zen._listeners;
-          if (listeners) {
-            const listenersCopy = listeners.slice();
-            const len = listenersCopy.length;
-            for (let i = 0; i < len; i++) {
-              listenersCopy[i](zen._value, oldVal);
-            }
-          }
-        }
-
-        batchState.pendingNotifications.clear();
-      }
-
-      // Flush any effects that were queued during micro-batch
-      if (batchState.pendingEffects.length > 0) {
-        // Copy the array to avoid issues when effects modify pendingEffects during iteration
-        const effectsToRun = batchState.pendingEffects.slice();
-        batchState.pendingEffects.length = 0;
-
-        const len = effectsToRun.length;
-        for (let i = 0; i < len; i++) {
-          effectsToRun[i]();
-        }
-      }
     }
   },
 };
@@ -375,11 +314,12 @@ function updateComputed<T>(c: ComputedCore<T>): void {
     }
 
     // OPTIMIZATION: Inline Object.is check
-    if (
+    const valueUnchanged =
       c._value !== null &&
       // biome-ignore lint/suspicious/noSelfCompare: Intentional NaN check (IEEE 754)
-      (newValue === c._value || (newValue !== newValue && c._value !== c._value))
-    ) {
+      (newValue === c._value || (newValue !== newValue && c._value !== c._value));
+
+    if (valueUnchanged) {
       return;
     }
 
@@ -428,51 +368,77 @@ function attachListener(sources: AnySignal[], callback: any): Unsubscribe[] {
 
 function subscribeToSources(c: ComputedCore<any>): void {
   const onSourceChange = () => {
-    // OPTIMIZATION: Always compute for equality check (minimal notifications!)
-    // NEVER track dependencies here - let updateComputed handle re-tracking
-    // For static deps (count >= 2): clear dirty to skip updateComputed (1x computation)
-    // For dynamic deps (count < 2): keep dirty to force updateComputed re-track (2x computation)
+    // ONLY mark dirty and notify listeners
+    // DO NOT recompute here - that happens lazily in the getter
+    const oldValue = c._value;
+    c._dirty = true;
 
-    const staticCount = c._staticDepsCount || 0;
-    const trustedStatic = staticCount >= 2;
+    const listeners = c._listeners;
+    if (!listeners) return; // No listeners, stay lazy (truly lazy!)
 
-    // Compute for equality check WITHOUT tracking
-    // updateComputed will handle all dependency tracking
+    // Mark downstream computed listeners as dirty first
+    const len = listeners.length;
+    for (let i = 0; i < len; i++) {
+      const listener = listeners[i];
+      if ((listener as any)._computedZen) {
+        (listener as any)._computedZen._dirty = true;
+      }
+    }
+
+    // For auto-tracked computed, unsubscribe and reset sources for re-tracking
+    const oldSources = c._sources.slice();
+    unsubscribeFromSources(c);
+    c._sources = []; // Reset for re-tracking
+
+    // Compute new value inline (without calling updateComputed to avoid double notification)
+    // This is the "lazy" computation - only happens when there are listeners
     const prevListener = currentListener;
-    currentListener = null;
+    currentListener = c;
 
     try {
       const newValue = c._calc();
+      c._dirty = false;
 
-      // OPTIMIZATION: Inline Object.is check
-      const valueChanged = !(
+      // Track static dependencies with confidence counter
+      if (c._sources.length > 0) {
+        // Re-computation - check if sources changed
+        const sourcesChanged =
+          oldSources.length !== c._sources.length || oldSources.some((s, i) => s !== c._sources[i]);
+
+        if (sourcesChanged) {
+          // Dynamic deps detected - reset counter
+          c._staticDepsCount = 0;
+        } else {
+          // Static this time - increment counter
+          c._staticDepsCount = (c._staticDepsCount || 0) + 1;
+        }
+
+        subscribeToSources(c);
+      }
+
+      // Check equality
+      const valueUnchanged =
         c._value !== null &&
         // biome-ignore lint/suspicious/noSelfCompare: Intentional NaN check (IEEE 754)
-        (newValue === c._value || (newValue !== newValue && c._value !== c._value))
-      );
+        (newValue === c._value || (newValue !== newValue && c._value !== c._value));
 
-      if (valueChanged) {
-        const oldValue = c._value;
-        c._value = newValue;
+      if (valueUnchanged) {
+        return; // Don't notify if value unchanged
+      }
 
-        // Clear dirty only if trusted static (skip updateComputed)
-        // Keep dirty for dynamic deps (force updateComputed to re-track)
-        if (trustedStatic) {
-          c._dirty = false;
-        }
-        // Note: dirty flag stays true for non-trusted (forces updateComputed)
+      c._value = newValue;
 
-        // Only notify if value actually changed
-        if (batchState.batchDepth > 0) {
-          if (!batchState.pendingNotifications.has(c)) {
-            batchState.pendingNotifications.set(c, oldValue);
-          }
-        } else {
-          notifyListeners(c as any, newValue, oldValue);
+      // Batching support
+      if (batchState.batchDepth > 0) {
+        if (!batchState.pendingNotifications.has(c)) {
+          batchState.pendingNotifications.set(c, oldValue);
         }
       } else {
-        // Value unchanged - always clear dirty (no need to recompute)
-        c._dirty = false;
+        // Notify listeners with the new value
+        const listenersCopy = listeners.slice();
+        for (let i = 0; i < len; i++) {
+          listenersCopy[i](newValue, oldValue);
+        }
       }
     } finally {
       currentListener = prevListener;
@@ -504,7 +470,9 @@ const computedProto = {
           break;
         }
       }
-      if (!found) sources.push(this);
+      if (!found) {
+        sources.push(this);
+      }
     }
 
     if (this._dirty) {
@@ -604,7 +572,7 @@ function runEffect(e: EffectCore): void {
     return;
   }
 
-  // Execute immediately
+  // Execute immediately (synchronous)
   executeEffect(e);
 }
 
