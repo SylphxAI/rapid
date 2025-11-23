@@ -3,9 +3,9 @@
  * Test Runtime Components (For/Show)
  */
 
+import { For, Show } from '@zen/runtime';
 import { renderToTerminalReactive, signal } from '@zen/tui';
 import { Box, Text } from '@zen/tui';
-import { For, Show } from '@zen/runtime';
 
 const items = signal(['Apple', 'Banana', 'Cherry']);
 const showList = signal(true);
@@ -32,9 +32,7 @@ function App() {
       <Show when={() => showList.value}>
         <Box style={{ flexDirection: 'column', marginTop: 1 }}>
           <Text>Items:</Text>
-          <For each={() => items.value}>
-            {(item) => <Text>• {item}</Text>}
-          </For>
+          <For each={() => items.value}>{(item) => <Text>• {item}</Text>}</For>
         </Box>
       </Show>
 

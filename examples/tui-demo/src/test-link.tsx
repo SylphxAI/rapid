@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
+/** @jsxImportSource @zen/tui */
 /**
  * Test Link Component
  */
 
-import { Box, Text, Link, Divider } from '@zen/tui';
-import { render } from '@zen/tui';
+import { Box, Divider, Link, Text, renderToTerminalReactive } from '@zen/tui';
 
 function App() {
   return (
@@ -33,7 +33,8 @@ function App() {
         </Text>
 
         <Text style={{ marginBottom: 1 }}>
-          • <Link url="https://discord.gg/zen" fallback={true}>
+          •{' '}
+          <Link url="https://discord.gg/zen" fallback={true}>
             Discord Community
           </Link>
         </Text>
@@ -50,4 +51,4 @@ function App() {
   );
 }
 
-render(<App />);
+await renderToTerminalReactive(() => <App />, { fps: 10 });

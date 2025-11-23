@@ -19,9 +19,8 @@ function App() {
       {() => {
         if (showA.value) {
           return <Text>Showing A</Text>;
-        } else {
-          return <Text>Showing B</Text>;
         }
+        return <Text>Showing B</Text>;
       }}
     </Box>
   );

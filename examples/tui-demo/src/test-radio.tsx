@@ -1,11 +1,18 @@
 #!/usr/bin/env bun
+/** @jsxImportSource @zen/tui */
 /**
  * Test Radio Component
  */
 
-import { signal } from '@zen/tui';
-import { Box, Text, Radio, type RadioOption, FocusProvider } from '@zen/tui';
-import { render } from '@zen/tui';
+import { signal } from '@zen/signal';
+import {
+  Box,
+  FocusProvider,
+  Radio,
+  type RadioOption,
+  Text,
+  renderToTerminalReactive,
+} from '@zen/tui';
 
 const themeOptions: RadioOption[] = [
   { label: 'Dark Mode', value: 'dark' },
@@ -16,38 +23,41 @@ const themeOptions: RadioOption[] = [
 const selectedTheme = signal<string | undefined>('dark');
 
 function App() {
-  const handleChange = (value: string) => {
-    console.log(`Theme changed to: ${value}`);
-  };
+  const handleChange = (_value: string) => {};
 
   return (
-    <FocusProvider>
-      <Box style={{ flexDirection: 'column', padding: 1 }}>
-        <Text bold color="cyan" style={{ marginBottom: 1 }}>
-          Select Theme
-        </Text>
-        <Text dim style={{ marginBottom: 1 }}>
-          Use ↑↓/jk to navigate, Enter/Space to select
-        </Text>
+    <Box style={{ flexDirection: 'column', padding: 1 }}>
+      <Text bold color="cyan" style={{ marginBottom: 1 }}>
+        Select Theme
+      </Text>
+      <Text dim style={{ marginBottom: 1 }}>
+        Use ↑↓/jk to navigate, Enter/Space to select
+      </Text>
 
-        <Radio
-          id="theme"
-          options={themeOptions}
-          value={selectedTheme}
-          onChange={handleChange}
-          style={{ marginBottom: 1 }}
-        />
+      <Radio
+        id="theme"
+        options={themeOptions}
+        value={selectedTheme}
+        onChange={handleChange}
+        style={{ marginBottom: 1 }}
+      />
 
-        <Text style={{ marginTop: 1 }}>
-          Selected: <Text color="green">{() => selectedTheme.value || 'None'}</Text>
-        </Text>
+      <Text style={{ marginTop: 1 }}>
+        Selected: <Text color="green">{() => selectedTheme.value || 'None'}</Text>
+      </Text>
 
-        <Text dim style={{ marginTop: 1 }}>
-          Press Ctrl+C to exit
-        </Text>
-      </Box>
-    </FocusProvider>
+      <Text dim style={{ marginTop: 1 }}>
+        Press Ctrl+C to exit
+      </Text>
+    </Box>
   );
 }
 
-render(<App />);
+await renderToTerminalReactive(
+  () => (
+    <FocusProvider>
+      <App />
+    </FocusProvider>
+  ),
+  { fps: 10 },
+);

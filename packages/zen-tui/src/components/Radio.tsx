@@ -45,63 +45,37 @@ export function Radio<T = string>(props: RadioProps<T>): TUINode {
   useInput((input, _key) => {
     if (!isFocused.value) return;
 
-    handleRadioInput(
-      input,
-      highlightedIndex,
-      valueSignal,
-      props.options,
-      props.onChange,
-    );
-  });
-
-  // Render options
-  const optionNodes = props.options.map((option, index) => {
-    const isHighlighted = () => isFocused.value && highlightedIndex.value === index;
-    const isSelected = () => valueSignal.value === option.value;
-
-    return Box({
-      key: `option-${index}`,
-      style: {
-        flexDirection: 'row',
-        marginBottom: index < props.options.length - 1 ? 0 : 0,
-      },
-      children: [
-        // Indicator
-        Text({
-          children: () => (isSelected() ? '◉' : '○'),
-          color: () => {
-            if (isSelected()) return 'cyan';
-            if (isHighlighted()) return 'white';
-            return 'gray';
-          },
-          bold: () => isSelected(),
-          style: { marginRight: 1 },
-        }),
-        // Label
-        Text({
-          children: option.label,
-          color: () => {
-            if (isSelected()) return 'cyan';
-            if (isHighlighted()) return 'white';
-            return undefined;
-          },
-          bold: () => isHighlighted(),
-          inverse: () => isHighlighted(),
-        }),
-      ],
-    });
+    handleRadioInput(input, highlightedIndex, valueSignal, props.options, props.onChange);
   });
 
   return Box({
     style: {
       flexDirection: 'column',
-      borderStyle: () => (isFocused.value ? 'round' : undefined),
-      borderColor: () => (isFocused.value ? 'cyan' : undefined),
-      padding: () => (isFocused.value ? 0 : 0),
-      paddingX: () => (isFocused.value ? 1 : 0),
+      borderStyle: 'round',
+      borderColor: 'cyan',
+      paddingX: 1,
       ...props.style,
     },
-    children: optionNodes,
+    children: () => {
+      const focused = isFocused.value;
+      const highlighted = highlightedIndex.value;
+      const currentValue = valueSignal.value;
+
+      return props.options.map((option, index) => {
+        const isHighlighted = focused && highlighted === index;
+        const isSelected = currentValue === option.value;
+        const indicator = isSelected ? '◉' : '○';
+        const prefix = isHighlighted ? '> ' : '  ';
+
+        return Text({
+          key: `option-${index}`,
+          children: `${prefix}${indicator} ${option.label}`,
+          color: isSelected ? 'cyan' : isHighlighted ? 'white' : 'white',
+          bold: isHighlighted || isSelected,
+          inverse: isHighlighted,
+        });
+      });
+    },
   });
 }
 
@@ -133,13 +107,15 @@ export function handleRadioInput<T>(
       return true;
 
     case '\r': // Enter
-    case ' ': // Space
+    case ' ': {
+      // Space
       const selected = options[currentIndex];
       if (selected) {
         valueSignal.value = selected.value;
         onChange?.(selected.value);
       }
       return true;
+    }
 
     default:
       return false;

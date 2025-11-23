@@ -67,7 +67,7 @@ const Summary = () => {
 
 // App component
 function App() {
-  const { focusNext } = useFocusManager();
+  useFocusManager();
 
   // Show result if submitted
   if (submitted.value) {
