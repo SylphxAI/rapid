@@ -19,6 +19,7 @@ export interface TextInputProps {
   id?: string;
   style?: any;
   cursor?: Signal<number>; // Optional external cursor control
+  mask?: string; // Character to use for masking (e.g., '*' for passwords)
 }
 
 export function TextInput(props: TextInputProps): TUINode {
@@ -83,14 +84,18 @@ export function TextInput(props: TextInputProps): TUINode {
         });
       }
 
+      // Apply masking if specified
+      const maskChar = props.mask;
+      const displayValue = maskChar ? maskChar.repeat(currentValue.length) : currentValue;
+
       // Show value with cursor
       const pos = Math.min(cursorPos.value, currentValue.length);
 
       if (isFocused.value) {
         // Render with cursor
-        const before = currentValue.slice(0, pos);
-        const cursorChar = pos < currentValue.length ? currentValue[pos] : ' ';
-        const after = currentValue.slice(pos + 1);
+        const before = displayValue.slice(0, pos);
+        const cursorChar = pos < displayValue.length ? displayValue[pos] : ' ';
+        const after = displayValue.slice(pos + 1);
 
         return Text({
           style: { flexDirection: 'row' },
@@ -108,7 +113,7 @@ export function TextInput(props: TextInputProps): TUINode {
 
       // Render without cursor
       return Text({
-        children: currentValue || ' ',
+        children: displayValue || ' ',
         style: { flexDirection: 'row' },
       });
     },

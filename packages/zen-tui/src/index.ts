@@ -80,7 +80,9 @@ export {
   type MultiSelectOption,
 } from './components/MultiSelect.js';
 export { Checkbox, handleCheckbox } from './components/Checkbox.js';
+export { Radio, handleRadioInput, type RadioOption } from './components/Radio.js';
 export { Button, handleButton } from './components/Button.js';
+export { Confirmation } from './components/Confirmation.js';
 
 // TUI-specific: Display Components
 export {
@@ -98,6 +100,8 @@ export { Table, type TableColumn } from './components/Table.js';
 export { Divider } from './components/Divider.js';
 export { Badge } from './components/Badge.js';
 export { StatusMessage } from './components/StatusMessage.js';
+export { Tabs, Tab, handleTabsInput, type TabProps, type TabsProps } from './components/Tabs.js';
+export { Link } from './components/Link.js';
 
 // TUI-specific: Focus Management (Ink-compatible API)
 export {
