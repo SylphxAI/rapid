@@ -143,11 +143,12 @@ function applyTextStyle(text: string, style: any = {}): string {
 }
 
 /**
- * Build or update Yoga node tree from TUIElement tree
+ * Build or update Yoga node tree from TUIElement tree (incremental)
  */
 async function buildYogaTreeFromElements(
   element: TUIElement | TUITextNode,
   Yoga: Yoga,
+  dirtySet?: Set<TUIElement | TUITextNode>,
 ): Promise<any> {
   if (element instanceof TUITextNode) {
     // Text node - create sized Yoga node
@@ -162,21 +163,36 @@ async function buildYogaTreeFromElements(
     element.createYogaNode(Yoga);
   }
 
-  // Update Yoga node with current styles
-  element.updateYogaNode(Yoga);
+  // Only update Yoga node if dirty (or no dirty set provided = full rebuild)
+  if (!dirtySet || dirtySet.has(element)) {
+    element.updateYogaNode(Yoga);
+  }
 
   // Build children
   const yogaNode = element.yogaNode;
 
-  // Clear existing children
-  while (yogaNode.getChildCount() > 0) {
-    yogaNode.removeChild(yogaNode.getChild(0));
-  }
+  // Check if we need to rebuild children
+  // Rebuild if: no dirty set (full build), children changed, or any child is dirty
+  const needsChildrenRebuild =
+    !dirtySet ||
+    !element._lastChildrenSnapshot ||
+    element._lastChildrenSnapshot !== element.children ||
+    element.children.some((child) => dirtySet.has(child));
 
-  // Add children
-  for (const child of element.children) {
-    const childYogaNode = await buildYogaTreeFromElements(child, Yoga);
-    yogaNode.insertChild(childYogaNode, yogaNode.getChildCount());
+  if (needsChildrenRebuild) {
+    // Clear existing children
+    while (yogaNode.getChildCount() > 0) {
+      yogaNode.removeChild(yogaNode.getChild(0));
+    }
+
+    // Add children
+    for (const child of element.children) {
+      const childYogaNode = await buildYogaTreeFromElements(child, Yoga, dirtySet);
+      yogaNode.insertChild(childYogaNode, yogaNode.getChildCount());
+    }
+
+    // Cache children snapshot for next update
+    element._lastChildrenSnapshot = element.children;
   }
 
   return yogaNode;
@@ -383,8 +399,8 @@ export async function renderToTerminalPersistent(
       return; // Nothing to update
     }
 
-    // Build/update Yoga tree from TUIElement tree
-    const rootYogaNode = await buildYogaTreeFromElements(rootElement, Yoga);
+    // Build/update Yoga tree from TUIElement tree (incremental)
+    const rootYogaNode = await buildYogaTreeFromElements(rootElement, Yoga, dirtyElements);
 
     // Compute layout
     rootYogaNode.calculateLayout(terminalWidth, terminalHeight, Yoga.DIRECTION_LTR);
@@ -564,7 +580,7 @@ export async function renderToTerminalPersistent(
 
   // Keep the process running until cleanup is called
   // Return Promise<void> to prevent cleanup function from being printed
-  return new Promise<void>((resolve) => {
+  return new Promise<void>((_resolve) => {
     // Cleanup will be called by exit handlers
     // This promise never resolves - process exits directly
   });

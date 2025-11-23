@@ -35,6 +35,9 @@ export class TUIElement {
   dirtyContent = false;
   dirtyLayout = false;
 
+  // Incremental Yoga layout optimization
+  _lastChildrenSnapshot: (TUIElement | TUITextNode)[] | null = null;
+
   // Parent reference
   parent: TUIElement | null = null;
 
