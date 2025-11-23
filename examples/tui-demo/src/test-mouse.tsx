@@ -60,7 +60,7 @@ function MouseDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <MouseDemo />, {
+await renderToTerminalReactive(() => MouseDemo(), {
   fullscreen: true,
   mouse: true,
 });

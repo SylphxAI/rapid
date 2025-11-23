@@ -1,21 +1,23 @@
 /**
- * Full-Screen Mode Demo
- *
- * Tests the new fullscreen option for alternate screen buffer.
- * App takes over entire terminal like vim/less/top.
+ * Full-Screen Mode Debug
  */
 
 import { signal } from '@zen/signal';
 import { Box, Text, renderToTerminalReactive } from '@zen/tui';
 
+console.log('Starting fullscreen app...');
+
 function FullScreenApp() {
+  console.log('FullScreenApp component called');
   const counter = signal(0);
 
   // Increment counter every second
   setInterval(() => {
+    console.log('Counter incrementing:', counter.value + 1);
     counter.value += 1;
   }, 1000);
 
+  console.log('Returning JSX');
   return (
     <Box flexDirection="column" padding={1} borderStyle="double">
       <Text bold color="cyan">
@@ -32,4 +34,6 @@ function FullScreenApp() {
   );
 }
 
-await renderToTerminalReactive(() => FullScreenApp(), { fullscreen: true });
+console.log('Calling renderToTerminalReactive...');
+await renderToTerminalReactive(() => <FullScreenApp />, { fullscreen: true });
+console.log('renderToTerminalReactive returned');
