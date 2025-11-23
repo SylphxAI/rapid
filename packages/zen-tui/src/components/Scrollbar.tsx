@@ -5,9 +5,11 @@
  * Can be used standalone or with ScrollBox.
  */
 
+import { effect } from '@zen/signal';
 import type { Signal } from '@zen/signal';
+import { appendChild } from '../jsx-runtime.js';
+import { scheduleNodeUpdate } from '../render-context.js';
 import type { TUINode, TUIStyle } from '../types.js';
-import { Box } from './Box.js';
 import { Text } from './Text.js';
 
 export interface ScrollbarProps {
@@ -48,39 +50,53 @@ export function Scrollbar(props: ScrollbarProps): TUINode {
     return Math.floor(scrollRatio * availableSpace);
   };
 
-  // Generate scrollbar lines
-  const lines = (): TUINode[] => {
-    const thumbPos = getThumbPosition();
-    const result: TUINode[] = [];
-
-    for (let i = 0; i < trackHeight; i++) {
-      // Check if this line is part of the thumb
-      const isThumb = i >= thumbPos && i < thumbPos + thumbSize;
-
-      result.push(
-        <Text
-          style={{
-            color: isThumb ? thumbColor : trackColor,
-          }}
-        >
-          {isThumb ? thumbChar : trackChar}
-        </Text>,
-      );
-    }
-
-    return result;
+  // Create container node
+  const node: TUINode = {
+    type: 'box',
+    tagName: 'scrollbar',
+    props: {},
+    children: [],
+    style: {
+      ...props.style,
+      flexDirection: 'column',
+      width: 1,
+      height: viewportHeight,
+    },
   };
 
-  return (
-    <Box
-      style={{
-        ...props.style,
-        flexDirection: 'column',
-        width: 1,
-        height: viewportHeight,
-      }}
-    >
-      {() => lines()}
-    </Box>
-  );
+  // Render scrollbar lines
+  const renderLines = () => {
+    const thumbPos = getThumbPosition();
+    node.children = [];
+
+    for (let i = 0; i < trackHeight; i++) {
+      const isThumb = i >= thumbPos && i < thumbPos + thumbSize;
+
+      const textNode: TUINode = {
+        type: 'text',
+        tagName: 'text',
+        props: {},
+        children: [isThumb ? thumbChar : trackChar],
+        style: {
+          color: isThumb ? thumbColor : trackColor,
+        },
+      };
+
+      appendChild(node, textNode);
+    }
+  };
+
+  // Initial render
+  renderLines();
+
+  // Track scrollOffset changes and re-render
+  effect(() => {
+    // Read scrollOffset to track it
+    const _offset = scrollOffset.value;
+    renderLines();
+    // Schedule a render update when scrollOffset changes
+    scheduleNodeUpdate(node, '');
+  });
+
+  return node;
 }

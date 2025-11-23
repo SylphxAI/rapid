@@ -2,30 +2,32 @@
 import { signal } from '@zen/signal';
 import { Box, ScrollBox, Scrollbar, Text, renderToTerminalReactive } from '@zen/tui';
 
-function ScrollbarDemo() {
-  // Create scrollable content (30 lines)
+function ScrollbarCorrectDemo() {
   const items = Array.from({ length: 30 }, (_, i) => `Line ${i + 1}`);
   const viewportHeight = 8;
-
-  // Shared scroll offset signal
   const scrollOffset = signal(0);
 
   return (
     <Box style={{ flexDirection: 'column', padding: 1 }}>
-      <Text style={{ bold: true, color: 'cyan' }}>Scrollbar Demo</Text>
-      <Text style={{ color: 'gray' }}>
-        Use mouse wheel or arrow keys to scroll. Scrollbar shows position.
-      </Text>
+      <Text style={{ bold: true, color: 'cyan' }}>Scrollbar Correct Design</Text>
+      <Text style={{ color: 'gray' }}>外層 Box 有 border 包住兩個組件</Text>
       <Text> </Text>
 
-      {/* ScrollBox with Scrollbar side-by-side */}
-      <Box style={{ flexDirection: 'row', gap: 1 }}>
-        {/* Content area with ScrollBox */}
+      {/* 外層 Box 有 border，包住 ScrollBox + Scrollbar */}
+      <Box
+        style={{
+          borderStyle: 'single',
+          width: 32,
+          height: viewportHeight,
+          flexDirection: 'row'  // 直接用 row layout
+        }}
+      >
+        {/* ScrollBox 無 border */}
         <ScrollBox
-          height={viewportHeight}
+          height={viewportHeight - 2}  // 減去 border (top + bottom)
           scrollOffset={scrollOffset}
           contentHeight={items.length}
-          style={{ borderStyle: 'single', width: 30 }}
+          style={{ width: 30 }}  // 無 border
         >
           <Box style={{ flexDirection: 'column' }}>
             {items.map((item) => (
@@ -34,11 +36,11 @@ function ScrollbarDemo() {
           </Box>
         </ScrollBox>
 
-        {/* Scrollbar indicator */}
+        {/* Scrollbar 喺右邊 */}
         <Scrollbar
           scrollOffset={scrollOffset}
           contentHeight={items.length}
-          viewportHeight={viewportHeight}
+          viewportHeight={viewportHeight - 2}
           thumbColor="cyan"
           trackColor="gray"
         />
@@ -52,7 +54,7 @@ function ScrollbarDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <ScrollbarDemo />, {
+await renderToTerminalReactive(() => <ScrollbarCorrectDemo />, {
   fullscreen: false,
   mouse: true,
 });

@@ -230,12 +230,14 @@ function renderNodeToBuffer(
                 markerChild !== null &&
                 'type' in markerChild
               ) {
-                // Apply scroll offset for ScrollBox children
-                // Also apply border/padding offset to align children with content area
-                const contentOffsetX = isScrollBox ? borderOffset + paddingX : 0;
-                const contentOffsetY = isScrollBox ? borderOffset + paddingY : 0;
-                const childOffsetX = isScrollBox ? offsetX + contentOffsetX : offsetX;
-                const childOffsetY = isScrollBox ? offsetY - scrollOffset + contentOffsetY : offsetY;
+                // Apply border offset for any parent with border
+                // ScrollBox also needs padding offset and scroll offset
+                const contentOffsetX = borderOffset + (isScrollBox ? paddingX : 0);
+                const contentOffsetY = borderOffset + (isScrollBox ? paddingY : 0);
+                const childOffsetX = offsetX + contentOffsetX;
+                const childOffsetY = isScrollBox
+                  ? offsetY - scrollOffset + contentOffsetY
+                  : offsetY + contentOffsetY;
 
                 renderNodeToBuffer(
                   markerChild as TUINode,
@@ -251,12 +253,14 @@ function renderNodeToBuffer(
           }
         } else if ('type' in child) {
           // Regular TUINode
-          // Apply scroll offset for ScrollBox children
-          // Also apply border/padding offset to align children with content area
-          const contentOffsetX = isScrollBox ? borderOffset + paddingX : 0;
-          const contentOffsetY = isScrollBox ? borderOffset + paddingY : 0;
-          const childOffsetX = isScrollBox ? offsetX + contentOffsetX : offsetX;
-          const childOffsetY = isScrollBox ? offsetY - scrollOffset + contentOffsetY : offsetY;
+          // Apply border offset for any parent with border
+          // ScrollBox also needs padding offset and scroll offset
+          const contentOffsetX = borderOffset + (isScrollBox ? paddingX : 0);
+          const contentOffsetY = borderOffset + (isScrollBox ? paddingY : 0);
+          const childOffsetX = offsetX + contentOffsetX;
+          const childOffsetY = isScrollBox
+            ? offsetY - scrollOffset + contentOffsetY
+            : offsetY + contentOffsetY;
 
           renderNodeToBuffer(
             child as TUINode,

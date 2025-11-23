@@ -39,7 +39,7 @@ export function ScrollBox(props: ScrollBoxProps): TUINode {
       const viewportHeight = props.height - borderHeight - 2 * paddingY;
       return Math.max(0, props.contentHeight - viewportHeight);
     }
-    return Infinity; // No limit if contentHeight not provided
+    return Number.POSITIVE_INFINITY; // No limit if contentHeight not provided
   };
 
   // Handle mouse scroll
