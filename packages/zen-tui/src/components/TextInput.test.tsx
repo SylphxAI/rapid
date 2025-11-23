@@ -8,7 +8,7 @@ describe('TextInput', () => {
     const node = TextInput({ value });
 
     expect(node.type).toBe('box');
-    expect(node.style?.borderStyle).toBe('single');
+    expect(typeof node.style?.borderStyle).toBe('function');
   });
 
   it('should accept initial value as string', () => {

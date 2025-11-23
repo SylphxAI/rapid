@@ -1,9 +1,9 @@
-import { describe, expect, it, beforeAll } from 'vitest';
-import { createRoot } from '@zen/signal';
 import { setPlatformOps } from '@zen/runtime';
-import { tuiPlatformOps } from './platform-ops';
-import { FocusProvider, useFocusManager } from './focus';
+import { createRoot } from '@zen/signal';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { Text } from './components/Text';
+import { FocusProvider, useFocusManager } from './focus';
+import { tuiPlatformOps } from './platform-ops';
 
 // Initialize platform operations before tests
 beforeAll(() => {

@@ -245,6 +245,7 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
   const paddingTop = paddingY;
 
   const lines: string[] = [];
+  let actualWidth = width; // Track actual width used (may differ for auto-sized row layouts)
 
   // Check if this is a fixed-height box or auto-sizing box
   const hasBorder = node.style?.borderStyle && node.style.borderStyle !== 'none';
@@ -445,6 +446,16 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
     const innerHeight = paddingTop + contentHeight + paddingY;
     const totalHeight = hasBorder ? innerHeight + 2 : innerHeight; // +2 for top and bottom borders
 
+    // For auto-sized boxes without borders in row layout, calculate actual content width
+    if (!hasBorder && flexDirection === 'row' && childrenLines.length > 0) {
+      // Calculate max content width from childrenLines
+      const maxContentWidth = Math.max(
+        ...childrenLines.map((line) => stringWidth(stripAnsi(line))),
+      );
+      // Add padding to get total width
+      actualWidth = Math.min(width, maxContentWidth + paddingLeft + paddingX);
+    }
+
     // Create box with calculated height
     if (hasBorder) {
       // Resolve reactive values
@@ -461,7 +472,7 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
       lines.push(...borderLines);
     } else {
       for (let i = 0; i < totalHeight; i++) {
-        let line = ' '.repeat(width);
+        let line = ' '.repeat(actualWidth);
         if (node.style?.backgroundColor) {
           line = getBgColorFn(node.style.backgroundColor)(line);
         }
@@ -473,7 +484,7 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
     let currentY = (hasBorder ? 1 : 0) + paddingTop;
     for (let i = 0; i < childrenLines.length; i++) {
       if (currentY < lines.length) {
-        insertContent(lines, childrenLines[i], paddingLeft, currentY, width);
+        insertContent(lines, childrenLines[i], paddingLeft, currentY, actualWidth);
       }
       currentY++;
     }
@@ -481,7 +492,7 @@ function renderNode(node: TUINode, parentWidth: number): RenderOutput {
 
   return {
     text: lines.join('\n'),
-    width,
+    width: actualWidth,
     height: lines.length,
   };
 }

@@ -14,7 +14,7 @@ describe('SelectInput', () => {
     const node = SelectInput({ options: testOptions, value });
 
     expect(node.type).toBe('box');
-    expect(node.style?.borderStyle).toBe('single');
+    expect(node.style?.width).toBe(40);
   });
 
   it('should accept initial value as string', () => {

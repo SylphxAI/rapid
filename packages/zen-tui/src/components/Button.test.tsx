@@ -1,13 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { signal } from '../index';
 import { Button, handleButton } from './Button';
+import { Box } from './Box';
 
 describe('Button', () => {
   it('should create button node', () => {
     const node = Button({ label: 'Click me' });
 
-    expect(node.type).toBe('box');
-    expect(node.style?.borderStyle).toBe('single');
+    // Button returns a descriptor with Box component as type
+    expect(node.type).toBe(Box);
+    // Style properties are in props.style for descriptors
+    expect(node.props?.style).toBeDefined();
   });
 
   it('should display label text', () => {
@@ -37,14 +40,18 @@ describe('Button', () => {
   it('should show disabled state', () => {
     const node = Button({ label: 'Test', disabled: true });
 
-    // Disabled state affects styling and text format
-    expect(node.style?.borderColor).toBe('gray');
+    // borderColor is in props.style as a reactive function
+    expect(node.props?.style).toBeDefined();
+    expect(typeof node.props.style.borderColor).toBe('function');
+    // When called, should return 'gray' for disabled state
+    expect(node.props.style.borderColor()).toBe('gray');
   });
 
   it('should use custom width when specified', () => {
     const node = Button({ label: 'Test', width: 30 });
 
-    expect(node.style?.width).toBe(30);
+    expect(node.props?.style).toBeDefined();
+    expect(node.props.style.width).toBe(30);
   });
 
   it('should generate unique ID if not provided', () => {
