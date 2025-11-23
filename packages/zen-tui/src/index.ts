@@ -62,6 +62,7 @@ export {
 
 // TUI-specific: Renderer
 export { render, renderToTerminal, renderToTerminalReactive } from './render.js';
+export { renderToTerminalPersistent } from './persistent-renderer.js';
 export { Fragment } from './jsx-runtime.js';
 
 // TUI-specific: Components

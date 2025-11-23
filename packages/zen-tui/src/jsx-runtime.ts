@@ -183,6 +183,8 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
         }
       }
       scheduleNodeUpdate(marker, '');
+      // Notify persistent tree builder to rebuild (for persistent renderer)
+      (marker as any).onUpdate?.();
       return undefined;
     }
 
@@ -190,6 +192,8 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
       marker.children.push(value as TUINode);
       // Schedule fine-grained update for the marker
       scheduleNodeUpdate(marker, ''); // Will render the TUINode
+      // Notify persistent tree builder to rebuild (for persistent renderer)
+      (marker as any).onUpdate?.();
       return undefined;
     }
 
@@ -197,6 +201,8 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
       marker.children.push(...value);
       // Schedule fine-grained update for the marker
       scheduleNodeUpdate(marker, ''); // Will render the array
+      // Notify persistent tree builder to rebuild (for persistent renderer)
+      (marker as any).onUpdate?.();
       return undefined;
     }
 
@@ -205,6 +211,8 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
       marker.children.push(stringValue);
       // Schedule fine-grained update for the marker
       scheduleNodeUpdate(marker, stringValue);
+      // Notify persistent tree builder to rebuild (for persistent renderer)
+      (marker as any).onUpdate?.();
     }
 
     return undefined;

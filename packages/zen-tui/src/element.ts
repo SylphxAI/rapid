@@ -135,9 +135,7 @@ export class TUIElement {
    * Check if element is dirty
    */
   isDirty(): boolean {
-    return (
-      this.dirtyProps.size > 0 || this.dirtyStyle || this.dirtyContent || this.dirtyLayout
-    );
+    return this.dirtyProps.size > 0 || this.dirtyStyle || this.dirtyContent || this.dirtyLayout;
   }
 
   /**
@@ -197,7 +195,7 @@ export class TUIElement {
    */
   dispose(): void {
     // Dispose effects
-    for (const eff of this.effects) {
+    for (const _eff of this.effects) {
       // Effects will be disposed by their owners
     }
     this.effects.clear();
@@ -250,7 +248,7 @@ export function createElement(
 
   // Set up reactive tracking for function props
   for (const [key, value] of Object.entries(props)) {
-    if (typeof value === 'function' && key !== 'children') {
+    if (typeof value === 'function') {
       // Reactive prop - create effect
       const eff = effect(() => {
         const newValue = value();

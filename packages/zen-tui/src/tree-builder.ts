@@ -5,9 +5,9 @@
  * Similar to React's fiber reconciliation but simpler (no reconciler needed).
  */
 
-import { createRoot } from '@zen/signal';
 import { executeDescriptor, isDescriptor } from '@zen/runtime';
-import { TUIElement, TUITextNode, createElement, createTextNode } from './element.js';
+import { createRoot } from '@zen/signal';
+import { TUIElement, type TUITextNode, createElement, createTextNode } from './element.js';
 import type { TUINode } from './types.js';
 
 /**
@@ -16,7 +16,9 @@ import type { TUINode } from './types.js';
  * Creates TUIElement instances that persist across updates.
  * Effects track signal dependencies and update elements directly.
  */
-export function buildPersistentTree(node: TUINode | string | unknown): TUIElement | TUITextNode | null {
+export function buildPersistentTree(
+  node: TUINode | string | unknown,
+): TUIElement | TUITextNode | null {
   // Handle string (text node)
   if (typeof node === 'string') {
     return createTextNode(node);
@@ -35,9 +37,38 @@ export function buildPersistentTree(node: TUINode | string | unknown): TUIElemen
 
   // Handle marker (reactive container)
   if ('_type' in node && node._type === 'marker') {
-    // Markers are handled by their parent container
-    // For now, skip them (will handle in parent processing)
-    return null;
+    const marker = node as any;
+
+    // Create a persistent fragment element for this marker
+    const fragment = new TUIElement('fragment', {}, {});
+
+    // Function to rebuild fragment children from marker
+    const rebuildChildren = () => {
+      // Clear existing children
+      fragment.children = [];
+
+      // Rebuild from marker.children
+      if (marker.children && marker.children.length > 0) {
+        for (const child of marker.children) {
+          const childElement = buildPersistentTree(child);
+          if (childElement) {
+            fragment.appendChild(childElement);
+          }
+        }
+      }
+
+      // Mark fragment as dirty to trigger re-render
+      fragment.markDirty();
+    };
+
+    // Build initial children
+    rebuildChildren();
+
+    // Hook into marker updates: when jsx-runtime effect updates marker.children,
+    // it will call this callback to rebuild our TUIElement tree
+    marker.onUpdate = rebuildChildren;
+
+    return fragment;
   }
 
   // Handle TUINode (element)
@@ -53,9 +84,7 @@ export function buildPersistentTree(node: TUINode | string | unknown): TUIElemen
 
     // Process children
     if (tuiNode.children) {
-      const childrenArray = Array.isArray(tuiNode.children)
-        ? tuiNode.children
-        : [tuiNode.children];
+      const childrenArray = Array.isArray(tuiNode.children) ? tuiNode.children : [tuiNode.children];
 
       for (const child of childrenArray) {
         // Handle function children (reactive)
@@ -122,10 +151,7 @@ export function mountTree(rootNode: TUINode | (() => TUINode)): TUIElement | nul
  * Note: With fine-grained reactivity, updates happen automatically via effects.
  * This function is mainly for initial setup or forcing full re-build.
  */
-export function updateTree(
-  existingElement: TUIElement,
-  newNode: TUINode,
-): void {
+export function updateTree(existingElement: TUIElement, newNode: TUINode): void {
   // Extract new props and style
   const newProps = { ...newNode.props };
   const newStyle = typeof newNode.style === 'function' ? newNode.style() : newNode.style || {};
