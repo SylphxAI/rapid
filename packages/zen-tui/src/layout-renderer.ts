@@ -178,6 +178,7 @@ function renderNodeToBuffer(
   const isScrollBox = node.tagName === 'scrollbox';
   const scrollOffset = isScrollBox && node.props?.scrollOffset ? node.props.scrollOffset.value : 0;
 
+
   // Render text node
   if (node.type === 'text') {
     const textContent = node.children
@@ -217,11 +218,16 @@ function renderNodeToBuffer(
                 if (isScrollBox) {
                   const childLayout = layoutMap.get(markerChild as TUINode);
                   if (childLayout) {
-                    // Calculate absolute child position
-                    const absoluteChildY = y + childLayout.y + childOffsetY;
+                    // childLayout.y is already absolute position from Yoga
+                    // Scroll offset shifts content up, so subtract it
+                    const absoluteChildY = childLayout.y - scrollOffset;
                     const absoluteChildBottom = absoluteChildY + childLayout.height;
+
                     // Skip if completely outside viewport
-                    if (absoluteChildBottom <= contentY || absoluteChildY >= contentY + contentHeight) {
+                    if (
+                      absoluteChildBottom <= contentY ||
+                      absoluteChildY >= contentY + contentHeight
+                    ) {
                       continue;
                     }
                   }
@@ -246,8 +252,9 @@ function renderNodeToBuffer(
           if (isScrollBox) {
             const childLayout = layoutMap.get(child as TUINode);
             if (childLayout) {
-              // Calculate absolute child position
-              const absoluteChildY = y + childLayout.y + childOffsetY;
+              // childLayout.y is already absolute position from Yoga
+              // Scroll offset shifts content up, so subtract it
+              const absoluteChildY = childLayout.y - scrollOffset;
               const absoluteChildBottom = absoluteChildY + childLayout.height;
               // Skip if completely outside viewport
               if (absoluteChildBottom <= contentY || absoluteChildY >= contentY + contentHeight) {
