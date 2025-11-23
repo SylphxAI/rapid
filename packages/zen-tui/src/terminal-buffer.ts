@@ -35,19 +35,96 @@ export class TerminalBuffer {
     x: number,
     y: number,
     text: string,
-    _maxWidth?: number,
+    maxWidth?: number,
   ): { x: number; y: number; width: number; height: number } {
     const lines = text.split('\n');
     let maxLineWidth = 0;
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-      const line = lines[lineIndex];
+      let line = lines[lineIndex];
       const targetY = y + lineIndex;
 
       if (targetY >= this.height) break;
 
-      // Store the line with ANSI codes intact
-      this.buffer[targetY] = line;
+      // Clip line to maxWidth if specified
+      if (maxWidth !== undefined) {
+        const strippedLine = stripAnsi(line);
+        const visualWidth = stringWidth(strippedLine);
+
+        if (visualWidth > maxWidth) {
+          // Truncate to maxWidth, preserving ANSI codes
+          let currentWidth = 0;
+          let truncated = '';
+          let inAnsiCode = false;
+          let ansiCode = '';
+
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+
+            if (char === '\x1b') {
+              inAnsiCode = true;
+              ansiCode = char;
+              continue;
+            }
+
+            if (inAnsiCode) {
+              ansiCode += char;
+              if (char === 'm') {
+                inAnsiCode = false;
+                truncated += ansiCode;
+                ansiCode = '';
+              }
+              continue;
+            }
+
+            const charWidth = stringWidth(char);
+            if (currentWidth + charWidth > maxWidth) break;
+
+            truncated += char;
+            currentWidth += charWidth;
+          }
+
+          line = truncated;
+        }
+      }
+
+      // Get existing line content (if any)
+      const existingLine = this.buffer[targetY] || '';
+
+      // Merge new text at position x with existing content
+      // We need to preserve content before x and after x + line width
+      const lineWidth = stringWidth(stripAnsi(line));
+
+      // Build the new line: existing content before x + new text + existing content after
+      let newLine = '';
+
+      // Add existing content before position x (or spaces if needed)
+      if (x > 0) {
+        const existingBeforeX = existingLine.substring(0, Math.min(x, existingLine.length));
+        const existingWidth = stringWidth(stripAnsi(existingBeforeX));
+
+        newLine += existingBeforeX;
+
+        // Pad with spaces if existing content doesn't reach position x
+        if (existingWidth < x) {
+          newLine += ' '.repeat(x - existingWidth);
+        }
+      }
+
+      // Add new text
+      newLine += line;
+
+      // Add existing content after the new text (if any)
+      // This is simplified - we just append what comes after
+      // A more robust implementation would handle character-level merging
+      const afterX = x + lineWidth;
+      if (afterX < stringWidth(stripAnsi(existingLine))) {
+        // There's content after our write position, but for simplicity
+        // we'll let the new content overwrite it (which is the current behavior)
+      }
+
+      // Store the merged line
+      this.buffer[targetY] = newLine;
 
       // Track max visual width (without ANSI codes)
       const visualWidth = stringWidth(line);

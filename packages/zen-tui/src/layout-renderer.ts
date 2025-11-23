@@ -230,16 +230,16 @@ function renderNodeToBuffer(
               ) {
                 // Apply scroll offset for ScrollBox children
                 // Also apply border/padding offset to align children with content area
-                const contentOffset = isScrollBox ? borderOffset + paddingY : 0;
-                const childOffsetY = isScrollBox
-                  ? offsetY - scrollOffset + contentOffset
-                  : offsetY;
+                const contentOffsetX = isScrollBox ? borderOffset + paddingX : 0;
+                const contentOffsetY = isScrollBox ? borderOffset + paddingY : 0;
+                const childOffsetX = isScrollBox ? offsetX + contentOffsetX : offsetX;
+                const childOffsetY = isScrollBox ? offsetY - scrollOffset + contentOffsetY : offsetY;
 
                 renderNodeToBuffer(
                   markerChild as TUINode,
                   buffer,
                   layoutMap,
-                  offsetX,
+                  childOffsetX,
                   childOffsetY,
                   childClipMinY,
                   childClipMaxY,
@@ -251,14 +251,16 @@ function renderNodeToBuffer(
           // Regular TUINode
           // Apply scroll offset for ScrollBox children
           // Also apply border/padding offset to align children with content area
-          const contentOffset = isScrollBox ? borderOffset + paddingY : 0;
-          const childOffsetY = isScrollBox ? offsetY - scrollOffset + contentOffset : offsetY;
+          const contentOffsetX = isScrollBox ? borderOffset + paddingX : 0;
+          const contentOffsetY = isScrollBox ? borderOffset + paddingY : 0;
+          const childOffsetX = isScrollBox ? offsetX + contentOffsetX : offsetX;
+          const childOffsetY = isScrollBox ? offsetY - scrollOffset + contentOffsetY : offsetY;
 
           renderNodeToBuffer(
             child as TUINode,
             buffer,
             layoutMap,
-            offsetX,
+            childOffsetX,
             childOffsetY,
             childClipMinY,
             childClipMaxY,
