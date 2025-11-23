@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { signal } from '../index';
-import { Radio, handleRadioInput, type RadioOption } from './Radio';
+import { Radio, type RadioOption, handleRadioInput } from './Radio';
 
 const options: RadioOption[] = [
   { label: 'Option 1', value: 'opt1' },

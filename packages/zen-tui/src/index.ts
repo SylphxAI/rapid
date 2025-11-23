@@ -116,5 +116,8 @@ export {
 // TUI-specific: Keyboard Input
 export { useInput, dispatchInput, type InputHandler, type Key } from './useInput';
 
+// TUI-specific: Application Control (Ink-compatible API)
+export { useApp, type AppContext } from './useApp.js';
+
 // TUI-specific: Types
 export type { TUINode, TUIStyle, RenderOutput } from './types.js';

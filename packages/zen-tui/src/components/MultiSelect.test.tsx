@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { signal } from '../index';
-import { MultiSelect, handleMultiSelectInput, type MultiSelectOption } from './MultiSelect';
+import { MultiSelect, type MultiSelectOption, handleMultiSelectInput } from './MultiSelect';
 
 const items: MultiSelectOption[] = [
   { label: 'Item 1', value: 'item1' },
@@ -77,13 +77,7 @@ describe('handleMultiSelectInput', () => {
     const selected = signal<string[]>([]);
     const scrollOffset = signal(0);
 
-    const handled = handleMultiSelectInput(
-      highlightedIndex,
-      selected,
-      scrollOffset,
-      items,
-      'up',
-    );
+    const handled = handleMultiSelectInput(highlightedIndex, selected, scrollOffset, items, 'up');
 
     expect(handled).toBe(true);
     expect(highlightedIndex.value).toBe(1);
@@ -114,13 +108,7 @@ describe('handleMultiSelectInput', () => {
     const selected = signal<string[]>([]);
     const scrollOffset = signal(0);
 
-    const handled = handleMultiSelectInput(
-      highlightedIndex,
-      selected,
-      scrollOffset,
-      items,
-      'down',
-    );
+    const handled = handleMultiSelectInput(highlightedIndex, selected, scrollOffset, items, 'down');
 
     expect(handled).toBe(true);
     expect(highlightedIndex.value).toBe(1);
@@ -151,13 +139,7 @@ describe('handleMultiSelectInput', () => {
     const selected = signal<string[]>([]);
     const scrollOffset = signal(0);
 
-    const handled = handleMultiSelectInput(
-      highlightedIndex,
-      selected,
-      scrollOffset,
-      items,
-      ' ',
-    );
+    const handled = handleMultiSelectInput(highlightedIndex, selected, scrollOffset, items, ' ');
 
     expect(handled).toBe(true);
     expect(selected.value).toContain('item1');
@@ -210,15 +192,7 @@ describe('handleMultiSelectInput', () => {
     const scrollOffset = signal(0);
     const onSubmit = vi.fn();
 
-    handleMultiSelectInput(
-      highlightedIndex,
-      selected,
-      scrollOffset,
-      items,
-      'return',
-      4,
-      onSubmit,
-    );
+    handleMultiSelectInput(highlightedIndex, selected, scrollOffset, items, 'return', 4, onSubmit);
 
     expect(onSubmit).toHaveBeenCalledWith(['item2']);
   });
@@ -228,13 +202,7 @@ describe('handleMultiSelectInput', () => {
     const selected = signal<string[]>([]);
     const scrollOffset = signal(0);
 
-    const handled = handleMultiSelectInput(
-      highlightedIndex,
-      selected,
-      scrollOffset,
-      items,
-      'a',
-    );
+    const handled = handleMultiSelectInput(highlightedIndex, selected, scrollOffset, items, 'a');
 
     expect(handled).toBe(true);
     expect(selected.value).toEqual(['item1', 'item2', 'item3', 'item4']);
@@ -245,13 +213,7 @@ describe('handleMultiSelectInput', () => {
     const selected = signal<string[]>(['item1', 'item2']);
     const scrollOffset = signal(0);
 
-    const handled = handleMultiSelectInput(
-      highlightedIndex,
-      selected,
-      scrollOffset,
-      items,
-      'c',
-    );
+    const handled = handleMultiSelectInput(highlightedIndex, selected, scrollOffset, items, 'c');
 
     expect(handled).toBe(true);
     expect(selected.value).toEqual([]);

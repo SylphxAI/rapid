@@ -111,27 +111,21 @@ describe('Table', () => {
   });
 
   it('should handle left alignment', () => {
-    const columns: TableColumn<TestData>[] = [
-      { header: 'Name', key: 'name', align: 'left' },
-    ];
+    const columns: TableColumn<TestData>[] = [{ header: 'Name', key: 'name', align: 'left' }];
     const node = Table({ data: testData, columns });
 
     expect(node).toBeDefined();
   });
 
   it('should handle center alignment', () => {
-    const columns: TableColumn<TestData>[] = [
-      { header: 'Name', key: 'name', align: 'center' },
-    ];
+    const columns: TableColumn<TestData>[] = [{ header: 'Name', key: 'name', align: 'center' }];
     const node = Table({ data: testData, columns });
 
     expect(node).toBeDefined();
   });
 
   it('should handle right alignment', () => {
-    const columns: TableColumn<TestData>[] = [
-      { header: 'Age', key: 'age', align: 'right' },
-    ];
+    const columns: TableColumn<TestData>[] = [{ header: 'Age', key: 'age', align: 'right' }];
     const node = Table({ data: testData, columns });
 
     expect(node).toBeDefined();

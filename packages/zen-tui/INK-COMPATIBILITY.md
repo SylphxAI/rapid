@@ -5,9 +5,10 @@
 ## Coverage Summary
 
 ✅ **Full compatibility** - API matches Ink exactly
-⚠️ **Partial compatibility** - Core features match, some differences
 ❌ **Not implemented** - Feature not available
 🎯 **Zen enhancement** - Additional features beyond Ink
+
+**All core components and hooks are fully compatible with React Ink!**
 
 ---
 
@@ -232,9 +233,9 @@ interface Key {
 
 ---
 
-### useApp ⚠️
+### useApp ✅
 
-**Status**: Partial compatibility
+**Status**: Full compatibility
 
 Provides app lifecycle control.
 
@@ -247,16 +248,17 @@ function MyComponent() {
   return (
     <Box>
       <Button onClick={() => exit()}>Quit</Button>
+      <Button onClick={() => exit(new Error('Failed'))}>Exit with Error</Button>
     </Box>
   );
 }
 ```
 
-**Differences**:
-- Zen: `exit()` function available
-- Ink: `exit(error?)` accepts optional error parameter
+**Features**:
+- `exit()` - Exit with code 0 (success)
+- `exit(error)` - Exit with code 1 (error), logs error to stderr
 
-**Migration**: Compatible for basic use cases. Error parameter not supported.
+**Migration**: Direct drop-in replacement for Ink's `useApp`.
 
 ---
 
@@ -289,9 +291,9 @@ function MyComponent({ id }: { id?: string }) {
 
 ---
 
-### useFocusManager ⚠️
+### useFocusManager ✅
 
-**Status**: Partial compatibility
+**Status**: Full compatibility
 
 Focus navigation between components.
 
@@ -299,20 +301,28 @@ Focus navigation between components.
 import { useFocusManager } from '@zen/tui';
 
 function MyComponent() {
-  const { focusNext, focusPrevious, focus } = useFocusManager();
+  const { focusNext, focusPrevious, focus, enableFocus, disableFocus } = useFocusManager();
 
   useInput((input) => {
     if (input === 'Tab') focusNext();
     if (input === 'Shift+Tab') focusPrevious();
   });
+
+  // Disable focus during loading
+  disableFocus();
+  // Re-enable when ready
+  enableFocus();
 }
 ```
 
-**Differences**:
-- Zen: `focusNext()`, `focusPrevious()`, `focus(id)` supported
-- Ink: Additional `enableFocus()`, `disableFocus()` methods
+**Features**:
+- `focus(id)` - Focus specific component by ID
+- `focusNext()` - Focus next focusable component
+- `focusPrevious()` - Focus previous focusable component
+- `enableFocus()` - Enable focus management
+- `disableFocus()` - Disable focus management
 
-**Migration**: Core focus navigation compatible. Enable/disable not supported.
+**Migration**: Direct drop-in replacement for Ink's `useFocusManager`.
 
 ---
 
@@ -827,9 +837,9 @@ Run your application and verify:
 | Transform | ✅ | ❌ | Not implemented |
 | **Hooks** | | | |
 | useInput | ✅ | ✅ | Full compatibility |
-| useApp | ✅ | ⚠️ | Core features only |
+| useApp | ✅ | ✅ | Full compatibility |
 | useFocus | ✅ | ✅ | Full compatibility |
-| useFocusManager | ✅ | ⚠️ | Core features only |
+| useFocusManager | ✅ | ✅ | Full compatibility |
 | useStdin | ✅ | ✅ | Full compatibility |
 | useStdout | ✅ | ✅ | Full compatibility |
 | useStderr | ✅ | ✅ | Full compatibility |
