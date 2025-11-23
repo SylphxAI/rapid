@@ -51,11 +51,6 @@ function getColorFn(color: string) {
   return (text: string) => `${code + text}\x1b[39m`; // reset to default color
 }
 
-function getBgColorFn(color: string) {
-  const code = getBgColorCode(color);
-  return (text: string) => `${code + text}\x1b[49m`; // reset to default bg
-}
-
 /**
  * Apply text styling using raw ANSI codes
  */
@@ -177,7 +172,11 @@ function renderNodeToBuffer(
   const contentX = x + borderOffset + paddingX;
   const contentY = y + borderOffset + paddingY;
   const contentWidth = width - 2 * borderOffset - 2 * paddingX;
-  const _contentHeight = height - 2 * borderOffset - 2 * paddingY;
+  const contentHeight = height - 2 * borderOffset - 2 * paddingY;
+
+  // Handle ScrollBox - apply scroll offset
+  const isScrollBox = node.tagName === 'scrollbox';
+  const scrollOffset = isScrollBox && node.props?.scrollOffset ? node.props.scrollOffset.value : 0;
 
   // Render text node
   if (node.type === 'text') {
@@ -211,13 +210,51 @@ function renderNodeToBuffer(
                 markerChild !== null &&
                 'type' in markerChild
               ) {
-                renderNodeToBuffer(markerChild as TUINode, buffer, layoutMap, offsetX, offsetY);
+                // Apply scroll offset for ScrollBox children
+                const childOffsetY = isScrollBox ? offsetY - scrollOffset : offsetY;
+
+                // For ScrollBox, check if child is within visible bounds
+                if (isScrollBox) {
+                  const childLayout = layoutMap.get(markerChild as TUINode);
+                  if (childLayout) {
+                    const childY = childLayout.y + childOffsetY;
+                    const childBottom = childY + childLayout.height;
+                    // Skip if completely outside viewport
+                    if (childBottom < contentY || childY >= contentY + contentHeight) {
+                      continue;
+                    }
+                  }
+                }
+
+                renderNodeToBuffer(
+                  markerChild as TUINode,
+                  buffer,
+                  layoutMap,
+                  offsetX,
+                  childOffsetY,
+                );
               }
             }
           }
         } else if ('type' in child) {
           // Regular TUINode
-          renderNodeToBuffer(child as TUINode, buffer, layoutMap, offsetX, offsetY);
+          // Apply scroll offset for ScrollBox children
+          const childOffsetY = isScrollBox ? offsetY - scrollOffset : offsetY;
+
+          // For ScrollBox, check if child is within visible bounds
+          if (isScrollBox) {
+            const childLayout = layoutMap.get(child as TUINode);
+            if (childLayout) {
+              const childY = childLayout.y + childOffsetY;
+              const childBottom = childY + childLayout.height;
+              // Skip if completely outside viewport
+              if (childBottom < contentY || childY >= contentY + contentHeight) {
+                continue;
+              }
+            }
+          }
+
+          renderNodeToBuffer(child as TUINode, buffer, layoutMap, offsetX, childOffsetY);
         }
       }
     }

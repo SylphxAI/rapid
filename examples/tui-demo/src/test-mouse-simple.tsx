@@ -21,7 +21,9 @@ function App() {
 
   return (
     <Box style={{ padding: 1 }}>
-      <Text>Clicks: {() => clicks.value} | Scrolls: {() => scrolls.value}</Text>
+      <Text>
+        Clicks: {() => clicks.value} | Scrolls: {() => scrolls.value}
+      </Text>
       <Text>Press q to quit</Text>
     </Box>
   );
@@ -30,5 +32,5 @@ function App() {
 await renderToTerminalReactive(() => App(), {
   fps: 10,
   fullscreen: true,
-  mouse: true
+  mouse: true,
 });

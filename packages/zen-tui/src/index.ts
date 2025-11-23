@@ -71,6 +71,7 @@ export { Text } from './components/Text.js';
 export { Static } from './components/Static.js';
 export { Newline } from './components/Newline.js';
 export { Spacer } from './components/Spacer.js';
+export { ScrollBox } from './components/ScrollBox.js';
 
 // TUI-specific: Input Components
 export { TextInput, handleTextInput } from './components/TextInput.js';
