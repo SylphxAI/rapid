@@ -106,6 +106,55 @@ See: ADR-011
 
 **Trade-off:** Abstraction layer vs code duplication. Enables true cross-platform.
 
+### Pattern: TUI Fine-Grained Rendering
+
+**Why:** TUI has no persistent "DOM" like browsers. Need virtual persistent layer + fine-grained updates.
+
+**Where:** `@zen/tui/src/element.ts`, `@zen/tui/src/render.ts`
+
+**Problem:** Terminal rendering differs from web:
+- Web: Persistent real DOM, signals → direct updates
+- Terminal: Text output only, no persistent elements
+
+**Solution - Persistent Virtual Nodes + Fine-Grained Effects:**
+
+```typescript
+// 1. Create persistent virtual node ONCE (like SolidJS creates real DOM)
+const element = new TUIElement('text');
+
+// 2. Set up reactive tracking
+effect(() => {
+  element.setContent(count.value);  // Direct update
+  markDirty(element);  // Schedule re-render
+});
+
+// 3. Incremental updates
+// Only re-render dirty nodes to terminal buffer
+```
+
+**Architecture:**
+```
+Signal change → Effect on node → Direct update → Mark dirty
+                                                     ↓
+                                           Render dirty nodes only
+                                                     ↓
+                                           Yoga layout (dirty regions)
+                                                     ↓
+                                           Buffer diff → Terminal update
+```
+
+**Key Differences from React Ink:**
+- React Ink: Top-down re-render → VDOM diff → reconcile
+- Zen TUI: Bottom-up effects → direct node updates (no reconciler)
+- Same API as web, better performance
+
+**Trade-off:**
+- Persistent node memory vs full re-render overhead
+- More complex implementation vs simpler full-render
+- **Benefit:** Same API across platforms, no TUI-specific patterns
+
+See: ADR-014
+
 ## Architecture Principles
 
 1. **Runtime-first:** Must work without build tools
