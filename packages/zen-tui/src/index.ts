@@ -74,6 +74,11 @@ export { Spacer } from './components/Spacer.js';
 // TUI-specific: Input Components
 export { TextInput, handleTextInput } from './components/TextInput.js';
 export { SelectInput, handleSelectInput, type SelectOption } from './components/SelectInput.js';
+export {
+  MultiSelect,
+  handleMultiSelectInput,
+  type MultiSelectOption,
+} from './components/MultiSelect.js';
 export { Checkbox, handleCheckbox } from './components/Checkbox.js';
 export { Button, handleButton } from './components/Button.js';
 
@@ -89,6 +94,10 @@ export {
   setProgress,
   resetProgress,
 } from './components/ProgressBar.js';
+export { Table, type TableColumn } from './components/Table.js';
+export { Divider } from './components/Divider.js';
+export { Badge } from './components/Badge.js';
+export { StatusMessage } from './components/StatusMessage.js';
 
 // TUI-specific: Focus Management (Ink-compatible API)
 export {
