@@ -237,6 +237,7 @@ function Window({ win }: { win: WindowState }) {
           paddingLeft: 1,
           paddingRight: 1,
           justifyContent: 'space-between',
+          flexDirection: 'row',
         }}
       >
         <Text style={{ color: 'white', bold: true }}>
@@ -282,7 +283,6 @@ function ZenOS() {
       focusWindow(sorted[nextIndex].id);
     }
   });
-
 
   // Mouse drag handling for window movement
   useMouseDrag({

@@ -107,9 +107,9 @@ function fillArea(
   bgColor?: string,
 ): void {
   const bgCode = bgColor ? getBgColorCode(bgColor) : '';
-  const resetCode = bgColor ? '\x1b[49m' : '';
-  const fillChar = bgCode + ' ' + resetCode;
-  const fillLine = bgCode + ' '.repeat(width) + resetCode;
+  // Don't add reset code at the end - it will cause the background to be reset
+  // when text is rendered on top with replace=false
+  const fillLine = bgCode + ' '.repeat(width);
 
   for (let row = 0; row < height; row++) {
     buffer.writeAt(x, y + row, fillLine, width, true); // replace=true to clear existing content

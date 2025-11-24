@@ -25,6 +25,33 @@ function* iterateGraphemes(str: string): Generator<string> {
   }
 }
 
+/**
+ * Extract the last active background color code from a string
+ * Returns empty string if no background color is found
+ */
+function extractActiveBackground(str: string): string {
+  const ansiCodePattern = /\x1b\[([0-9;]+)m/g;
+  let lastBgCode = '';
+  let match;
+
+  while ((match = ansiCodePattern.exec(str)) !== null) {
+    const codes = match[1].split(';');
+    for (const code of codes) {
+      const num = parseInt(code, 10);
+      // Background color codes: 40-49 (standard), 100-107 (bright)
+      if ((num >= 40 && num <= 49) || (num >= 100 && num <= 107)) {
+        lastBgCode = `\x1b[${code}m`;
+      }
+      // Background reset code: 49
+      if (num === 49) {
+        lastBgCode = '';
+      }
+    }
+  }
+
+  return lastBgCode;
+}
+
 export class TerminalBuffer {
   private buffer: string[];
   private width: number;
@@ -121,10 +148,12 @@ export class TerminalBuffer {
       // IMPORTANT: We must walk through existingLine accounting for ANSI codes,
       // as substring() would cut ANSI codes incorrectly
       // Use grapheme segmenter for proper Unicode handling
+      let beforeX = '';
+      let activeBackground = '';
+
       if (x > 0) {
         let visualPos = 0;
         let inAnsiCode = false;
-        let beforeX = '';
 
         for (const grapheme of iterateGraphemes(existingLine)) {
           // Track ANSI codes
@@ -157,10 +186,17 @@ export class TerminalBuffer {
         if (visualPos < x) {
           newLine += ' '.repeat(x - visualPos);
         }
+
+        // Extract active background color at position x
+        activeBackground = extractActiveBackground(beforeX);
+      } else {
+        // Even if x = 0, check for background color in existing line
+        activeBackground = extractActiveBackground(existingLine);
       }
 
-      // Add new text
-      newLine += line;
+      // Add new text (with background code prepended if present)
+      // This ensures text inherits the parent container's background color
+      newLine += activeBackground + line;
 
       // Add existing content after the new text (if any)
       // Need to preserve content that comes after our written text (e.g., right border)
