@@ -39,7 +39,8 @@ export {
   Match,
   ErrorBoundary,
   Suspense,
-  Dynamic,
+  // Dynamic - REMOVED: Use reactive function children instead
+  // Example: {() => <MyComponent />} instead of <Dynamic component={MyComponent} />
   // Context
   createContext,
   useContext,
