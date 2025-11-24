@@ -108,10 +108,10 @@ function fillArea(
 ): void {
   const bgCode = bgColor ? getBgColorCode(bgColor) : '';
   // Add background reset at end to prevent bleeding to adjacent content
-  const fillLine = bgColor ? bgCode + ' '.repeat(width) + '\x1b[49m' : ' '.repeat(width);
+  const fillLine = bgColor ? `${bgCode + ' '.repeat(width)}\x1b[49m` : ' '.repeat(width);
 
   for (let row = 0; row < height; row++) {
-    buffer.writeAt(x, y + row, fillLine, width, true); // replace=true to clear existing content
+    buffer.writeAt(x, y + row, fillLine, width, false); // replace=false to preserve borders
   }
 }
 
@@ -143,7 +143,7 @@ function renderBorder(
     if (backgroundColor && width > 2) {
       const bgCode = getBgColorCode(backgroundColor);
       // Add background reset at end to prevent bleeding to right border
-      const fillLine = bgCode + ' '.repeat(width - 2) + '\x1b[49m';
+      const fillLine = `${bgCode + ' '.repeat(width - 2)}\x1b[49m`;
       buffer.writeAt(x + 1, y + i, fillLine, width - 2, true);
     }
     buffer.writeAt(x + width - 1, y + i, colorFn(box.right), 1);
