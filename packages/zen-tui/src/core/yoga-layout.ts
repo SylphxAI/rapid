@@ -226,10 +226,16 @@ function buildYogaTree(tuiNode: TUINode, yogaNodeMap: Map<TUINode, any>, Yoga: a
   const style = typeof tuiNode.style === 'function' ? tuiNode.style() : tuiNode.style || {};
   applyStylesToYogaNode(yogaNode, style, Yoga);
 
+  // Calculate total content width for text nodes
+  let totalTextWidth = 0;
+  let hasStringChildren = false;
+
   // Handle children
   if (tuiNode.children) {
     for (const child of tuiNode.children) {
       if (typeof child === 'string') {
+        hasStringChildren = true;
+        totalTextWidth += terminalWidth(child);
         // Text leaf - create a sized yoga node based on visual width
         const textYogaNode = Yoga.Node.create();
         textYogaNode.setWidth(terminalWidth(child));
@@ -272,6 +278,24 @@ function buildYogaTree(tuiNode: TUINode, yogaNodeMap: Map<TUINode, any>, Yoga: a
           }
         }
       }
+    }
+  }
+
+  // If this node has string children and no explicit width/height is set,
+  // set its size based on content to prevent it from collapsing to 0 in flex layouts
+  if (hasStringChildren && tuiNode.type === 'text') {
+    // Check if width was not explicitly set in the style
+    const hasExplicitWidth = style.width !== undefined;
+    const hasExplicitHeight = style.height !== undefined;
+
+    if (!hasExplicitWidth) {
+      // Set width to content width (sum of all string children widths)
+      yogaNode.setWidth(totalTextWidth);
+    }
+
+    if (!hasExplicitHeight) {
+      // Text nodes are always 1 line tall
+      yogaNode.setHeight(1);
     }
   }
 
