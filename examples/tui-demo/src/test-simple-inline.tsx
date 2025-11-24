@@ -2,7 +2,7 @@
  * Simplest possible inline test (no fullscreen)
  */
 
-import { Text, renderToTerminalReactive } from '@zen/tui';
+import { Text, renderApp} from '@zen/tui';
 
 // Simplest possible component
 function App() {
@@ -10,7 +10,7 @@ function App() {
 }
 
 //Without fullscreen
-await renderToTerminalReactive(() => <App />);
+await renderApp(() => <App />);
 
 // Keep alive
 await new Promise(() => {});

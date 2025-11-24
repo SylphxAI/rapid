@@ -2,7 +2,7 @@
  * Test Box rendering
  */
 
-import { Box, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, Text, renderApp} from '@zen/tui';
 
 function App() {
   return (
@@ -13,7 +13,7 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />);
+await renderApp(() => <App />);
 
 // Keep alive
 await new Promise(() => {});

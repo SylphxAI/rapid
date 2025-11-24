@@ -6,13 +6,7 @@
 
 import { signal } from '@zen/signal';
 import {
-  Box,
-  Confirmation,
-  FocusProvider,
-  StatusMessage,
-  Text,
-  renderToTerminalReactive,
-} from '@zen/tui';
+  Box, Confirmation, FocusProvider, StatusMessage, Text, renderApp} from '@zen/tui';
 
 const result = signal<string | null>(null);
 
@@ -60,11 +54,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(
-  () => (
+await renderApp(() => (
     <FocusProvider>
       <App />
     </FocusProvider>
-  ),
-  { fps: 10 },
-);
+  ), { fps: 10 }, );

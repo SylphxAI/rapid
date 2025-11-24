@@ -7,7 +7,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, Text, ToastContainer, renderToTerminalReactive, toast, useInput } from '@zen/tui';
+import { Box, Text, ToastContainer, toast, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function ToastTest() {
   const count = signal(0);
@@ -55,6 +55,8 @@ function ToastTest() {
   );
 }
 
-await renderToTerminalReactive(() => <ToastTest />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <ToastTest />
+  </FullscreenLayout>
+));

@@ -1,7 +1,7 @@
 import { onMount } from '@zen/runtime';
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { FocusProvider, renderToTerminalReactive, useFocus, useInput } from '@zen/tui';
+import { FocusProvider, useFocus, useInput, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const log = signal<string[]>([]);
@@ -56,7 +56,7 @@ const TestComponent = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => (
+const cleanup = await renderApp(() => (
   <FocusProvider>
     <TestComponent />
   </FocusProvider>

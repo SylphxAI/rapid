@@ -1,6 +1,6 @@
 import { ContextProvider, createContext, useContext } from '@zen/runtime';
 /** @jsxImportSource @zen/tui */
-import { FocusProvider, renderToTerminalReactive, useFocusManager } from '@zen/tui';
+import { FocusProvider, useFocusManager, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 // Create a test context
@@ -36,7 +36,7 @@ const App = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => <App />);
+const cleanup = await renderApp(() => <App />);
 
 setTimeout(() => {
   cleanup();

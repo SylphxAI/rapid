@@ -3,7 +3,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, Text, renderApp} from '@zen/tui';
 
 function App() {
   const counter = signal(0);
@@ -20,4 +20,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />);
+await renderApp(() => <App />);

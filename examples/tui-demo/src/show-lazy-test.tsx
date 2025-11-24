@@ -1,7 +1,7 @@
 import { Show } from '@zen/runtime';
 import { signal } from '@zen/runtime';
 /** @jsxImportSource @zen/tui */
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 let expensiveChildExecuted = false;
@@ -46,7 +46,7 @@ const App = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => <App />);
+const cleanup = await renderApp(() => <App />);
 
 setTimeout(() => {
   if (expensiveChildExecuted) {

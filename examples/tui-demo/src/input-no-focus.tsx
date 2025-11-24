@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Static, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Static, useInput, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 interface LogItem {
@@ -9,8 +9,7 @@ interface LogItem {
 }
 
 const keyLogs = signal<LogItem[]>([
-  { id: 0, message: '[Started] Input test WITHOUT FocusProvider' },
-]);
+  { id: 0, message: '[Started] Input test WITHOUT FocusProvider' }, ]);
 let logId = 1;
 const inputValue = signal('');
 
@@ -23,21 +22,13 @@ const SimpleInput = () => {
     if (input.length === 1 && input >= ' ' && input <= '~') {
       inputValue.value += input;
       keyLogs.value = [
-        ...keyLogs.value,
-        {
-          id: logId,
-          message: `[${new Date().toLocaleTimeString()}] Added: "${input}" - Total: "${inputValue.value}"`,
-        },
-      ];
+        ...keyLogs.value, {
+          id: logId, message: `[${new Date().toLocaleTimeString()}] Added: "${input}" - Total: "${inputValue.value}"`}, ];
     } else if (key.backspace && inputValue.value.length > 0) {
       inputValue.value = inputValue.value.slice(0, -1);
       keyLogs.value = [
-        ...keyLogs.value,
-        {
-          id: logId,
-          message: `[${new Date().toLocaleTimeString()}] Backspace - Total: "${inputValue.value}"`,
-        },
-      ];
+        ...keyLogs.value, {
+          id: logId, message: `[${new Date().toLocaleTimeString()}] Backspace - Total: "${inputValue.value}"`}, ];
     }
   });
 
@@ -82,7 +73,7 @@ const SimpleInput = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => <SimpleInput />);
+const cleanup = await renderApp(() => <SimpleInput />);
 
 process.on('SIGINT', () => {
   cleanup();

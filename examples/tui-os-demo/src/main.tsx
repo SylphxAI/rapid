@@ -11,14 +11,7 @@
 
 import { batch, signal } from '@zen/signal';
 import {
-  Box,
-  Divider,
-  Text,
-  renderToTerminalReactive,
-  useInput,
-  useMouseDrag,
-  useTerminalSize,
-} from '@zen/tui';
+  Box, Divider, Text, useInput, useMouseDrag, useTerminalSize, renderApp} from '@zen/tui';
 
 // ============================================================================
 // Types
@@ -51,12 +44,7 @@ let nextZIndex = 1;
 
 function openWindow(app: string) {
   const configs: Record<string, { title: string; icon: string; width: number; height: number }> = {
-    terminal: { title: 'Terminal', icon: '🖥️', width: 45, height: 12 },
-    files: { title: 'Files', icon: '📁', width: 40, height: 10 },
-    calc: { title: 'Calculator', icon: '🧮', width: 25, height: 10 },
-    settings: { title: 'Settings', icon: '⚙️', width: 35, height: 10 },
-    about: { title: 'About', icon: 'ℹ️', width: 35, height: 8 },
-  };
+    terminal: { title: 'Terminal', icon: '🖥️', width: 45, height: 12 }, files: { title: 'Files', icon: '📁', width: 40, height: 10 }, calc: { title: 'Calculator', icon: '🧮', width: 25, height: 10 }, settings: { title: 'Settings', icon: '⚙️', width: 35, height: 10 }, about: { title: 'About', icon: 'ℹ️', width: 35, height: 8 }};
   const cfg = configs[app] || { title: app, icon: '📦', width: 30, height: 8 };
   const id = `w${Date.now()}`;
 
@@ -67,16 +55,8 @@ function openWindow(app: string) {
 
   batch(() => {
     $windows.value = [
-      ...$windows.value,
-      {
-        id,
-        ...cfg,
-        app,
-        x,
-        y,
-        zIndex: nextZIndex++,
-      },
-    ];
+      ...$windows.value, {
+        id, ...cfg, app, x, y, zIndex: nextZIndex++}, ];
     $focused.value = id;
   });
 }
@@ -219,26 +199,12 @@ function Window({ win }: { win: WindowState }) {
   return (
     <Box
       style={{
-        position: 'absolute',
-        left: win.x,
-        top: win.y,
-        width: win.width,
-        height: win.height,
-        zIndex: win.zIndex,
-        flexDirection: 'column',
-        borderStyle: 'single',
-        borderColor: () => (isDragging() ? 'yellow' : isFocused() ? 'cyan' : 'gray'),
-      }}
+        position: 'absolute', left: win.x, top: win.y, width: win.width, height: win.height, zIndex: win.zIndex, flexDirection: 'column', borderStyle: 'single', borderColor: () => (isDragging() ? 'yellow' : isFocused() ? 'cyan' : 'gray')}}
     >
       {/* Title bar */}
       <Box
         style={{
-          backgroundColor: () => (isFocused() ? 'blue' : 'gray'),
-          paddingLeft: 1,
-          paddingRight: 1,
-          justifyContent: 'space-between',
-          flexDirection: 'row',
-        }}
+          backgroundColor: () => (isFocused() ? 'blue' : 'gray'), paddingLeft: 1, paddingRight: 1, justifyContent: 'space-between', flexDirection: 'row'}}
       >
         <Text style={{ color: 'white', bold: true }}>
           {win.icon} {win.title}
@@ -262,12 +228,7 @@ function ZenOS() {
   const { width, height } = useTerminalSize();
 
   const icons = [
-    { app: 'terminal', icon: '🖥️', name: 'Terminal' },
-    { app: 'files', icon: '📁', name: 'Files' },
-    { app: 'calc', icon: '🧮', name: 'Calc' },
-    { app: 'settings', icon: '⚙️', name: 'Settings' },
-    { app: 'about', icon: 'ℹ️', name: 'About' },
-  ];
+    { app: 'terminal', icon: '🖥️', name: 'Terminal' }, { app: 'files', icon: '📁', name: 'Files' }, { app: 'calc', icon: '🧮', name: 'Calc' }, { app: 'settings', icon: '⚙️', name: 'Settings' }, { app: 'about', icon: 'ℹ️', name: 'About' }, ];
 
   // Keyboard shortcuts
   useInput((_input, key) => {
@@ -307,10 +268,7 @@ function ZenOS() {
           // Start dragging
           focusWindow(win.id);
           $dragging.value = {
-            windowId: win.id,
-            offsetX: x - win.x,
-            offsetY: y - win.y,
-          };
+            windowId: win.id, offsetX: x - win.x, offsetY: y - win.y};
           return true;
         }
 
@@ -321,9 +279,7 @@ function ZenOS() {
         }
       }
       return false;
-    },
-
-    onDragMove: (x, y) => {
+    }, onDragMove: (x, y) => {
       const drag = $dragging.value;
       if (!drag) return;
 
@@ -331,29 +287,19 @@ function ZenOS() {
       $windows.value = $windows.value.map((w) =>
         w.id === drag.windowId
           ? {
-              ...w,
-              x: Math.max(0, x - drag.offsetX),
-              y: Math.max(2, y - drag.offsetY), // Keep below menu bar
+              ...w, x: Math.max(0, x - drag.offsetX), y: Math.max(2, y - drag.offsetY), // Keep below menu bar
             }
-          : w,
-      );
-    },
-
-    onDragEnd: () => {
+          : w, );
+    }, onDragEnd: () => {
       $dragging.value = null;
-    },
-  });
+    }});
 
   return (
     <Box style={{ flexDirection: 'column', width, height }}>
       {/* Menu Bar */}
       <Box
         style={{
-          backgroundColor: 'gray',
-          paddingLeft: 1,
-          paddingRight: 1,
-          justifyContent: 'space-between',
-        }}
+          backgroundColor: 'gray', paddingLeft: 1, paddingRight: 1, justifyContent: 'space-between'}}
       >
         <Box style={{ flexDirection: 'row', gap: 2 }}>
           <Text style={{ color: 'cyan', bold: true }}>🍎 ZenOS</Text>
@@ -427,4 +373,4 @@ function ZenOS() {
 // Start
 // ============================================================================
 
-await renderToTerminalReactive(() => <ZenOS />, { fullscreen: true, mouse: true });
+await renderApp(() => <ZenOS />, { fullscreen: true, mouse: true });

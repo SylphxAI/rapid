@@ -3,7 +3,7 @@
  * Simple List Test
  */
 
-import { Box, For, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, For, Text, renderApp} from '@zen/tui';
 
 function SimpleList() {
   const items = ['Line 1', 'Line 2', 'Line 3', 'Line 4', 'Line 5'];
@@ -34,7 +34,5 @@ function SimpleList() {
   );
 }
 
-await renderToTerminalReactive(() => SimpleList(), {
-  fps: 10,
-  fullscreen: true,
-});
+await renderApp(() => SimpleList(), {
+  fps: 10, fullscreen: true});

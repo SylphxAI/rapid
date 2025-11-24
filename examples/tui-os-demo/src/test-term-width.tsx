@@ -3,7 +3,7 @@
  * Test terminal width detection
  */
 
-import { Box, Text, renderToTerminalReactive, useInput, useTerminalSize } from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   const { width, height } = useTerminalSize();
@@ -28,4 +28,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

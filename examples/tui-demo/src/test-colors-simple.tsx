@@ -1,4 +1,4 @@
-import { Text, renderToTerminal } from '@zen/tui';
+import { Text, renderApp} from '@zen/tui';
 
 const Demo = () => (
   <>

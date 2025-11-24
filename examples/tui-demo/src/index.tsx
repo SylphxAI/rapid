@@ -7,7 +7,7 @@
  * - Real-time re-rendering
  */
 
-import { renderToTerminalReactive, signal } from '@zen/tui';
+import { signal, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 // Create reactive state
@@ -23,12 +23,7 @@ function App() {
   return (
     <Box
       style={{
-        width: 60,
-        height: 18,
-        padding: 2,
-        borderStyle: 'round',
-        borderColor: 'cyan',
-      }}
+        width: 60, height: 18, padding: 2, borderStyle: 'round', borderColor: 'cyan'}}
     >
       <Text style={{ bold: true, color: 'green' }}>🎯 Zen TUI - Reactive Demo</Text>
 
@@ -70,9 +65,8 @@ function App() {
 }
 
 // Render with reactive updates and keyboard controls
-await renderToTerminalReactive(() => <App />, {
-  fps: 10,
-  onKeyPress: (key) => {
+await renderApp(() => <App />, {
+  fps: 10, onKeyPress: (key) => {
     // Arrow up: increment
     if (key === '\u001b[A') {
       count.value++;
@@ -92,5 +86,4 @@ await renderToTerminalReactive(() => <App />, {
     else if (key !== 'q' && key !== 'Q' && key !== '\u0003') {
       message.value = `Key pressed: ${JSON.stringify(key)}`;
     }
-  },
-});
+  }});

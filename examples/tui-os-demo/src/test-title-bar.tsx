@@ -3,7 +3,7 @@
  * Test with full title bar like ZenOS
  */
 
-import { Box, Text, renderToTerminalReactive, useInput, useTerminalSize } from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   const { width, height } = useTerminalSize();
@@ -19,23 +19,12 @@ function App() {
       <Box style={{ position: 'relative', flex: 1 }}>
         <Box
           style={{
-            position: 'absolute',
-            left: 5,
-            top: 2,
-            width: 45,
-            height: 12,
-            flexDirection: 'column',
-            borderStyle: 'single',
-          }}
+            position: 'absolute', left: 5, top: 2, width: 45, height: 12, flexDirection: 'column', borderStyle: 'single'}}
         >
           {/* Title bar with justifyContent: space-between */}
           <Box
             style={{
-              backgroundColor: 'blue',
-              paddingLeft: 1,
-              paddingRight: 1,
-              justifyContent: 'space-between',
-            }}
+              backgroundColor: 'blue', paddingLeft: 1, paddingRight: 1, justifyContent: 'space-between'}}
           >
             <Text style={{ color: 'white', bold: true }}>🖥️ Terminal</Text>
             <Text style={{ color: 'red' }}>✕</Text>
@@ -56,4 +45,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

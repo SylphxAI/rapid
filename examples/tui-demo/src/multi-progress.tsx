@@ -1,5 +1,5 @@
 import { signal } from '@zen/signal';
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 // Download items with progress
@@ -19,11 +19,7 @@ function addDownload() {
   const speed = speeds[Math.floor(Math.random() * speeds.length)];
 
   const newDownload: Download = {
-    id: nextId++,
-    name: `file-${nextId - 1}.zip`,
-    progress: signal(0),
-    speed,
-  };
+    id: nextId++, name: `file-${nextId - 1}.zip`, progress: signal(0), speed};
 
   downloads.value = [...downloads.value, newDownload];
 
@@ -82,7 +78,7 @@ const MultiProgress = () => {
 };
 
 // Render
-await renderToTerminalReactive(() => <MultiProgress />);
+await renderApp(() => <MultiProgress />);
 
 // Start with one download
 addDownload();
@@ -109,6 +105,4 @@ const addInterval = setInterval(
     }
 
     addDownload();
-  },
-  Math.random() * 2000 + 1000,
-); // Random interval 1-3 seconds
+  }, Math.random() * 2000 + 1000, ); // Random interval 1-3 seconds

@@ -6,7 +6,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, ScrollBox, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, ScrollBox, Text, renderApp} from '@zen/tui';
 
 function ScrollDemo() {
   // Generate list of items
@@ -35,8 +35,5 @@ function ScrollDemo() {
   );
 }
 
-await renderToTerminalReactive(() => ScrollDemo(), {
-  fps: 10,
-  fullscreen: true,
-  mouse: true,
-});
+await renderApp(() => ScrollDemo(), {
+  fps: 10, fullscreen: true, mouse: true});

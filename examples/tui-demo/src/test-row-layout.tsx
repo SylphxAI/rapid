@@ -5,7 +5,7 @@
  * Test row layout rendering
  */
 
-import { Box, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, Text, renderApp} from '@zen/tui';
 
 function RowLayoutTest() {
   return (
@@ -53,6 +53,5 @@ function RowLayoutTest() {
   );
 }
 
-await renderToTerminalReactive(() => <RowLayoutTest />, {
-  fullscreen: false,
-});
+await renderApp(() => <RowLayoutTest />, {
+  fullscreen: false});

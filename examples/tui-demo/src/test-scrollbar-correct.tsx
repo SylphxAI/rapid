@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Box, ScrollBox, Scrollbar, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, ScrollBox, Scrollbar, Text, renderApp} from '@zen/tui';
 
 function ScrollbarCorrectDemo() {
   const items = Array.from({ length: 30 }, (_, i) => `Line ${i + 1}`);
@@ -16,10 +16,7 @@ function ScrollbarCorrectDemo() {
       {/* 外層 Box 有 border，包住 ScrollBox + Scrollbar */}
       <Box
         style={{
-          borderStyle: 'single',
-          width: 32,
-          height: viewportHeight,
-          flexDirection: 'row'  // 直接用 row layout
+          borderStyle: 'single', width: 32, height: viewportHeight, flexDirection: 'row'  // 直接用 row layout
         }}
       >
         {/* ScrollBox 無 border */}
@@ -54,7 +51,5 @@ function ScrollbarCorrectDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <ScrollbarCorrectDemo />, {
-  fullscreen: false,
-  mouse: true,
-});
+await renderApp(() => <ScrollbarCorrectDemo />, {
+  fullscreen: false, mouse: true});

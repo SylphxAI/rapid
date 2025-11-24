@@ -8,13 +8,7 @@
 
 import { signal } from '@zen/signal';
 import {
-  Box,
-  type Command,
-  CommandPalette,
-  Text,
-  renderToTerminalReactive,
-  useInput,
-} from '@zen/tui';
+  Box, type Command, CommandPalette, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function CommandPaletteTest() {
   const showPalette = signal(false);
@@ -22,96 +16,36 @@ function CommandPaletteTest() {
 
   const commands: Command[] = [
     {
-      id: 'new',
-      label: 'New File',
-      description: 'Create a new file',
-      shortcut: 'Ctrl+N',
-      handler: () => {
+      id: 'new', label: 'New File', description: 'Create a new file', shortcut: 'Ctrl+N', handler: () => {
         lastCommand.value = 'New File';
-      },
-    },
-    {
-      id: 'open',
-      label: 'Open File',
-      description: 'Open an existing file',
-      shortcut: 'Ctrl+O',
-      handler: () => {
+      }}, {
+      id: 'open', label: 'Open File', description: 'Open an existing file', shortcut: 'Ctrl+O', handler: () => {
         lastCommand.value = 'Open File';
-      },
-    },
-    {
-      id: 'save',
-      label: 'Save',
-      description: 'Save current file',
-      shortcut: 'Ctrl+S',
-      handler: () => {
+      }}, {
+      id: 'save', label: 'Save', description: 'Save current file', shortcut: 'Ctrl+S', handler: () => {
         lastCommand.value = 'Save';
-      },
-    },
-    {
-      id: 'saveas',
-      label: 'Save As...',
-      description: 'Save with a new name',
-      shortcut: 'Ctrl+Shift+S',
-      handler: () => {
+      }}, {
+      id: 'saveas', label: 'Save As...', description: 'Save with a new name', shortcut: 'Ctrl+Shift+S', handler: () => {
         lastCommand.value = 'Save As';
-      },
-    },
-    {
-      id: 'find',
-      label: 'Find',
-      description: 'Search in current file',
-      shortcut: 'Ctrl+F',
-      handler: () => {
+      }}, {
+      id: 'find', label: 'Find', description: 'Search in current file', shortcut: 'Ctrl+F', handler: () => {
         lastCommand.value = 'Find';
-      },
-    },
-    {
-      id: 'replace',
-      label: 'Find and Replace',
-      description: 'Search and replace text',
-      shortcut: 'Ctrl+H',
-      handler: () => {
+      }}, {
+      id: 'replace', label: 'Find and Replace', description: 'Search and replace text', shortcut: 'Ctrl+H', handler: () => {
         lastCommand.value = 'Find and Replace';
-      },
-    },
-    {
-      id: 'goto',
-      label: 'Go to Line',
-      description: 'Jump to a specific line',
-      shortcut: 'Ctrl+G',
-      handler: () => {
+      }}, {
+      id: 'goto', label: 'Go to Line', description: 'Jump to a specific line', shortcut: 'Ctrl+G', handler: () => {
         lastCommand.value = 'Go to Line';
-      },
-    },
-    {
-      id: 'format',
-      label: 'Format Document',
-      description: 'Auto-format the document',
-      shortcut: 'Shift+Alt+F',
-      handler: () => {
+      }}, {
+      id: 'format', label: 'Format Document', description: 'Auto-format the document', shortcut: 'Shift+Alt+F', handler: () => {
         lastCommand.value = 'Format Document';
-      },
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      description: 'Open settings',
-      shortcut: 'Ctrl+,',
-      handler: () => {
+      }}, {
+      id: 'settings', label: 'Settings', description: 'Open settings', shortcut: 'Ctrl+,', handler: () => {
         lastCommand.value = 'Settings';
-      },
-    },
-    {
-      id: 'quit',
-      label: 'Quit',
-      description: 'Exit the application',
-      shortcut: 'Ctrl+Q',
-      handler: () => {
+      }}, {
+      id: 'quit', label: 'Quit', description: 'Exit the application', shortcut: 'Ctrl+Q', handler: () => {
         lastCommand.value = 'Quit';
-      },
-    },
-  ];
+      }}, ];
 
   // Ctrl+P to open palette
   useInput((input, _key) => {
@@ -147,6 +81,8 @@ function CommandPaletteTest() {
   );
 }
 
-await renderToTerminalReactive(() => <CommandPaletteTest />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <CommandPaletteTest />
+  </FullscreenLayout>
+));

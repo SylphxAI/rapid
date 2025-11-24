@@ -1,5 +1,5 @@
 /** @jsxImportSource @zen/tui */
-import { FocusProvider, renderToTerminalReactive } from '@zen/tui';
+import { FocusProvider, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const Parent = (props: { children?: unknown }) => {
@@ -18,7 +18,7 @@ const App = () => {
   );
 };
 
-await renderToTerminalReactive(() => <App />);
+await renderApp(() => <App />);
 
 process.on('SIGINT', () => {
   process.exit(0);

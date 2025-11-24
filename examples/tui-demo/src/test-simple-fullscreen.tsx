@@ -2,7 +2,7 @@
  * Simplest possible fullscreen test
  */
 
-import { Text, renderToTerminalReactive } from '@zen/tui';
+import { Text, renderApp, FullscreenLayout} from '@zen/tui';
 
 // Simplest possible component
 function App() {
@@ -10,10 +10,14 @@ function App() {
 }
 
 // Without fullscreen
-// await renderToTerminalReactive(() => <App />);
+// await renderApp(() => (
+  <FullscreenLayout>
+    <App />);
 
 // With fullscreen
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => <App />
+  </FullscreenLayout>
+));
 
 // Keep alive
 await new Promise(() => {});

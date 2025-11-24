@@ -7,7 +7,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, Text, renderToTerminalReactive, useTerminalResize, useTerminalSize } from '@zen/tui';
+import { Box, Text, useTerminalResize, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
 
 function TerminalSizeDemo() {
   const { width, height } = useTerminalSize();
@@ -43,6 +43,8 @@ function TerminalSizeDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <TerminalSizeDemo />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <TerminalSizeDemo />
+  </FullscreenLayout>
+));

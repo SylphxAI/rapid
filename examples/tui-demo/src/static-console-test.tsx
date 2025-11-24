@@ -4,7 +4,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, Static, Text, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Box, Static, Text, useInput, renderApp} from '@zen/tui';
 
 interface LogEntry {
   id: number;

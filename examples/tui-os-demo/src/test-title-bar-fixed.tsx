@@ -3,7 +3,7 @@
  * Test with full title bar - FIXED version with explicit flexDirection
  */
 
-import { Box, Text, renderToTerminalReactive, useInput, useTerminalSize } from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   const { width, height } = useTerminalSize();
@@ -19,23 +19,12 @@ function App() {
       <Box style={{ position: 'relative', flex: 1 }}>
         <Box
           style={{
-            position: 'absolute',
-            left: 5,
-            top: 2,
-            width: 45,
-            height: 12,
-            flexDirection: 'column',
-            borderStyle: 'single',
-          }}
+            position: 'absolute', left: 5, top: 2, width: 45, height: 12, flexDirection: 'column', borderStyle: 'single'}}
         >
           {/* Title bar with justifyContent: space-between AND flexDirection: row */}
           <Box
             style={{
-              backgroundColor: 'blue',
-              paddingLeft: 1,
-              paddingRight: 1,
-              justifyContent: 'space-between',
-              flexDirection: 'row', // ADDED: Explicitly set to row
+              backgroundColor: 'blue', paddingLeft: 1, paddingRight: 1, justifyContent: 'space-between', flexDirection: 'row', // ADDED: Explicitly set to row
             }}
           >
             <Text style={{ color: 'white', bold: true }}>🖥️ Terminal</Text>
@@ -57,4 +46,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

@@ -6,14 +6,7 @@
 
 import { signal } from '@zen/signal';
 import {
-  Box,
-  Button,
-  FocusProvider,
-  StatusMessage,
-  Text,
-  TextInput,
-  renderToTerminalReactive,
-} from '@zen/tui';
+  Box, Button, FocusProvider, StatusMessage, Text, TextInput, renderApp} from '@zen/tui';
 
 const username = signal('');
 const password = signal('');
@@ -80,11 +73,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(
-  () => (
+await renderApp(() => (
     <FocusProvider>
       <App />
     </FocusProvider>
-  ),
-  { fps: 10 },
-);
+  ), { fps: 10 }, );

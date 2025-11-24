@@ -4,7 +4,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, For, Text, renderToTerminalReactive, useInput, useMouseScroll } from '@zen/tui';
+import { Box, For, Text, useInput, useMouseScroll, renderApp} from '@zen/tui';
 
 function ScrollWithIndicator() {
   const scrollOffset = signal(0);
@@ -48,11 +48,7 @@ function ScrollWithIndicator() {
 
       <Box
         style={{
-          flexDirection: 'column',
-          borderStyle: 'single',
-          padding: 1,
-          height: viewportHeight + 2,
-        }}
+          flexDirection: 'column', borderStyle: 'single', padding: 1, height: viewportHeight + 2}}
       >
         {() => visibleItems().map((item) => <Text key={item}>{item}</Text>)}
       </Box>
@@ -63,8 +59,5 @@ function ScrollWithIndicator() {
   );
 }
 
-await renderToTerminalReactive(() => ScrollWithIndicator(), {
-  fps: 10,
-  fullscreen: true,
-  mouse: true,
-});
+await renderApp(() => ScrollWithIndicator(), {
+  fps: 10, fullscreen: true, mouse: true});

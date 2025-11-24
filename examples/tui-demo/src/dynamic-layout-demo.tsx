@@ -9,17 +9,7 @@
  */
 
 import {
-  Box,
-  Button,
-  FocusProvider,
-  For,
-  Show,
-  Text,
-  renderToTerminalReactive,
-  signal,
-  useFocusManager,
-  useInput,
-} from '@zen/tui';
+  Box, Button, FocusProvider, For, Show, Text, signal, useFocusManager, useInput, renderApp} from '@zen/tui';
 
 function DynamicLayoutDemo() {
   const { focusNext, focusPrevious } = useFocusManager();
@@ -71,19 +61,7 @@ function DynamicLayoutDemo() {
     }
 
     const actions: Record<string, () => void> = {
-      '+': increment,
-      '=': increment,
-      '-': decrement,
-      _: decrement,
-      a: addItem,
-      A: addItem,
-      r: removeItem,
-      R: removeItem,
-      l: toggleLayout,
-      L: toggleLayout,
-      p: togglePanel,
-      P: togglePanel,
-    };
+      '+': increment, '=': increment, '-': decrement, _: decrement, a: addItem, A: addItem, r: removeItem, R: removeItem, l: toggleLayout, L: toggleLayout, p: togglePanel, P: togglePanel};
 
     actions[input]?.();
   };
@@ -94,10 +72,7 @@ function DynamicLayoutDemo() {
   return (
     <Box
       style={{
-        borderStyle: 'double',
-        borderColor: 'cyan',
-        padding: 1,
-      }}
+        borderStyle: 'double', borderColor: 'cyan', padding: 1}}
     >
       <Text bold color="cyan">
         Dynamic Layout Demo
@@ -130,11 +105,7 @@ function DynamicLayoutDemo() {
       {/* Control Buttons */}
       <Box
         style={{
-          flexDirection: () => (isRow.value ? 'row' : 'column'),
-          marginY: 1,
-          borderStyle: 'single',
-          padding: 1,
-        }}
+          flexDirection: () => (isRow.value ? 'row' : 'column'), marginY: 1, borderStyle: 'single', padding: 1}}
       >
         <Text bold>Controls:</Text>
 
@@ -159,11 +130,7 @@ function DynamicLayoutDemo() {
       {/* Dynamic Items List */}
       <Box
         style={{
-          marginY: 1,
-          borderStyle: 'round',
-          borderColor: 'yellow',
-          padding: 1,
-        }}
+          marginY: 1, borderStyle: 'round', borderColor: 'yellow', padding: 1}}
       >
         <Text bold color="yellow">
           Items List:
@@ -192,11 +159,7 @@ function DynamicLayoutDemo() {
       <Show when={showPanel}>
         <Box
           style={{
-            borderStyle: 'single',
-            borderColor: 'green',
-            padding: 1,
-            marginY: 1,
-          }}
+            borderStyle: 'single', borderColor: 'green', padding: 1, marginY: 1}}
         >
           <Text bold color="green">
             Dynamic Panel
@@ -211,10 +174,7 @@ function DynamicLayoutDemo() {
       {/* Status Bar */}
       <Box
         style={{
-          marginY: 1,
-          borderStyle: 'single',
-          padding: 1,
-        }}
+          marginY: 1, borderStyle: 'single', padding: 1}}
       >
         <Text dim>Press 'q' to quit | Layout updates are fine-grained and batched</Text>
       </Box>
@@ -227,12 +187,11 @@ function App() {
 }
 
 // Run with keyboard shortcuts
-const _cleanup = await renderToTerminalReactive(() => App(), {
+const _cleanup = await renderApp(() => App(), {
   onKeyPress: (key) => {
     if (key === '+' || key === '=') {
       // Increment handled by focus
     } else if (key === '-') {
       // Decrement handled by focus
     }
-  },
-});
+  }});

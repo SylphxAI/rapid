@@ -3,7 +3,7 @@
  * Test different emojis to see which ones break
  */
 
-import { Box, Text, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   useInput((_input, key) => {
@@ -36,4 +36,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

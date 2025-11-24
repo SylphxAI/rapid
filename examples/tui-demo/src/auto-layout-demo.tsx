@@ -6,7 +6,7 @@
  * No user interaction needed
  */
 
-import { Box, For, Show, Text, renderToTerminalReactive, signal } from '@zen/tui';
+import { Box, For, Show, Text, signal, renderApp} from '@zen/tui';
 
 function AutoLayoutDemo() {
   // Counter - auto increment
@@ -59,10 +59,7 @@ function AutoLayoutDemo() {
   return (
     <Box
       style={{
-        borderStyle: 'double',
-        borderColor: 'cyan',
-        padding: 1,
-      }}
+        borderStyle: 'double', borderColor: 'cyan', padding: 1}}
     >
       <Text bold color="cyan">
         🤖 Automated Layout Demo
@@ -99,12 +96,7 @@ function AutoLayoutDemo() {
       {/* Dynamic Items List with changing layout */}
       <Box
         style={{
-          marginY: 1,
-          borderStyle: 'round',
-          borderColor: 'yellow',
-          padding: 1,
-          flexDirection: () => (isRow.value ? 'row' : 'column'),
-        }}
+          marginY: 1, borderStyle: 'round', borderColor: 'yellow', padding: 1, flexDirection: () => (isRow.value ? 'row' : 'column')}}
       >
         <Text bold color="yellow">
           Items [{() => (isRow.value ? 'Row' : 'Col')}]:
@@ -121,11 +113,7 @@ function AutoLayoutDemo() {
       <Show when={showPanel}>
         <Box
           style={{
-            borderStyle: 'single',
-            borderColor: 'green',
-            padding: 1,
-            marginY: 1,
-          }}
+            borderStyle: 'single', borderColor: 'green', padding: 1, marginY: 1}}
         >
           <Text bold color="green">
             🟢 Dynamic Panel (appears/disappears every 3s)
@@ -138,12 +126,7 @@ function AutoLayoutDemo() {
       {/* Another dynamic box to show layout changes */}
       <Box
         style={{
-          marginY: 1,
-          borderStyle: 'single',
-          borderColor: 'magenta',
-          padding: 1,
-          flexDirection: () => (isRow.value ? 'row' : 'column'),
-        }}
+          marginY: 1, borderStyle: 'single', borderColor: 'magenta', padding: 1, flexDirection: () => (isRow.value ? 'row' : 'column')}}
       >
         <Text bold>Stats:</Text>
         <Box style={{ marginX: () => (isRow.value ? 1 : 0) }}>
@@ -157,10 +140,7 @@ function AutoLayoutDemo() {
       {/* Status */}
       <Box
         style={{
-          marginY: 1,
-          borderStyle: 'single',
-          padding: 1,
-        }}
+          marginY: 1, borderStyle: 'single', padding: 1}}
       >
         <Text dim>
           ⚡ Fine-grained updates | 📐 Yoga layout | 🔄 Buffer diff | Press Ctrl+C or 'q' to quit
@@ -171,4 +151,4 @@ function AutoLayoutDemo() {
 }
 
 // Run without keyboard input (automated)
-const _cleanup = await renderToTerminalReactive(() => <AutoLayoutDemo />);
+const _cleanup = await renderApp(() => <AutoLayoutDemo />);

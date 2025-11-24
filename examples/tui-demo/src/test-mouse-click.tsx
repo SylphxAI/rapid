@@ -7,7 +7,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, type MouseClickEvent, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, type MouseClickEvent, Text, renderApp} from '@zen/tui';
 
 function MouseClickTest() {
   const clickCount = signal(0);
@@ -25,11 +25,7 @@ function MouseClickTest() {
       <Box style={{ flexDirection: 'row', gap: 2 }}>
         <Box
           style={{
-            borderStyle: 'round',
-            padding: 1,
-            paddingX: 2,
-            backgroundColor: 'blue',
-          }}
+            borderStyle: 'round', padding: 1, paddingX: 2, backgroundColor: 'blue'}}
           onClick={(e: MouseClickEvent) => {
             clickCount.value++;
             button1Clicks.value++;
@@ -42,11 +38,7 @@ function MouseClickTest() {
 
         <Box
           style={{
-            borderStyle: 'round',
-            padding: 1,
-            paddingX: 2,
-            backgroundColor: 'green',
-          }}
+            borderStyle: 'round', padding: 1, paddingX: 2, backgroundColor: 'green'}}
           onClick={(e: MouseClickEvent) => {
             clickCount.value++;
             button2Clicks.value++;
@@ -59,11 +51,7 @@ function MouseClickTest() {
 
         <Box
           style={{
-            borderStyle: 'round',
-            padding: 1,
-            paddingX: 2,
-            backgroundColor: 'red',
-          }}
+            borderStyle: 'round', padding: 1, paddingX: 2, backgroundColor: 'red'}}
           onClick={(e: MouseClickEvent) => {
             clickCount.value++;
             button3Clicks.value++;
@@ -84,7 +72,6 @@ function MouseClickTest() {
   );
 }
 
-await renderToTerminalReactive(() => <MouseClickTest />, {
-  fullscreen: false,
-  mouse: true, // Enable mouse tracking
+await renderApp(() => <MouseClickTest />, {
+  fullscreen: false, mouse: true, // Enable mouse tracking
 });

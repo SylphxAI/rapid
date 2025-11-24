@@ -3,7 +3,7 @@
  * Test with useTerminalSize - does dynamic size break it?
  */
 
-import { Box, Text, renderToTerminalReactive, useInput, useTerminalSize } from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   const { width, height } = useTerminalSize();
@@ -22,12 +22,7 @@ function App() {
       <Box style={{ position: 'relative', flex: 1 }}>
         <Box
           style={{
-            position: 'absolute',
-            left: 5,
-            top: 2,
-            width: 30,
-            borderStyle: 'single',
-          }}
+            position: 'absolute', left: 5, top: 2, width: 30, borderStyle: 'single'}}
         >
           <Box style={{ flexDirection: 'column', padding: 1 }}>
             <Text style={{ color: 'cyan' }}>███████╗███████╗</Text>
@@ -40,4 +35,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

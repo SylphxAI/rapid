@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Box, Static, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, Static, Text, renderApp} from '@zen/tui';
 
 interface LogItem {
   id: number;
@@ -29,7 +29,7 @@ const App = () => (
   </>
 );
 
-const cleanup = await renderToTerminalReactive(() => <App />);
+const cleanup = await renderApp(() => <App />);
 
 setTimeout(() => {
   cleanup();

@@ -4,7 +4,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { renderToTerminalReactive, useMouseClick, useMouseScroll } from '@zen/tui';
+import { useMouseClick, useMouseScroll, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 function App() {
@@ -29,8 +29,5 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => App(), {
-  fps: 10,
-  fullscreen: true,
-  mouse: true,
-});
+await renderApp(() => App(), {
+  fps: 10, fullscreen: true, mouse: true});

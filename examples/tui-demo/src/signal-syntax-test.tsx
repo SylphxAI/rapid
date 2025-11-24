@@ -4,7 +4,7 @@
  * Tests different ways to use signals in JSX (runtime-first mode, no compiler)
  */
 
-import { Box, Text, renderToTerminalReactive, signal } from '@zen/tui';
+import { Box, Text, signal, renderApp} from '@zen/tui';
 
 const count = signal(0);
 
@@ -12,11 +12,7 @@ function App() {
   return (
     <Box
       style={{
-        flexDirection: 'column',
-        padding: 2,
-        borderStyle: 'single',
-        width: 60,
-      }}
+        flexDirection: 'column', padding: 2, borderStyle: 'single', width: 60}}
     >
       <Text color="cyan" bold={true}>
         Signal Syntax Test (Runtime-First, No Compiler)
@@ -52,9 +48,7 @@ const cleanup = renderToTerminalReactive(App, {
       cleanup();
       process.exit(0);
     }
-  },
-  fps: 2,
-});
+  }, fps: 2});
 
 // Auto-exit after 5 seconds to demonstrate
 setTimeout(() => {

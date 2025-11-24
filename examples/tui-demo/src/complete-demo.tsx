@@ -10,19 +10,7 @@
  */
 
 import {
-  Box,
-  Button,
-  Checkbox,
-  FocusProvider,
-  SelectInput,
-  Text,
-  TextInput,
-  dispatchInput,
-  renderToTerminalReactive,
-  signal,
-  useFocusManager,
-  useInput,
-} from '@zen/tui';
+  Box, Button, Checkbox, FocusProvider, SelectInput, Text, TextInput, dispatchInput, signal, useFocusManager, useInput, renderApp} from '@zen/tui';
 
 // State
 const name = signal('');
@@ -32,11 +20,7 @@ const agreed = signal(false);
 const message = signal('Fill in the form and press Submit');
 
 const frameworkOptions = [
-  { value: 'solidjs', label: 'SolidJS' },
-  { value: 'react', label: 'React' },
-  { value: 'vue', label: 'Vue' },
-  { value: 'svelte', label: 'Svelte' },
-];
+  { value: 'solidjs', label: 'SolidJS' }, { value: 'react', label: 'React' }, { value: 'vue', label: 'Vue' }, { value: 'svelte', label: 'Svelte' }, ];
 
 function AppContent() {
   const { focusNext, focusPrevious } = useFocusManager();
@@ -55,12 +39,7 @@ function AppContent() {
   return (
     <Box
       style={{
-        flexDirection: 'column',
-        padding: 2,
-        borderStyle: 'double',
-        borderColor: 'cyan',
-        width: 70,
-      }}
+        flexDirection: 'column', padding: 2, borderStyle: 'double', borderColor: 'cyan', width: 70}}
     >
       {/* Header */}
       <Text color="cyan" bold={true}>
@@ -174,6 +153,5 @@ function App() {
 
 // Render
 // Note: renderToTerminalReactive already handles Ctrl+C and dispatches to useInput handlers
-const _cleanup = await renderToTerminalReactive(() => App(), {
-  fps: 30,
-});
+const _cleanup = await renderApp(() => App(), {
+  fps: 30});

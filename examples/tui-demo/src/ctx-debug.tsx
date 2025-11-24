@@ -1,7 +1,7 @@
 import { createContext, useContext } from '@zen/runtime';
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { FocusProvider, renderToTerminalReactive, useFocusManager } from '@zen/tui';
+import { FocusProvider, useFocusManager, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const log = signal<string[]>([]);
@@ -38,7 +38,7 @@ const TestComponent = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => (
+const cleanup = await renderApp(() => (
   <FocusProvider>
     <TestComponent />
   </FocusProvider>

@@ -6,19 +6,10 @@
 
 import { signal } from '@zen/signal';
 import {
-  Box,
-  FocusProvider,
-  Radio,
-  type RadioOption,
-  Text,
-  renderToTerminalReactive,
-} from '@zen/tui';
+  Box, FocusProvider, Radio, type RadioOption, Text, renderApp} from '@zen/tui';
 
 const themeOptions: RadioOption[] = [
-  { label: 'Dark Mode', value: 'dark' },
-  { label: 'Light Mode', value: 'light' },
-  { label: 'Auto (System)', value: 'auto' },
-];
+  { label: 'Dark Mode', value: 'dark' }, { label: 'Light Mode', value: 'light' }, { label: 'Auto (System)', value: 'auto' }, ];
 
 const selectedTheme = signal<string | undefined>('dark');
 
@@ -53,11 +44,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(
-  () => (
+await renderApp(() => (
     <FocusProvider>
       <App />
     </FocusProvider>
-  ),
-  { fps: 10 },
-);
+  ), { fps: 10 }, );

@@ -7,39 +7,14 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, FocusProvider, Text, TextInput, renderToTerminalReactive } from '@zen/tui';
+import { Box, FocusProvider, Text, TextInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 // Sample suggestions for different categories
 const CITIES = [
-  'Hong Kong',
-  'Tokyo',
-  'Singapore',
-  'London',
-  'New York',
-  'Paris',
-  'Berlin',
-  'Sydney',
-  'Toronto',
-  'Seoul',
-  'Shanghai',
-  'Beijing',
-  'Bangkok',
-  'Dubai',
-  'Mumbai',
-];
+  'Hong Kong', 'Tokyo', 'Singapore', 'London', 'New York', 'Paris', 'Berlin', 'Sydney', 'Toronto', 'Seoul', 'Shanghai', 'Beijing', 'Bangkok', 'Dubai', 'Mumbai', ];
 
 const COMMANDS = [
-  'help',
-  'list',
-  'create',
-  'delete',
-  'update',
-  'search',
-  'export',
-  'import',
-  'configure',
-  'status',
-];
+  'help', 'list', 'create', 'delete', 'update', 'search', 'export', 'import', 'configure', 'status', ];
 
 function AutocompleteDemo() {
   const cityValue = signal('');
@@ -53,14 +28,7 @@ function AutocompleteDemo() {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const allSuggestions = [
-      'async-option-1',
-      'async-option-2',
-      'async-option-3',
-      'async-result-a',
-      'async-result-b',
-      'async-data-x',
-      'async-data-y',
-    ];
+      'async-option-1', 'async-option-2', 'async-option-3', 'async-result-a', 'async-result-b', 'async-data-x', 'async-data-y', ];
 
     return allSuggestions.filter((s) => s.toLowerCase().includes(value.toLowerCase()));
   };
@@ -144,6 +112,8 @@ function AutocompleteDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <AutocompleteDemo />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <AutocompleteDemo />
+  </FullscreenLayout>
+));

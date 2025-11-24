@@ -8,68 +8,21 @@
 
 import { signal } from '@zen/signal';
 import {
-  Box,
-  FocusProvider,
-  Text,
-  type TreeNode,
-  TreeView,
-  renderToTerminalReactive,
-} from '@zen/tui';
+  Box, FocusProvider, Text, type TreeNode, TreeView, renderApp, FullscreenLayout} from '@zen/tui';
 
 // Sample file tree structure
 const fileTree: TreeNode[] = [
   {
-    id: 'src',
-    label: 'src',
-    icon: '📁',
-    defaultExpanded: true,
-    children: [
+    id: 'src', label: 'src', icon: '📁', defaultExpanded: true, children: [
       {
-        id: 'components',
-        label: 'components',
-        icon: '📁',
-        defaultExpanded: true,
-        children: [
-          { id: 'box', label: 'Box.tsx', icon: '📄' },
-          { id: 'text', label: 'Text.tsx', icon: '📄' },
-          { id: 'button', label: 'Button.tsx', icon: '📄' },
-          { id: 'treeview', label: 'TreeView.tsx', icon: '📄' },
-        ],
-      },
-      {
-        id: 'hooks',
-        label: 'hooks',
-        icon: '📁',
-        children: [
-          { id: 'useFocus', label: 'useFocus.ts', icon: '📄' },
-          { id: 'useInput', label: 'useInput.ts', icon: '📄' },
-          { id: 'useMouse', label: 'useMouse.ts', icon: '📄' },
-        ],
-      },
-      { id: 'index', label: 'index.ts', icon: '📄' },
-      { id: 'types', label: 'types.ts', icon: '📄' },
-    ],
-  },
-  {
-    id: 'tests',
-    label: 'tests',
-    icon: '📁',
-    children: [
-      { id: 'test1', label: 'Box.test.tsx', icon: '🧪' },
-      { id: 'test2', label: 'Text.test.tsx', icon: '🧪' },
-    ],
-  },
-  {
-    id: 'config',
-    label: 'config',
-    icon: '⚙️',
-    children: [
-      { id: 'tsconfig', label: 'tsconfig.json', icon: '📋' },
-      { id: 'package', label: 'package.json', icon: '📋' },
-    ],
-  },
-  { id: 'readme', label: 'README.md', icon: '📝' },
-];
+        id: 'components', label: 'components', icon: '📁', defaultExpanded: true, children: [
+          { id: 'box', label: 'Box.tsx', icon: '📄' }, { id: 'text', label: 'Text.tsx', icon: '📄' }, { id: 'button', label: 'Button.tsx', icon: '📄' }, { id: 'treeview', label: 'TreeView.tsx', icon: '📄' }, ]}, {
+        id: 'hooks', label: 'hooks', icon: '📁', children: [
+          { id: 'useFocus', label: 'useFocus.ts', icon: '📄' }, { id: 'useInput', label: 'useInput.ts', icon: '📄' }, { id: 'useMouse', label: 'useMouse.ts', icon: '📄' }, ]}, { id: 'index', label: 'index.ts', icon: '📄' }, { id: 'types', label: 'types.ts', icon: '📄' }, ]}, {
+    id: 'tests', label: 'tests', icon: '📁', children: [
+      { id: 'test1', label: 'Box.test.tsx', icon: '🧪' }, { id: 'test2', label: 'Text.test.tsx', icon: '🧪' }, ]}, {
+    id: 'config', label: 'config', icon: '⚙️', children: [
+      { id: 'tsconfig', label: 'tsconfig.json', icon: '📋' }, { id: 'package', label: 'package.json', icon: '📋' }, ]}, { id: 'readme', label: 'README.md', icon: '📝' }, ];
 
 function TreeViewDemo() {
   const selectedNode = signal<string>('(none)');
@@ -115,6 +68,8 @@ function TreeViewDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <TreeViewDemo />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <TreeViewDemo />
+  </FullscreenLayout>
+));

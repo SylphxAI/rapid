@@ -4,7 +4,7 @@
  */
 
 import { effect, signal } from '@zen/signal';
-import { Box, FocusProvider, Text, TextInput, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Box, FocusProvider, Text, TextInput, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function TestApp() {
   const inputValue = signal('');
@@ -45,12 +45,7 @@ function TestApp() {
 
         <Box
           style={{
-            borderStyle: 'single',
-            borderColor: 'gray',
-            padding: 1,
-            width: 50,
-            marginTop: 1,
-          }}
+            borderStyle: 'single', borderColor: 'gray', padding: 1, width: 50, marginTop: 1}}
         >
           <Text>{() => displayText.value}</Text>
         </Box>
@@ -71,4 +66,8 @@ function TestApp() {
     </FocusProvider>
   );
 }
-await renderToTerminalReactive(() => <TestApp />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <TestApp />
+  </FullscreenLayout>
+));

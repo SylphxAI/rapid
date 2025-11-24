@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Box, ScrollBox, Scrollbar, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, ScrollBox, Scrollbar, Text, renderApp} from '@zen/tui';
 
 function ScrollbarDemo() {
   // Create scrollable content (30 lines)
@@ -52,7 +52,5 @@ function ScrollbarDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <ScrollbarDemo />, {
-  fullscreen: false,
-  mouse: true,
-});
+await renderApp(() => <ScrollbarDemo />, {
+  fullscreen: false, mouse: true});

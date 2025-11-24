@@ -1,5 +1,5 @@
 import { signal } from '@zen/signal';
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 // Simpler progress bar without border
@@ -23,7 +23,7 @@ const ProgressBar = () => {
 };
 
 // Render
-await renderToTerminalReactive(() => <ProgressBar />);
+await renderApp(() => <ProgressBar />);
 
 // Update progress from 0 to 100
 const interval = setInterval(() => {

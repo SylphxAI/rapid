@@ -6,7 +6,7 @@
  * Run with: bun run src/test-markdown.tsx
  */
 
-import { Box, Markdown, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, Markdown, Text, renderApp, FullscreenLayout} from '@zen/tui';
 
 const sampleMarkdown = `# Welcome to Zen TUI
 
@@ -65,6 +65,8 @@ function MarkdownDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <MarkdownDemo />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <MarkdownDemo />
+  </FullscreenLayout>
+));

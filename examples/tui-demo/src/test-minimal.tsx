@@ -3,7 +3,7 @@
  * Minimal TUI Test
  */
 
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 function App() {
@@ -14,4 +14,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => App(), { fps: 10 });
+await renderApp(() => App(), { fps: 10 });

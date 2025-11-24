@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Static, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Static, useInput, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 interface LogItem {
@@ -59,25 +59,17 @@ const ConsoleTest = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => <ConsoleTest />);
+const cleanup = await renderApp(() => <ConsoleTest />);
 
 // 每秒生成一個 random Static log item
 const interval = setInterval(() => {
   logId++;
   const messages = [
-    'Processing task...',
-    'Database query completed',
-    'Cache updated',
-    'Request received',
-    'Response sent',
-    'Background job running',
-  ];
+    'Processing task...', 'Database query completed', 'Cache updated', 'Request received', 'Response sent', 'Background job running', ];
   const randomMsg = messages[Math.floor(Math.random() * messages.length)];
 
   staticLogs.value = [
-    ...staticLogs.value,
-    { id: logId, message: `[${new Date().toLocaleTimeString()}] ${randomMsg}` },
-  ];
+    ...staticLogs.value, { id: logId, message: `[${new Date().toLocaleTimeString()}] ${randomMsg}` }, ];
 }, 1000);
 
 // Cleanup

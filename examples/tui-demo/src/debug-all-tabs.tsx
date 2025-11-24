@@ -5,7 +5,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, FocusProvider, Tab, Tabs, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, FocusProvider, Tab, Tabs, Text, renderApp} from '@zen/tui';
 
 const activeTab = signal(0);
 
@@ -70,11 +70,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(
-  () => (
+await renderApp(() => (
     <FocusProvider>
       <App />
     </FocusProvider>
-  ),
-  { fps: 10 },
-);
+  ), { fps: 10 }, );

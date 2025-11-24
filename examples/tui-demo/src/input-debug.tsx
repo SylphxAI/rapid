@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Static, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Static, useInput, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 interface LogItem {
@@ -9,8 +9,7 @@ interface LogItem {
 }
 
 const keyLogs = signal<LogItem[]>([
-  { id: 0, message: '[Started] Press any key to test keyboard input' },
-]);
+  { id: 0, message: '[Started] Press any key to test keyboard input' }, ]);
 let logId = 1;
 
 const InputDebug = () => {
@@ -19,9 +18,7 @@ const InputDebug = () => {
     logId++;
     const keyInfo = `Key: "${input}" (code: ${input.charCodeAt(0)}) - Tab:${key.tab} Enter:${key.return} Backspace:${key.backspace}`;
     keyLogs.value = [
-      ...keyLogs.value,
-      { id: logId, message: `[${new Date().toLocaleTimeString()}] ${keyInfo}` },
-    ];
+      ...keyLogs.value, { id: logId, message: `[${new Date().toLocaleTimeString()}] ${keyInfo}` }, ];
   });
 
   return (
@@ -58,7 +55,7 @@ const InputDebug = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => <InputDebug />);
+const cleanup = await renderApp(() => <InputDebug />);
 
 process.on('SIGINT', () => {
   cleanup();

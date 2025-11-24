@@ -7,7 +7,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, Text, renderToTerminalPersistent } from '@zen/tui';
+import { Box, Text, renderApp} from '@zen/tui';
 
 const borderType = signal(0);
 const borderStyles = ['single', 'double', 'round', 'bold'];
@@ -25,42 +25,16 @@ setInterval(() => {
 function App() {
   return Box({
     style: {
-      flexDirection: 'column' as const,
-      padding: 1,
-    },
-    children: [
+      flexDirection: 'column' as const, padding: 1}, children: [
       Text({
-        children: 'Persistent Renderer Border Test',
-        bold: true,
-        color: 'white',
-      }),
-      Box({
-        borderStyle: () => borderStyles[borderType.value],
-        borderColor: () => borderColors[borderType.value],
-        style: {
-          marginTop: 1,
-          padding: 1,
-        },
-        children: [
+        children: 'Persistent Renderer Border Test', bold: true, color: 'white'}), Box({
+        borderStyle: () => borderStyles[borderType.value], borderColor: () => borderColors[borderType.value], style: {
+          marginTop: 1, padding: 1}, children: [
           Text({
-            children: () => `Border Style: ${borderStyles[borderType.value]}`,
-            color: () => borderColors[borderType.value],
-          }),
-          Text({
-            children: () => `Color: ${borderColors[borderType.value]}`,
-            dim: true,
-          }),
-        ],
-      }),
-      Text({
-        children: 'Cycling through border styles...',
-        dim: true,
-        style: { marginTop: 1 },
-      }),
-    ],
-  });
+            children: () => `Border Style: ${borderStyles[borderType.value]}`, color: () => borderColors[borderType.value]}), Text({
+            children: () => `Color: ${borderColors[borderType.value]}`, dim: true}), ]}), Text({
+        children: 'Cycling through border styles...', dim: true, style: { marginTop: 1 }}), ]});
 }
 
-await renderToTerminalPersistent(() => App(), {
-  fps: 10,
-});
+await renderApp(() => App(), {
+  fps: 10});

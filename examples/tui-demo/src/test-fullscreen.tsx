@@ -6,7 +6,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, Text, renderApp, FullscreenLayout} from '@zen/tui';
 
 function FullScreenApp() {
   const counter = signal(0);
@@ -32,4 +32,8 @@ function FullScreenApp() {
   );
 }
 
-await renderToTerminalReactive(() => FullScreenApp(), { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <FullScreenApp() />
+  </FullscreenLayout>
+));

@@ -4,7 +4,7 @@
  * Testing if right border is off by 1 column with emoji
  */
 
-import { Box, Text, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   useInput((_input, key) => {
@@ -26,12 +26,7 @@ function App() {
       {/* Test 2: With flex:1, no emoji */}
       <Box
         style={{
-          borderStyle: 'single',
-          width: 40,
-          marginBottom: 1,
-          height: 3,
-          flexDirection: 'column',
-        }}
+          borderStyle: 'single', width: 40, marginBottom: 1, height: 3, flexDirection: 'column'}}
       >
         <Box style={{ padding: 1, flex: 1 }}>
           <Text>Line 2: No emoji + flex:1</Text>
@@ -41,12 +36,7 @@ function App() {
       {/* Test 3: With flex:1, WITH emoji */}
       <Box
         style={{
-          borderStyle: 'single',
-          width: 40,
-          marginBottom: 1,
-          height: 3,
-          flexDirection: 'column',
-        }}
+          borderStyle: 'single', width: 40, marginBottom: 1, height: 3, flexDirection: 'column'}}
       >
         <Box style={{ padding: 1, flex: 1 }}>
           <Text>Line 3: Emoji 🖥️ + flex:1</Text>
@@ -56,4 +46,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

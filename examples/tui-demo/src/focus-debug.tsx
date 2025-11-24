@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Static, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Static, useInput, renderApp} from '@zen/tui';
 import { Box, FocusProvider, Text, TextInput } from '@zen/tui';
 
 interface LogItem {
@@ -20,9 +20,7 @@ const FocusDebug = () => {
     logId++;
     const keyInfo = `Key: "${input}" - Input focused: ${inputFocused.value}`;
     debugLogs.value = [
-      ...debugLogs.value,
-      { id: logId, message: `[${new Date().toLocaleTimeString()}] ${keyInfo}` },
-    ];
+      ...debugLogs.value, { id: logId, message: `[${new Date().toLocaleTimeString()}] ${keyInfo}` }, ];
   });
 
   return (
@@ -67,12 +65,8 @@ const FocusDebug = () => {
                 username.value = value;
                 logId++;
                 debugLogs.value = [
-                  ...debugLogs.value,
-                  {
-                    id: logId,
-                    message: `[${new Date().toLocaleTimeString()}] Input changed: "${value}"`,
-                  },
-                ];
+                  ...debugLogs.value, {
+                    id: logId, message: `[${new Date().toLocaleTimeString()}] Input changed: "${value}"`}, ];
               }}
             />
           </Box>
@@ -92,7 +86,7 @@ const FocusDebug = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => (
+const cleanup = await renderApp(() => (
   <FocusProvider>
     <FocusDebug />
   </FocusProvider>

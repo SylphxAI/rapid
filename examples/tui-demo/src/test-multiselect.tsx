@@ -4,28 +4,13 @@
  */
 
 import { signal } from '@zen/signal';
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import {
-  Box,
-  Button,
-  FocusProvider,
-  MultiSelect,
-  type MultiSelectOption,
-  Text,
-  useFocusManager,
-} from '@zen/tui';
+  Box, Button, FocusProvider, MultiSelect, type MultiSelectOption, Text, useFocusManager} from '@zen/tui';
 
 // Sample items
 const interests: MultiSelectOption[] = [
-  { label: 'Programming', value: 'programming' },
-  { label: 'Design', value: 'design' },
-  { label: 'Writing', value: 'writing' },
-  { label: 'Music', value: 'music' },
-  { label: 'Gaming', value: 'gaming' },
-  { label: 'Reading', value: 'reading' },
-  { label: 'Sports', value: 'sports' },
-  { label: 'Cooking', value: 'cooking' },
-];
+  { label: 'Programming', value: 'programming' }, { label: 'Design', value: 'design' }, { label: 'Writing', value: 'writing' }, { label: 'Music', value: 'music' }, { label: 'Gaming', value: 'gaming' }, { label: 'Reading', value: 'reading' }, { label: 'Sports', value: 'sports' }, { label: 'Cooking', value: 'cooking' }, ];
 
 // Selected interests
 const selected = signal<string[]>([]);
@@ -118,11 +103,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(
-  () => (
+await renderApp(() => (
     <FocusProvider>
       <App />
     </FocusProvider>
-  ),
-  { fps: 10 },
-);
+  ), { fps: 10 }, );

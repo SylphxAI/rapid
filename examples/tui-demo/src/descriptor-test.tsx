@@ -1,5 +1,5 @@
 /** @jsxImportSource @zen/tui */
-import { FocusProvider, renderToTerminalReactive, useFocusManager } from '@zen/tui';
+import { FocusProvider, useFocusManager, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const TestChild = () => {
@@ -30,7 +30,7 @@ const App = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => <App />);
+const cleanup = await renderApp(() => <App />);
 
 // Auto-exit after 1 second
 setTimeout(() => {

@@ -4,7 +4,7 @@
  */
 
 import { effect, signal } from '@zen/signal';
-import { Box, FocusProvider, Text, TextInput, renderToTerminalReactive } from '@zen/tui';
+import { Box, FocusProvider, Text, TextInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function TestApp() {
   const inputValue = signal('');
@@ -26,13 +26,7 @@ function TestApp() {
 
         <Box
           style={{
-            flexDirection: 'column',
-            borderStyle: 'single',
-            borderColor: 'cyan',
-            padding: 1,
-            height: 10,
-            marginTop: 1,
-          }}
+            flexDirection: 'column', borderStyle: 'single', borderColor: 'cyan', padding: 1, height: 10, marginTop: 1}}
         >
           {/* Render messages using inline reactive function */}
           {() => messages.value.map((msg, i) => <Text key={i}>{msg}</Text>)}
@@ -56,4 +50,8 @@ function TestApp() {
     </FocusProvider>
   );
 }
-await renderToTerminalReactive(() => <TestApp />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <TestApp />
+  </FullscreenLayout>
+));

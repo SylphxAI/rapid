@@ -3,7 +3,7 @@
  * Test window with same structure as main.tsx - to verify close button fix
  */
 
-import { Box, Text, renderToTerminalReactive, useInput, useTerminalSize } from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   const { width, height } = useTerminalSize();
@@ -20,25 +20,12 @@ function App() {
         {/* Window - same structure as main.tsx */}
         <Box
           style={{
-            position: 'absolute',
-            left: 15,
-            top: 3,
-            width: 45,
-            height: 12,
-            flexDirection: 'column',
-            borderStyle: 'single',
-            borderColor: 'cyan',
-          }}
+            position: 'absolute', left: 15, top: 3, width: 45, height: 12, flexDirection: 'column', borderStyle: 'single', borderColor: 'cyan'}}
         >
           {/* Title bar - WITH flexDirection: 'row' */}
           <Box
             style={{
-              backgroundColor: 'blue',
-              paddingLeft: 1,
-              paddingRight: 1,
-              justifyContent: 'space-between',
-              flexDirection: 'row',
-            }}
+              backgroundColor: 'blue', paddingLeft: 1, paddingRight: 1, justifyContent: 'space-between', flexDirection: 'row'}}
           >
             <Text style={{ color: 'white', bold: true }}>🖥️ Terminal</Text>
             <Box style={{ flexDirection: 'row', gap: 1 }}>
@@ -61,4 +48,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

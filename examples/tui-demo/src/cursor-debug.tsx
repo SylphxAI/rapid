@@ -1,5 +1,5 @@
 import { signal } from '@zen/signal';
-import { Box, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Box, useInput, renderApp} from '@zen/tui';
 
 const counter = signal(0);
 
@@ -24,4 +24,4 @@ const DebugTest = () => {
   );
 };
 
-await renderToTerminalReactive(() => <DebugTest />);
+await renderApp(() => <DebugTest />);

@@ -4,7 +4,7 @@
  * Test Link Component
  */
 
-import { Box, Divider, Link, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, Divider, Link, Text, renderApp} from '@zen/tui';
 
 function App() {
   return (
@@ -51,4 +51,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fps: 10 });
+await renderApp(() => <App />, { fps: 10 });

@@ -1,7 +1,7 @@
 import { Show } from '@zen/runtime';
 import { signal } from '@zen/runtime';
 /** @jsxImportSource @zen/tui */
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const _step = 1;
@@ -38,7 +38,7 @@ const App = () => {
 };
 
 log('Starting render...');
-const cleanup = await renderToTerminalReactive(() => <App />);
+const cleanup = await renderApp(() => <App />);
 
 setTimeout(() => {
   log('Cleaning up...');

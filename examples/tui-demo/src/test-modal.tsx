@@ -8,14 +8,7 @@
 
 import { signal } from '@zen/signal';
 import {
-  AlertDialog,
-  Box,
-  ConfirmDialog,
-  Modal,
-  Text,
-  renderToTerminalReactive,
-  useInput,
-} from '@zen/tui';
+  AlertDialog, Box, ConfirmDialog, Modal, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function ModalTest() {
   const showModal = signal(false);
@@ -99,6 +92,8 @@ function ModalTest() {
   );
 }
 
-await renderToTerminalReactive(() => <ModalTest />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <ModalTest />
+  </FullscreenLayout>
+));

@@ -8,39 +8,15 @@
 
 import { computed, signal } from '@zen/signal';
 import {
-  Badge,
-  Box,
-  Divider,
-  FocusProvider,
-  Markdown,
-  Spinner,
-  Text,
-  TextInput,
-  ToastContainer,
-  type TreeNode,
-  TreeView,
-  renderToTerminalReactive,
-  toast,
-  useInput,
-  useTerminalSize,
-} from '@zen/tui';
+  Badge, Box, Divider, FocusProvider, Markdown, Spinner, Text, TextInput, ToastContainer, type TreeNode, TreeView, toast, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
 
 // Sample data
 const COMMANDS = ['/help', '/clear', '/files', '/model'];
 
 const FILE_TREE: TreeNode[] = [
   {
-    id: 'src',
-    label: 'src',
-    icon: '📁',
-    defaultExpanded: true,
-    children: [
-      { id: 'app', label: 'App.tsx', icon: '⚛️' },
-      { id: 'main', label: 'main.ts', icon: '📄' },
-    ],
-  },
-  { id: 'pkg', label: 'package.json', icon: '📋' },
-];
+    id: 'src', label: 'src', icon: '📁', defaultExpanded: true, children: [
+      { id: 'app', label: 'App.tsx', icon: '⚛️' }, { id: 'main', label: 'main.ts', icon: '📄' }, ]}, { id: 'pkg', label: 'package.json', icon: '📋' }, ];
 
 function ChatbotDemo() {
   const { width, height } = useTerminalSize();
@@ -174,12 +150,7 @@ This demo showcases **all features**:
             showFiles.value ? (
               <Box
                 style={{
-                  flexDirection: 'column',
-                  width: sidebarWidth,
-                  borderStyle: 'single',
-                  borderColor: 'gray',
-                  padding: 1,
-                }}
+                  flexDirection: 'column', width: sidebarWidth, borderStyle: 'single', borderColor: 'gray', padding: 1}}
               >
                 <Text style={{ bold: true, color: 'yellow' }}>📁 Files</Text>
                 <Divider />
@@ -192,12 +163,7 @@ This demo showcases **all features**:
           <Box style={{ flexDirection: 'column', width: getChatWidth }}>
             <Box
               style={{
-                flexDirection: 'column',
-                borderStyle: 'round',
-                borderColor: 'cyan',
-                padding: 1,
-                height: height - 10,
-              }}
+                flexDirection: 'column', borderStyle: 'round', borderColor: 'cyan', padding: 1, height: height - 10}}
             >
               <Text style={{ bold: true, color: 'cyan' }}>🤖 Assistant</Text>
               <Box style={{ paddingLeft: 1 }}>
@@ -242,4 +208,8 @@ This demo showcases **all features**:
   );
 }
 
-await renderToTerminalReactive(() => <ChatbotDemo />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <ChatbotDemo />
+  </FullscreenLayout>
+));

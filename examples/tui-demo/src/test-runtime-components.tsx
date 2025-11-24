@@ -4,7 +4,7 @@
  */
 
 import { For, Show } from '@zen/runtime';
-import { renderToTerminalReactive, signal } from '@zen/tui';
+import { signal, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const items = signal(['Apple', 'Banana', 'Cherry']);
@@ -43,4 +43,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => App(), { fps: 10 });
+await renderApp(() => App(), { fps: 10 });

@@ -8,13 +8,7 @@
 
 import { signal } from '@zen/signal';
 import {
-  Box,
-  StatusBarMode,
-  StatusBarShortcut,
-  Text,
-  renderToTerminalReactive,
-  useInput,
-} from '@zen/tui';
+  Box, StatusBarMode, StatusBarShortcut, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 type Mode = 'NORMAL' | 'INSERT' | 'VISUAL' | 'COMMAND';
 
@@ -93,6 +87,8 @@ function StatusBarDemo() {
   );
 }
 
-await renderToTerminalReactive(() => <StatusBarDemo />, {
-  fullscreen: true,
-});
+await renderApp(() => (
+  <FullscreenLayout>
+    <StatusBarDemo />
+  </FullscreenLayout>
+));

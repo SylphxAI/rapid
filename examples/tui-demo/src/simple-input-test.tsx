@@ -1,5 +1,5 @@
 import { signal } from '@zen/signal';
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import { Box, FocusProvider, Text, TextInput } from '@zen/tui';
 
 const name = signal('');
@@ -28,7 +28,7 @@ const SimpleInputTest = () => {
   );
 };
 
-await renderToTerminalReactive(() => (
+await renderApp(() => (
   <FocusProvider>
     <SimpleInputTest />
   </FocusProvider>

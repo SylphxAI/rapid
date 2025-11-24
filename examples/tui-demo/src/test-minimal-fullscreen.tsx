@@ -3,7 +3,7 @@
  * Minimal TUI Test - Fullscreen
  */
 
-import { renderToTerminalReactive } from '@zen/tui';
+import { renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 function App() {
@@ -14,4 +14,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => App(), { fps: 10, fullscreen: true });
+await renderApp(() => App(), { fps: 10, fullscreen: true });

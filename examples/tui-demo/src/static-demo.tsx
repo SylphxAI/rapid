@@ -7,15 +7,11 @@
  * - Spacer for flexible layout (push content to bottom)
  */
 
-import { Box, Newline, Spacer, Static, Text, renderToTerminalReactive, signal } from '@zen/tui';
+import { Box, Newline, Spacer, Static, Text, signal, renderApp} from '@zen/tui';
 
 // Static log entries (non-reactive)
 const logEntries = [
-  { time: '10:00:00', level: 'INFO', message: 'Server started on port 3000' },
-  { time: '10:00:01', level: 'INFO', message: 'Connected to database' },
-  { time: '10:00:02', level: 'SUCCESS', message: 'All services initialized' },
-  { time: '10:00:03', level: 'INFO', message: 'Ready to accept connections' },
-];
+  { time: '10:00:00', level: 'INFO', message: 'Server started on port 3000' }, { time: '10:00:01', level: 'INFO', message: 'Connected to database' }, { time: '10:00:02', level: 'SUCCESS', message: 'All services initialized' }, { time: '10:00:03', level: 'INFO', message: 'Ready to accept connections' }, ];
 
 // Recent activity (reactive)
 const recentActivity = signal('Idle');

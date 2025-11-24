@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Static, renderToTerminalReactive } from '@zen/tui';
+import { Static, renderApp} from '@zen/tui';
 import { Box, Button, FocusProvider, Text, TextInput } from '@zen/tui';
 
 interface LogItem {
@@ -21,12 +21,8 @@ function handleSubmit() {
   if (username.value || message.value) {
     logId++;
     staticLogs.value = [
-      ...staticLogs.value,
-      {
-        id: logId,
-        message: `[${new Date().toLocaleTimeString()}] Submitted: ${username.value} - "${message.value}"`,
-      },
-    ];
+      ...staticLogs.value, {
+        id: logId, message: `[${new Date().toLocaleTimeString()}] Submitted: ${username.value} - "${message.value}"`}, ];
 
     // Clear form
     username.value = '';
@@ -108,7 +104,7 @@ const InputsStaticTest = () => {
 };
 
 // Render with FocusProvider for Tab navigation
-const cleanup = await renderToTerminalReactive(() => (
+const cleanup = await renderApp(() => (
   <FocusProvider>
     <InputsStaticTest />
   </FocusProvider>

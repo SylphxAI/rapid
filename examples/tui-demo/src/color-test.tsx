@@ -1,4 +1,4 @@
-import { Box, Text, renderToTerminal } from '@zen/tui';
+import { Box, Text, renderApp} from '@zen/tui';
 
 const Demo = () => (
   <Box style={{ padding: 1 }}>

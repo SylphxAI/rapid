@@ -1,6 +1,6 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { Static, renderToTerminalReactive } from '@zen/tui';
+import { Static, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 interface LogItem {
@@ -39,7 +39,7 @@ const ConsoleTest = () => {
   );
 };
 
-const cleanup = await renderToTerminalReactive(() => <ConsoleTest />);
+const cleanup = await renderApp(() => <ConsoleTest />);
 
 // Test: Add one static log and one console.log
 setTimeout(() => {

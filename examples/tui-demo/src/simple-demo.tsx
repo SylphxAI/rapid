@@ -3,7 +3,7 @@
  * 測試基本渲染，唔用顏色
  */
 
-import { renderToTerminalReactive, signal } from '@zen/tui';
+import { signal, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const count = signal(0);
@@ -17,11 +17,7 @@ function App() {
   return (
     <Box
       style={{
-        width: 50,
-        height: 10,
-        padding: 1,
-        borderStyle: 'single',
-      }}
+        width: 50, height: 10, padding: 1, borderStyle: 'single'}}
     >
       <Text>Zen TUI Demo</Text>
       <Text>Counter: {count}</Text>
@@ -30,4 +26,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fps: 10 });
+await renderApp(() => <App />, { fps: 10 });

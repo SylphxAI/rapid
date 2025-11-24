@@ -3,7 +3,7 @@
  * Test Signal Rendering
  */
 
-import { renderToTerminalReactive, signal } from '@zen/tui';
+import { signal, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const count = signal(0);
@@ -21,4 +21,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => App(), { fps: 10 });
+await renderApp(() => App(), { fps: 10 });

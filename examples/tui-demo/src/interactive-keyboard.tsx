@@ -5,16 +5,7 @@
  */
 
 import {
-  Box,
-  Button,
-  FocusProvider,
-  Text,
-  handleButton,
-  renderToTerminalReactive,
-  signal,
-  useFocusManager,
-  useInput,
-} from '@zen/tui';
+  Box, Button, FocusProvider, Text, handleButton, signal, useFocusManager, useInput, renderApp} from '@zen/tui';
 
 // State
 const count = signal(0);
@@ -55,13 +46,7 @@ function AppContent() {
   return (
     <Box
       style={{
-        flexDirection: 'column',
-        padding: 2,
-        borderStyle: 'double',
-        borderColor: 'cyan',
-        width: 60,
-        gap: 1,
-      }}
+        flexDirection: 'column', padding: 2, borderStyle: 'double', borderColor: 'cyan', width: 60, gap: 1}}
     >
       {/* Header */}
       <Text color="cyan" bold={true}>
@@ -74,10 +59,7 @@ function AppContent() {
       {/* Counter Display */}
       <Box
         style={{
-          borderStyle: 'single',
-          padding: 1,
-          justifyContent: 'center',
-        }}
+          borderStyle: 'single', padding: 1, justifyContent: 'center'}}
       >
         <Text color="yellow" bold={true}>
           Count: {() => count.value}

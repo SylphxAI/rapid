@@ -7,7 +7,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, Text, renderToTerminalPersistent } from '@zen/tui';
+import { Box, Text, renderApp} from '@zen/tui';
 
 const count = signal(0);
 
@@ -22,28 +22,13 @@ setInterval(() => {
 function App() {
   return Box({
     style: {
-      flexDirection: 'column' as const,
-      padding: 1,
-    },
-    children: [
+      flexDirection: 'column' as const, padding: 1}, children: [
       Text({
-        children: 'Persistent Renderer Auto Test',
-        bold: true,
-        color: 'cyan',
-      }),
-      Text({
+        children: 'Persistent Renderer Auto Test', bold: true, color: 'cyan'}), Text({
         children: () => `Count: ${count.value}`, // Reactive text
-        color: () => (count.value % 2 === 0 ? 'green' : 'magenta'),
-      }),
-      Text({
-        children: 'Auto-incrementing every 500ms...',
-        dim: true,
-        style: { marginTop: 1 },
-      }),
-    ],
-  });
+        color: () => (count.value % 2 === 0 ? 'green' : 'magenta')}), Text({
+        children: 'Auto-incrementing every 500ms...', dim: true, style: { marginTop: 1 }}), ]});
 }
 
-await renderToTerminalPersistent(() => App(), {
-  fps: 10,
-});
+await renderApp(() => App(), {
+  fps: 10});

@@ -3,7 +3,7 @@
  * Test Reactive Function Rendering (like questionnaire)
  */
 
-import { renderToTerminalReactive, signal } from '@zen/tui';
+import { signal, renderApp} from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 const showA = signal(true);
@@ -26,4 +26,4 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => App(), { fps: 10 });
+await renderApp(() => App(), { fps: 10 });

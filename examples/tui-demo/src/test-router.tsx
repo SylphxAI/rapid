@@ -7,14 +7,7 @@
 
 import { signal } from '@zen/signal';
 import {
-  $router,
-  Box,
-  FocusProvider,
-  Router,
-  RouterLink,
-  Text,
-  renderToTerminalReactive,
-} from '@zen/tui';
+  $router, Box, FocusProvider, Router, RouterLink, Text, renderApp} from '@zen/tui';
 
 // Home Page Component
 function HomePage() {
@@ -125,11 +118,7 @@ function App() {
     <FocusProvider>
       <Box
         style={{
-          flex: 1,
-          borderStyle: 'round',
-          padding: 2,
-          flexDirection: 'column',
-        }}
+          flex: 1, borderStyle: 'round', padding: 2, flexDirection: 'column'}}
       >
         <Text bold color="cyan" style={{ marginBottom: 1 }}>
           🚦 TUI Router Demo
@@ -137,11 +126,7 @@ function App() {
 
         <Router
           routes={[
-            { path: '/', component: () => <HomePage /> },
-            { path: '/about', component: () => <AboutPage /> },
-            { path: '/users/:id', component: () => <UserProfilePage /> },
-            { path: '/settings', component: () => <SettingsPage /> },
-          ]}
+            { path: '/', component: () => <HomePage /> }, { path: '/about', component: () => <AboutPage /> }, { path: '/users/:id', component: () => <UserProfilePage /> }, { path: '/settings', component: () => <SettingsPage /> }, ]}
           fallback={() => <NotFoundPage />}
         />
 
@@ -154,13 +139,9 @@ function App() {
 }
 
 // Render the app
-await renderToTerminalReactive(() => <App />, {
-  fullscreen: true,
-  mouse: true,
-  fps: 10,
-  onKeyPress: (key) => {
+await renderApp(() => <App />, {
+  fullscreen: true, mouse: true, fps: 10, onKeyPress: (key) => {
     if (key === 'q' || key === '\x03') {
       process.exit(0);
     }
-  },
-});
+  }});

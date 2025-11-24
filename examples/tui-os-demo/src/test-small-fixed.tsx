@@ -1,5 +1,5 @@
 /** @jsxImportSource @zen/tui */
-import { Box, Text, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   useInput((_input, key) => {
@@ -14,22 +14,12 @@ function App() {
       {/* Small window */}
       <Box
         style={{
-          width: 40,
-          height: 8,
-          flexDirection: 'column',
-          borderStyle: 'single',
-          borderColor: 'cyan',
-        }}
+          width: 40, height: 8, flexDirection: 'column', borderStyle: 'single', borderColor: 'cyan'}}
       >
         {/* Title bar */}
         <Box
           style={{
-            backgroundColor: 'blue',
-            paddingLeft: 1,
-            paddingRight: 1,
-            justifyContent: 'space-between',
-            flexDirection: 'row',
-          }}
+            backgroundColor: 'blue', paddingLeft: 1, paddingRight: 1, justifyContent: 'space-between', flexDirection: 'row'}}
         >
           <Text style={{ color: 'white', bold: true }}>Terminal</Text>
           <Text style={{ color: 'red' }}>X</Text>
@@ -48,4 +38,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

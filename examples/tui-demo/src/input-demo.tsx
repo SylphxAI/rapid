@@ -10,21 +10,7 @@
  */
 
 import {
-  Box,
-  Checkbox,
-  FocusProvider,
-  Newline,
-  SelectInput,
-  type SelectOption,
-  Text,
-  TextInput,
-  handleCheckbox,
-  handleSelectInput,
-  handleTextInput,
-  renderToTerminalReactive,
-  signal,
-  useFocusManager,
-} from '@zen/tui';
+  Box, Checkbox, FocusProvider, Newline, SelectInput, type SelectOption, Text, TextInput, handleCheckbox, handleSelectInput, handleTextInput, signal, useFocusManager, renderApp} from '@zen/tui';
 
 // Form state
 const name = signal('');
@@ -41,11 +27,7 @@ const roleHighlighted = signal(0);
 
 // Select options
 const roleOptions: SelectOption<string>[] = [
-  { label: 'Developer', value: 'developer' },
-  { label: 'Designer', value: 'designer' },
-  { label: 'Product Manager', value: 'pm' },
-  { label: 'Other', value: 'other' },
-];
+  { label: 'Developer', value: 'developer' }, { label: 'Designer', value: 'designer' }, { label: 'Product Manager', value: 'pm' }, { label: 'Other', value: 'other' }, ];
 
 function Form() {
   const _focusCtx = useFocusManager();
@@ -164,12 +146,7 @@ const focusableIds = ['name', 'email', 'role', 'subscribe', 'terms'];
 
 // Keyboard event handler registry
 const inputHandlers = {
-  name: (key: string) => handleTextInput(name, nameCursor, key),
-  email: (key: string) => handleTextInput(email, emailCursor, key),
-  role: (key: string) => handleSelectInput(roleIsOpen, roleHighlighted, role, roleOptions, key),
-  subscribe: (key: string) => handleCheckbox(subscribe, key),
-  terms: (key: string) => handleCheckbox(terms, key),
-};
+  name: (key: string) => handleTextInput(name, nameCursor, key), email: (key: string) => handleTextInput(email, emailCursor, key), role: (key: string) => handleSelectInput(roleIsOpen, roleHighlighted, role, roleOptions, key), subscribe: (key: string) => handleCheckbox(subscribe, key), terms: (key: string) => handleCheckbox(terms, key)};
 
 // Render with reactive updates
 const cleanup = renderToTerminalReactive(App, {
@@ -199,9 +176,7 @@ const cleanup = renderToTerminalReactive(App, {
       cleanup();
       process.exit(0);
     }
-  },
-  fps: 30,
-});
+  }, fps: 30});
 
 // Cleanup on Ctrl+C
 process.on('SIGINT', () => {

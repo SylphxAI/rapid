@@ -3,7 +3,7 @@
  * Debug absolute positioning with ASCII art
  */
 
-import { Box, Text, renderToTerminalReactive, useInput } from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
 
 function App() {
   useInput((_input, key) => {
@@ -27,12 +27,7 @@ function App() {
       <Box style={{ position: 'relative', height: 10 }}>
         <Box
           style={{
-            position: 'absolute',
-            left: 5,
-            top: 2,
-            width: 30,
-            borderStyle: 'single',
-          }}
+            position: 'absolute', left: 5, top: 2, width: 30, borderStyle: 'single'}}
         >
           <Box style={{ flexDirection: 'column', padding: 1 }}>
             <Text style={{ color: 'cyan' }}>Absolute:</Text>
@@ -45,4 +40,8 @@ function App() {
   );
 }
 
-await renderToTerminalReactive(() => <App />, { fullscreen: true });
+await renderApp(() => (
+  <FullscreenLayout>
+    <App />
+  </FullscreenLayout>
+));

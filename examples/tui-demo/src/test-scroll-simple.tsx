@@ -4,7 +4,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, ScrollBox, Text, renderToTerminalReactive } from '@zen/tui';
+import { Box, ScrollBox, Text, renderApp} from '@zen/tui';
 
 function ScrollTest() {
   const _scrollPos = signal(0);
@@ -32,8 +32,5 @@ function ScrollTest() {
   );
 }
 
-await renderToTerminalReactive(() => ScrollTest(), {
-  fps: 10,
-  fullscreen: true,
-  mouse: true,
-});
+await renderApp(() => ScrollTest(), {
+  fps: 10, fullscreen: true, mouse: true});
