@@ -37,7 +37,7 @@ function extractActiveBackground(str: string): string {
   while ((match = ansiCodePattern.exec(str)) !== null) {
     const codes = match[1].split(';');
     for (const code of codes) {
-      const num = parseInt(code, 10);
+      const num = Number.parseInt(code, 10);
       // Background color codes: 40-49 (standard), 100-107 (bright)
       if ((num >= 40 && num <= 49) || (num >= 100 && num <= 107)) {
         lastBgCode = `\x1b[${code}m`;
@@ -211,20 +211,20 @@ export class TerminalBuffer {
         let visualPos = 0;
         let stringPos = 0;
         let inAnsiCode = false;
-        let pendingAnsi = ''; // Accumulate ANSI codes to include with next visible content
+        let beforeAfterX = ''; // Accumulate content before afterX to extract active background
 
         // Walk through existingLine by graphemes to find where visual position afterX starts
         for (const grapheme of iterateGraphemes(existingLine)) {
           // Track ANSI codes
           if (grapheme === '\x1b') {
             inAnsiCode = true;
-            pendingAnsi += grapheme;
+            beforeAfterX += grapheme;
             stringPos += grapheme.length;
             continue;
           }
 
           if (inAnsiCode) {
-            pendingAnsi += grapheme;
+            beforeAfterX += grapheme;
             stringPos += grapheme.length;
             if (grapheme === 'm') {
               inAnsiCode = false;
@@ -234,14 +234,16 @@ export class TerminalBuffer {
 
           // Check if we've reached the target visual position
           if (visualPos >= afterX) {
-            // Include pending ANSI codes with the remaining content
-            newLine += pendingAnsi + existingLine.substring(stringPos);
+            // Extract active background from content before afterX
+            const trailingBg = extractActiveBackground(beforeAfterX);
+            // Include background with the remaining content
+            newLine += trailingBg + existingLine.substring(stringPos);
             break;
           }
 
+          beforeAfterX += grapheme;
           visualPos += terminalWidth(grapheme);
           stringPos += grapheme.length;
-          pendingAnsi = ''; // Clear pending ANSI after processing a visual character
         }
       }
 
