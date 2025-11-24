@@ -254,25 +254,31 @@ export class TerminalBuffer {
             continue; // ANSI codes don't contribute to visual width
           }
 
-          // Check if we've reached the target visual position
-          if (visualPos >= afterX) {
+          // Save position before processing this grapheme (includes any preceding ANSI codes)
+          const savedStringPos = stringPosBeforeAnsi;
+
+          // Advance positions
+          beforeAfterX += grapheme;
+          const graphemeWidth = terminalWidth(grapheme);
+          visualPos += graphemeWidth;
+          stringPos += grapheme.length;
+
+          // Check if we've crossed the target visual position after advancing
+          // This ensures wide characters (like emojis) that overlap with afterX are included
+          if (visualPos > afterX) {
             // Extract active background from content before afterX
             const trailingBg = extractActiveBackground(beforeAfterX);
-            // Use stringPosBeforeAnsi to include any ANSI codes that appeared right before this position
-            // This ensures border colors are preserved
-            const remainingContent = existingLine.substring(stringPosBeforeAnsi);
+            // Use savedStringPos which points to before this grapheme (and any ANSI codes before it)
+            // This ensures border colors and wide characters are preserved correctly
+            const remainingContent = existingLine.substring(savedStringPos);
 
             // Simply include remaining content with background
             newLine += trailingBg + remainingContent;
             break;
           }
 
-          // After processing a visual grapheme, reset the ANSI position marker
-          // This should point to AFTER the current grapheme
-          beforeAfterX += grapheme;
-          visualPos += terminalWidth(grapheme);
-          stringPos += grapheme.length;
-          stringPosBeforeAnsi = stringPos; // Update AFTER advancing stringPos
+          // Update for next iteration - point to after this grapheme
+          stringPosBeforeAnsi = stringPos;
         }
       }
 
