@@ -208,6 +208,15 @@ export class TerminalBuffer {
       // This ensures text inherits the parent container's background color
       newLine += activeBackground + line;
 
+      // If activeBackground was inherited but line doesn't contain its own background reset,
+      // add reset after the line to prevent bleeding
+      // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape codes require control characters
+      const lineHasOwnBg = /\x1b\[4[0-9]m/.test(line);
+      const lineEndsWithBgReset = line.endsWith('\x1b[49m');
+      if (activeBackground && !lineHasOwnBg && !lineEndsWithBgReset) {
+        newLine += '\x1b[49m';
+      }
+
       // Add existing content after the new text (if any)
       // Need to preserve content that comes after our written text (e.g., right border)
       // Skip this if replace mode is enabled (used for clearing/filling areas)
