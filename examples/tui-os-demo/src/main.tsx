@@ -16,6 +16,7 @@ import {
   Text,
   renderToTerminalReactive,
   useInput,
+  useMouseClick,
   useMouseDrag,
   useTerminalSize,
 } from '@zen/tui';
@@ -261,22 +262,15 @@ function ZenOS() {
   const { width, height } = useTerminalSize();
 
   const icons = [
-    { key: '1', app: 'terminal', icon: '🖥️', name: 'Term' },
-    { key: '2', app: 'files', icon: '📁', name: 'Files' },
-    { key: '3', app: 'calc', icon: '🧮', name: 'Calc' },
-    { key: '4', app: 'settings', icon: '⚙️', name: 'Set' },
-    { key: '5', app: 'about', icon: 'ℹ️', name: 'About' },
+    { app: 'terminal', icon: '🖥️', name: 'Terminal' },
+    { app: 'files', icon: '📁', name: 'Files' },
+    { app: 'calc', icon: '🧮', name: 'Calc' },
+    { app: 'settings', icon: '⚙️', name: 'Settings' },
+    { app: 'about', icon: 'ℹ️', name: 'About' },
   ];
 
   // Keyboard shortcuts
-  useInput((input, key) => {
-    // App shortcuts
-    if (input === '1') openWindow('terminal');
-    if (input === '2') openWindow('files');
-    if (input === '3') openWindow('calc');
-    if (input === '4') openWindow('settings');
-    if (input === '5') openWindow('about');
-
+  useInput((_input, key) => {
     // Window management
     if (key.escape) closeWindow();
 
@@ -287,6 +281,18 @@ function ZenOS() {
       const currentIndex = sorted.findIndex((w) => w.id === currentId);
       const nextIndex = (currentIndex + 1) % sorted.length;
       focusWindow(sorted[nextIndex].id);
+    }
+  });
+
+  // Desktop icon clicks - icons are at x=1-10, y starts at 4
+  // Each icon takes 3 rows (icon, name, margin)
+  useMouseClick((x, y) => {
+    // Desktop icons area: x < 12, y >= 3
+    if (x <= 12 && y >= 3) {
+      const iconIndex = Math.floor((y - 3) / 3);
+      if (iconIndex >= 0 && iconIndex < icons.length) {
+        openWindow(icons[iconIndex].app);
+      }
     }
   });
 
@@ -321,12 +327,7 @@ function ZenOS() {
         }
 
         // Click inside window but not title bar - just focus
-        if (
-          x >= win.x &&
-          x < win.x + win.width &&
-          y >= win.y &&
-          y < win.y + win.height
-        ) {
+        if (x >= win.x && x < win.x + win.width && y >= win.y && y < win.y + win.height) {
           focusWindow(win.id);
           return false;
         }
@@ -385,10 +386,10 @@ function ZenOS() {
           {icons.map((i) => (
             <Box
               style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 1 }}
-              key={i.key}
+              key={i.app}
             >
               <Text>{i.icon}</Text>
-              <Text style={{ dim: true }}>[{i.key}]</Text>
+              <Text style={{ dim: true }}>{i.name}</Text>
             </Box>
           ))}
         </Box>
@@ -401,11 +402,10 @@ function ZenOS() {
               <Box style={{ flexDirection: 'column', padding: 2 }}>
                 <Text style={{ color: 'gray', bold: true }}>Welcome to ZenOS!</Text>
                 <Text> </Text>
-                <Text style={{ color: 'cyan' }}>Press 1-5 to open apps</Text>
-                <Text style={{ color: 'yellow' }}>Drag title bar to move windows</Text>
-                <Text style={{ color: 'green' }}>Press Tab to cycle windows</Text>
-                <Text style={{ dim: true }}>Press Esc to close window</Text>
-                <Text style={{ dim: true }}>Press 'q' to quit</Text>
+                <Text style={{ color: 'cyan' }}>Click desktop icons to open apps</Text>
+                <Text style={{ color: 'yellow' }}>Drag window title bar to move</Text>
+                <Text style={{ color: 'green' }}>Click windows to focus</Text>
+                <Text style={{ dim: true }}>Tab to cycle • Esc to close • q to quit</Text>
               </Box>
             ) : null
           }
