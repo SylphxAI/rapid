@@ -10,7 +10,7 @@
 
 import { executeDescriptor, isDescriptor, isSignal } from '@zen/runtime';
 import type { ComponentDescriptor } from '@zen/runtime';
-import { effect } from '@zen/signal';
+import { disposeNode, effect, untrack } from '@zen/signal';
 import { withParent } from './parent-context.js';
 import { scheduleNodeUpdate } from './render-context.js';
 import type { TUINode } from './types.js';
@@ -154,11 +154,28 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
 
   effect(() => {
     const value = fn();
+
+    // CRITICAL: Dispose old children before replacing them
+    // This ensures useInput handlers and other effects are cleaned up
+    for (const oldChild of fragment.children) {
+      if (oldChild && typeof oldChild === 'object' && 'type' in oldChild) {
+        try {
+          disposeNode(oldChild);
+        } catch {
+          // Ignore disposal errors
+        }
+      }
+    }
     fragment.children = [];
 
     // Check if value is a descriptor (component not yet executed)
     if (isDescriptor(value)) {
-      const node = withParent(fragment.parentNode || parent, () => executeDescriptor(value));
+      // CRITICAL: Use untrack to prevent component's signal accesses from becoming
+      // dependencies of this effect. Otherwise, when a component accesses its internal
+      // signals, this parent effect would re-run and recreate the component.
+      const node = untrack(() =>
+        withParent(fragment.parentNode || parent, () => executeDescriptor(value)),
+      );
       if (node) {
         if (Array.isArray(node)) {
           fragment.children.push(...node);
@@ -185,7 +202,11 @@ function handleReactiveFunction(parent: TUINode, fn: () => unknown): void {
       for (const item of value) {
         // Execute descriptors in arrays (e.g., from array.map() returning <Component />)
         if (isDescriptor(item)) {
-          const node = withParent(fragment.parentNode || parent, () => executeDescriptor(item));
+          // CRITICAL: Use untrack to prevent component's signal accesses from becoming
+          // dependencies of this effect.
+          const node = untrack(() =>
+            withParent(fragment.parentNode || parent, () => executeDescriptor(item)),
+          );
           if (node) {
             if (Array.isArray(node)) {
               fragment.children.push(...node);

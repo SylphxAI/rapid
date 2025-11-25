@@ -26,7 +26,7 @@
  * ```
  */
 
-import { Box, Text, signal, computed, useInput } from '@zen/tui';
+import { Box, Text, batch, computed, signal, useInput } from '@zen/tui';
 
 export interface TextAreaProps {
   /** Current text value */
@@ -73,7 +73,7 @@ export function TextArea(props: TextAreaProps) {
     cols = 60,
     placeholder = '',
     showLineNumbers = false,
-    wrap = true,
+    // wrap is accepted but not implemented yet
     readOnly = false,
     isFocused = true,
     border = true,
@@ -85,10 +85,9 @@ export function TextArea(props: TextAreaProps) {
   const cursorCol = signal(0);
   const scrollOffset = signal(0);
 
-  // Use external value if provided
-  const currentValue = computed(() =>
-    onChange ? externalValue : internalValue.value,
-  );
+  // Always use internal value for display (supports immediate updates)
+  // Internal value is synced from external value on mount
+  const currentValue = computed(() => internalValue.value);
 
   // Split text into lines
   const lines = computed(() => {
@@ -137,13 +136,12 @@ export function TextArea(props: TextAreaProps) {
     newLines[row] = newLine;
 
     const newValue = newLines.join('\n');
-    if (onChange) {
-      onChange(newValue);
-    } else {
-      internalValue.value = newValue;
-    }
 
-    cursorCol.value = col + text.length;
+    // Use batch to update all signals atomically, preventing cascading re-renders
+    batch(() => {
+      internalValue.value = newValue;
+      cursorCol.value = col + text.length;
+    });
     constrainCursor();
   };
 
@@ -156,19 +154,22 @@ export function TextArea(props: TextAreaProps) {
     const col = cursorCol.value;
     const line = currentLines[row] || '';
 
+    let newCol = col;
+    let newRow = row;
+
     if (direction === 'backward') {
       if (col > 0) {
         // Delete character before cursor
         const newLine = line.slice(0, col - 1) + line.slice(col);
         currentLines[row] = newLine;
-        cursorCol.value = col - 1;
+        newCol = col - 1;
       } else if (row > 0) {
         // Merge with previous line
         const prevLine = currentLines[row - 1];
         currentLines[row - 1] = prevLine + line;
         currentLines.splice(row, 1);
-        cursorRow.value = row - 1;
-        cursorCol.value = prevLine.length;
+        newRow = row - 1;
+        newCol = prevLine.length;
       }
     } else {
       // forward
@@ -185,10 +186,16 @@ export function TextArea(props: TextAreaProps) {
     }
 
     const newValue = currentLines.join('\n');
+
+    // Use batch to update all signals atomically
+    batch(() => {
+      internalValue.value = newValue;
+      cursorRow.value = newRow;
+      cursorCol.value = newCol;
+    });
+
     if (onChange) {
       onChange(newValue);
-    } else {
-      internalValue.value = newValue;
     }
 
     constrainCursor();
@@ -210,21 +217,26 @@ export function TextArea(props: TextAreaProps) {
     currentLines.splice(row + 1, 0, afterCursor);
 
     const newValue = currentLines.join('\n');
+
+    // Use batch to update all signals atomically
+    batch(() => {
+      internalValue.value = newValue;
+      cursorRow.value = row + 1;
+      cursorCol.value = 0;
+    });
+
     if (onChange) {
       onChange(newValue);
-    } else {
-      internalValue.value = newValue;
     }
 
-    cursorRow.value = row + 1;
-    cursorCol.value = 0;
     constrainCursor();
   };
 
   // Keyboard input handler
+  // Use high priority (10) when focused to consume events before parent handlers
   useInput(
     (input, key) => {
-      if (!isFocused || readOnly) return;
+      if (!isFocused || readOnly) return false;
 
       const currentLines = lines.value;
 
@@ -234,12 +246,16 @@ export function TextArea(props: TextAreaProps) {
           cursorRow.value -= 1;
           constrainCursor();
         }
-      } else if (key.downArrow) {
+        return true; // consumed
+      }
+      if (key.downArrow) {
         if (cursorRow.value < currentLines.length - 1) {
           cursorRow.value += 1;
           constrainCursor();
         }
-      } else if (key.leftArrow) {
+        return true; // consumed
+      }
+      if (key.leftArrow) {
         if (cursorCol.value > 0) {
           cursorCol.value -= 1;
         } else if (cursorRow.value > 0) {
@@ -247,7 +263,9 @@ export function TextArea(props: TextAreaProps) {
           cursorCol.value = (currentLines[cursorRow.value] || '').length;
           constrainCursor();
         }
-      } else if (key.rightArrow) {
+        return true; // consumed
+      }
+      if (key.rightArrow) {
         const currentLine = currentLines[cursorRow.value] || '';
         if (cursorCol.value < currentLine.length) {
           cursorCol.value += 1;
@@ -256,91 +274,109 @@ export function TextArea(props: TextAreaProps) {
           cursorCol.value = 0;
           constrainCursor();
         }
+        return true; // consumed
       }
       // Home/End
-      else if (key.home) {
+      if (key.home) {
         cursorCol.value = 0;
-      } else if (key.end) {
+        return true; // consumed
+      }
+      if (key.end) {
         const currentLine = currentLines[cursorRow.value] || '';
         cursorCol.value = currentLine.length;
+        return true; // consumed
       }
       // Page Up/Down
-      else if (key.pageUp) {
+      if (key.pageUp) {
         cursorRow.value = Math.max(0, cursorRow.value - rows);
         constrainCursor();
-      } else if (key.pageDown) {
+        return true; // consumed
+      }
+      if (key.pageDown) {
         cursorRow.value = Math.min(currentLines.length - 1, cursorRow.value + rows);
         constrainCursor();
+        return true; // consumed
       }
       // Backspace/Delete
-      else if (key.backspace || key.delete) {
+      if (key.backspace || key.delete) {
         deleteChar(key.backspace ? 'backward' : 'forward');
+        return true; // consumed
       }
       // Enter
-      else if (key.return) {
+      if (key.return) {
         insertNewline();
+        return true; // consumed
       }
-      // Regular text input
-      else if (input && !key.ctrl && !key.meta) {
+      // Regular text input (but not Tab - allow Tab for navigation)
+      if (input && !key.ctrl && !key.meta && !key.tab) {
         insertText(input);
+        return true; // consumed
       }
+
+      return false; // not consumed, let other handlers process
     },
-    { isActive: isFocused },
+    { isActive: isFocused, priority: 10 },
   );
 
   // Render
   return (
     <Box
-      flexDirection="column"
-      width={cols}
-      height={rows + (border ? 2 : 0)}
-      borderStyle={border ? 'single' : undefined}
-      borderColor={isFocused ? 'cyan' : 'gray'}
+      style={{
+        flexDirection: 'column',
+        width: cols,
+        height: rows + (border ? 2 : 0),
+        borderStyle: border ? 'single' : undefined,
+        borderColor: isFocused ? 'cyan' : 'gray',
+      }}
     >
       {() => {
         const displayLines = visibleLines.value;
         const isEmpty = currentValue.value === '';
 
         if (isEmpty && placeholder) {
-          return <Text dimColor>{placeholder}</Text>;
+          return <Text style={{ dim: true }}>{placeholder}</Text>;
         }
 
         return displayLines.map((line, index) => {
           const globalRow = scrollOffset.value + index;
           const isCursorRow = globalRow === cursorRow.value;
-          const lineNumber = showLineNumbers ? `${globalRow + 1}`.padStart(4, ' ') : '';
+          const lineNumber = showLineNumbers ? `${`${globalRow + 1}`.padStart(4, ' ')} ` : '';
 
-          return (
-            <Box key={globalRow} gap={1}>
-              {showLineNumbers && <Text dimColor>{lineNumber}</Text>}
-              <Text>
-                {() => {
-                  if (isCursorRow && isFocused) {
-                    const col = cursorCol.value;
-                    const before = line.slice(0, col);
-                    const cursor = line[col] || ' ';
-                    const after = line.slice(col + 1);
-                    return (
-                      <>
-                        {before}
-                        <Text inverse>{cursor}</Text>
-                        {after}
-                      </>
-                    );
-                  }
-                  return line || ' ';
-                }}
+          // For cursor row, render with inline cursor highlight
+          if (isCursorRow && isFocused) {
+            const col = cursorCol.value;
+            const before = line.slice(0, col);
+            const cursorChar = line[col] || ' ';
+            const after = line.slice(col + 1);
+
+            // Use nested Text for inline styling - architecturally correct pattern
+            return (
+              <Text key={globalRow}>
+                {showLineNumbers && <Text style={{ dim: true }}>{lineNumber}</Text>}
+                {before}
+                <Text style={{ inverse: true }}>{cursorChar}</Text>
+                {after}
               </Text>
-            </Box>
+            );
+          }
+
+          // Non-cursor rows
+          return (
+            <Text key={globalRow}>
+              {showLineNumbers && <Text style={{ dim: true }}>{lineNumber}</Text>}
+              {line || ' '}
+            </Text>
           );
         });
       }}
 
       {/* Scroll indicator */}
       {lines.value.length > rows && (
-        <Box marginTop={1}>
-          <Text dimColor>
-            {() => `Lines ${scrollOffset.value + 1}-${Math.min(scrollOffset.value + rows, lines.value.length)} of ${lines.value.length}`}
+        <Box style={{ marginTop: 1 }}>
+          <Text style={{ dim: true }}>
+            {() =>
+              `Lines ${scrollOffset.value + 1}-${Math.min(scrollOffset.value + rows, lines.value.length)} of ${lines.value.length}`
+            }
           </Text>
         </Box>
       )}

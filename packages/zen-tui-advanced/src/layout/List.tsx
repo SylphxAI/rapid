@@ -25,7 +25,8 @@ export interface ListProps<T = unknown> {
   /** Callback when item is selected (Enter key) */
   onSelect?: (item: T, index: number) => void;
 
-  /** Custom item renderer */
+  /** Custom item renderer - returns a TUI node */
+  // biome-ignore lint/suspicious/noExplicitAny: JSX return types vary by runtime
   renderItem?: (item: T, index: number, isSelected: boolean) => any;
 
   /** Maximum visible items (enables scrolling) */
@@ -92,9 +93,10 @@ export function List<T = unknown>(props: ListProps<T>) {
   });
 
   // Handle keyboard input
+  // Use high priority (10) when focused to consume events before parent handlers
   useInput(
     (input, key) => {
-      if (!isFocused) return;
+      if (!isFocused) return false;
 
       const currentIndex = selectedIndex.value;
 
@@ -114,6 +116,7 @@ export function List<T = unknown>(props: ListProps<T>) {
         if (onSelect && newIndex !== currentIndex) {
           onSelect(items[newIndex], newIndex);
         }
+        return true; // consumed
       }
 
       // Move down
@@ -132,6 +135,7 @@ export function List<T = unknown>(props: ListProps<T>) {
         if (onSelect && newIndex !== currentIndex) {
           onSelect(items[newIndex], newIndex);
         }
+        return true; // consumed
       }
 
       // Select current item (Enter)
@@ -140,6 +144,7 @@ export function List<T = unknown>(props: ListProps<T>) {
         if (index >= 0 && index < items.length) {
           onSelect(items[index], index);
         }
+        return true; // consumed
       }
 
       // Page up
@@ -152,6 +157,7 @@ export function List<T = unknown>(props: ListProps<T>) {
         if (onSelect) {
           onSelect(items[newIndex], newIndex);
         }
+        return true; // consumed
       }
 
       // Page down
@@ -167,6 +173,7 @@ export function List<T = unknown>(props: ListProps<T>) {
         if (onSelect) {
           onSelect(items[newIndex], newIndex);
         }
+        return true; // consumed
       }
 
       // Home
@@ -178,6 +185,7 @@ export function List<T = unknown>(props: ListProps<T>) {
         if (onSelect) {
           onSelect(items[0], 0);
         }
+        return true; // consumed
       }
 
       // End
@@ -190,29 +198,32 @@ export function List<T = unknown>(props: ListProps<T>) {
         if (onSelect) {
           onSelect(items[lastIndex], lastIndex);
         }
+        return true; // consumed
       }
+
+      return false; // not consumed
     },
-    { isActive: isFocused },
+    { isActive: isFocused, priority: 10 },
   );
 
   // Default item renderer
   const defaultRenderItem = (item: T, _index: number, isSelected: boolean) => {
-    return <Text color={isSelected ? 'cyan' : 'white'}>{String(item)}</Text>;
+    return <Text style={{ color: isSelected ? 'cyan' : 'white' }}>{String(item)}</Text>;
   };
 
   const itemRenderer = renderItem || defaultRenderItem;
 
   return (
-    <Box flexDirection="column">
+    <Box style={{ flexDirection: 'column' }}>
       {() =>
         visibleItems.value.map((item, localIndex) => {
           const globalIndex = scrollOffset.value + localIndex;
           const isSelected = globalIndex === selectedIndex.value;
 
           return (
-            <Box key={globalIndex} gap={1}>
+            <Box key={globalIndex} style={{ flexDirection: 'row', gap: 1 }}>
               {showIndicator && (
-                <Text color={isSelected ? 'cyan' : 'transparent'}>
+                <Text style={{ color: isSelected ? 'cyan' : 'transparent' }}>
                   {isSelected ? indicator : ' '}
                 </Text>
               )}
@@ -224,8 +235,8 @@ export function List<T = unknown>(props: ListProps<T>) {
 
       {/* Scroll indicator */}
       {limit && items.length > limit && (
-        <Box marginTop={1}>
-          <Text dimColor>
+        <Box style={{ marginTop: 1 }}>
+          <Text style={{ dim: true }}>
             {() =>
               `${scrollOffset.value + 1}-${Math.min(scrollOffset.value + visibleLimit, items.length)} of ${items.length}`
             }

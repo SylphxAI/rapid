@@ -237,7 +237,10 @@ export async function renderApp(createApp: () => unknown): Promise<() => void> {
   }
 
   // Input handler
-  const keyHandler = (key: string) => {
+  const keyHandler = (data: Buffer | string) => {
+    // Convert Buffer to string if needed (stdin emits Buffer by default)
+    const key = typeof data === 'string' ? data : data.toString('utf8');
+
     // Try mouse event first - always try to parse, as MouseProvider may enable mouse independently
     const mouseEvent = parseMouseEvent(key);
     if (mouseEvent) {

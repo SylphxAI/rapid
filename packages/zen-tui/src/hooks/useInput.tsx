@@ -2,11 +2,17 @@
  * useInput hook - React Ink compatible keyboard input handling
  *
  * Allows components to handle keyboard input in a declarative way.
+ * Supports priority-based focus management where handlers can "consume" events.
  */
 
 import { onCleanup } from '@zen/runtime';
 
-export type InputHandler = (input: string, key: Key) => void;
+/**
+ * Input handler function.
+ * Return `true` to stop propagation (event consumed).
+ * Return `false` or `undefined` to allow other handlers to process.
+ */
+export type InputHandler = (input: string, key: Key) => boolean | undefined;
 
 export interface Key {
   upArrow: boolean;
@@ -23,24 +29,69 @@ export interface Key {
   pageDown: boolean;
   pageUp: boolean;
   meta: boolean;
+  home: boolean;
+  end: boolean;
+  // F-keys
+  f1: boolean;
+  f2: boolean;
+  f3: boolean;
+  f4: boolean;
+  f5: boolean;
+  f6: boolean;
+  f7: boolean;
+  f8: boolean;
+  f9: boolean;
+  f10: boolean;
+  f11: boolean;
+  f12: boolean;
 }
 
-// Global registry of input handlers
-const inputHandlers: Set<InputHandler> = new Set();
+export interface UseInputOptions {
+  /** Whether this handler is active (default: true) */
+  isActive?: boolean;
+  /** Handler priority. Higher = runs first (default: 0). Use for focus management. */
+  priority?: number;
+}
+
+interface RegisteredHandler {
+  handler: InputHandler;
+  priority: number;
+}
+
+// Global registry of input handlers with priority
+const inputHandlers: Set<RegisteredHandler> = new Set();
 
 /**
  * Register a keyboard input handler
  * Similar to React Ink's useInput hook
+ *
+ * @param handler - The input handler function. Return `true` to stop propagation.
+ * @param options - Options including isActive and priority
+ *
+ * @example
+ * // Basic usage (low priority, doesn't consume events)
+ * useInput((input, key) => {
+ *   if (key.escape) quit();
+ * });
+ *
+ * @example
+ * // Focused component (high priority, consumes events)
+ * useInput((input, key) => {
+ *   if (key.return) { submit(); return true; }  // consumed
+ *   if (input) { type(input); return true; }    // consumed
+ * }, { priority: 10 });
  */
-export function useInput(handler: InputHandler, options?: { isActive?: boolean }): void {
+export function useInput(handler: InputHandler, options?: UseInputOptions): void {
   const isActive = options?.isActive ?? true;
+  const priority = options?.priority ?? 0;
 
   if (isActive) {
-    inputHandlers.add(handler);
+    const registered: RegisteredHandler = { handler, priority };
+    inputHandlers.add(registered);
 
     // Cleanup when component unmounts
     onCleanup(() => {
-      inputHandlers.delete(handler);
+      inputHandlers.delete(registered);
     });
   }
 }
@@ -64,19 +115,48 @@ export function parseKey(str: string): Key {
     pageDown: str === '\x1B[6~',
     pageUp: str === '\x1B[5~',
     meta: str.startsWith('\x1B'),
+    home: str === '\x1B[H' || str === '\x1B[1~',
+    end: str === '\x1B[F' || str === '\x1B[4~',
+    // F-keys (various terminal escape sequences)
+    f1: str === '\x1BOP' || str === '\x1B[11~' || str === '\x1B[[A',
+    f2: str === '\x1BOQ' || str === '\x1B[12~' || str === '\x1B[[B',
+    f3: str === '\x1BOR' || str === '\x1B[13~' || str === '\x1B[[C',
+    f4: str === '\x1BOS' || str === '\x1B[14~' || str === '\x1B[[D',
+    f5: str === '\x1B[15~' || str === '\x1B[[E',
+    f6: str === '\x1B[17~',
+    f7: str === '\x1B[18~',
+    f8: str === '\x1B[19~',
+    f9: str === '\x1B[20~',
+    f10: str === '\x1B[21~',
+    f11: str === '\x1B[23~',
+    f12: str === '\x1B[24~',
   };
 }
 
 /**
  * Dispatch keyboard input to all registered handlers
  * Called by renderToTerminalReactive's onKeyPress
+ *
+ * Handlers are called in priority order (highest first).
+ * If a handler returns `true`, propagation stops.
  */
 export function dispatchInput(input: string): void {
   const key = parseKey(input);
 
-  // Call all registered handlers
-  for (const handler of inputHandlers) {
-    handler(input, key);
+  // CRITICAL: Copy handlers to array before iterating
+  // Handlers may modify the Set (via signal updates triggering re-renders)
+  // which would cause infinite iteration if we iterate the Set directly
+  const handlers = [...inputHandlers];
+
+  // Sort by priority (highest first)
+  handlers.sort((a, b) => b.priority - a.priority);
+
+  for (const { handler } of handlers) {
+    const consumed = handler(input, key);
+    if (consumed === true) {
+      // Event was consumed, stop propagation
+      return;
+    }
   }
 }
 
