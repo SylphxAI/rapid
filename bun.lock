@@ -382,6 +382,20 @@
         "vitest": "^3.2.4",
       },
     },
+    "packages/zen-tui-advanced": {
+      "name": "@zen/tui-advanced",
+      "version": "0.0.0",
+      "dependencies": {
+        "@zen/runtime": "workspace:*",
+        "@zen/signal": "workspace:*",
+        "@zen/tui": "workspace:*",
+      },
+      "devDependencies": {
+        "bunup": "^0.15.13",
+        "typescript": "^5.8.3",
+        "vitest": "^3.2.4",
+      },
+    },
     "packages/zen-tui-router": {
       "name": "@zen/tui-router",
       "version": "0.0.0",
@@ -1084,6 +1098,8 @@
     "@zen/start": ["@zen/start@workspace:packages/zen-start"],
 
     "@zen/tui": ["@zen/tui@workspace:packages/zen-tui"],
+
+    "@zen/tui-advanced": ["@zen/tui-advanced@workspace:packages/zen-tui-advanced"],
 
     "@zen/tui-router": ["@zen/tui-router@workspace:packages/zen-tui-router"],
 

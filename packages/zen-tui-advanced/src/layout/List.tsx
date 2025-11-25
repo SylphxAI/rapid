@@ -13,7 +13,7 @@
  * - Optional selection indicator
  */
 
-import { Box, Text, useInput, signal, computed } from '@zen/tui';
+import { Box, Text, computed, signal, useInput } from '@zen/tui';
 
 export interface ListProps<T = unknown> {
   /** Array of items to display */
@@ -226,7 +226,9 @@ export function List<T = unknown>(props: ListProps<T>) {
       {limit && items.length > limit && (
         <Box marginTop={1}>
           <Text dimColor>
-            {() => `${scrollOffset.value + 1}-${Math.min(scrollOffset.value + visibleLimit, items.length)} of ${items.length}`}
+            {() =>
+              `${scrollOffset.value + 1}-${Math.min(scrollOffset.value + visibleLimit, items.length)} of ${items.length}`
+            }
           </Text>
         </Box>
       )}

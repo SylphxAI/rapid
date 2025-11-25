@@ -48,8 +48,7 @@ export {
 // Layout - Advanced layout components
 // ============================================================================
 export { List, type ListProps } from './layout/List.js';
-// export { Splitter, type SplitterProps } from './layout/Splitter.js';
-// export { Pane, type PaneProps } from './layout/Pane.js';
+export { Splitter, type SplitterProps, Pane, type PaneProps } from './layout/Splitter.js';
 
 // ============================================================================
 // Input - Advanced input components

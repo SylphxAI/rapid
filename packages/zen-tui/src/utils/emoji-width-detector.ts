@@ -16,13 +16,7 @@ import stringWidth from 'string-width';
  */
 const TERMINAL_PROFILES = {
   // Terminals that support VS-16 (render emoji as width 2)
-  vs16Supported: new Set([
-    'iTerm.app',
-    'WezTerm',
-    'kitty',
-    'Konsole',
-    'WindowsTerminal',
-  ]),
+  vs16Supported: new Set(['iTerm.app', 'WezTerm', 'kitty', 'Konsole', 'WindowsTerminal']),
 
   // Terminals that ignore VS-16 (emoji stays narrow, width 1)
   vs16Ignored: new Set([

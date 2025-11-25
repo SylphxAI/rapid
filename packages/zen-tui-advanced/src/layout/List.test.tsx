@@ -1,7 +1,7 @@
-/** @jsxImportSource @zen/tui */
-import { describe, it, expect } from 'vitest';
-import { List } from './List.js';
 import { signal } from '@zen/tui';
+/** @jsxImportSource @zen/tui */
+import { describe, expect, it } from 'vitest';
+import { List } from './List.js';
 
 describe('List', () => {
   it('should render items', () => {
@@ -58,12 +58,12 @@ describe('List', () => {
 
   it('should support onSelect callback', () => {
     const items = ['Item 1', 'Item 2', 'Item 3'];
-    let selectedItem: string | null = null;
+    let _selectedItem: string | null = null;
 
     const result = List({
       items,
       onSelect: (item) => {
-        selectedItem = item;
+        _selectedItem = item;
       },
     });
 
