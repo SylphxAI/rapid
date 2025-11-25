@@ -2,10 +2,15 @@
  * useInput hook - React Ink compatible keyboard input handling
  *
  * Allows components to handle keyboard input in a declarative way.
- * Supports priority-based focus management where handlers can "consume" events.
+ * Supports reactive isActive for focus management (Ink-compatible).
+ *
+ * Architecture (matches React Ink):
+ * - When isActive is false, handler is completely removed from registry
+ * - When isActive is true, handler is added to registry
+ * - isActive can be reactive (signal, computed, or getter function)
  */
 
-import { getOwner, onCleanup, type Owner } from '@zen/runtime';
+import { type Owner, effect, getOwner, onCleanup } from '@zen/runtime';
 
 /**
  * Input handler function.
@@ -46,89 +51,123 @@ export interface Key {
   f12: boolean;
 }
 
+/**
+ * Reactive value type - can be a value, signal, computed, or getter
+ */
+type MaybeReactive<T> = T | { value: T } | (() => T);
+
 export interface UseInputOptions {
-  /** Whether this handler is active (default: true) */
-  isActive?: boolean;
-  /** Handler priority. Higher = runs first (default: 0). Use for focus management. */
-  priority?: number;
+  /**
+   * Whether this handler is active (default: true)
+   *
+   * Ink-compatible: Can be a reactive value (signal, computed, getter).
+   * When false, handler is completely removed from registry.
+   * When true, handler is added to registry.
+   *
+   * @example
+   * // Static
+   * useInput(handler, { isActive: true });
+   *
+   * // With useFocus (Ink pattern)
+   * const { isFocused } = useFocus();
+   * useInput(handler, { isActive: isFocused });
+   *
+   * // With getter
+   * useInput(handler, { isActive: () => someCondition });
+   */
+  isActive?: MaybeReactive<boolean>;
 }
 
 interface RegisteredHandler {
   handler: InputHandler;
-  priority: number;
   owner: Owner | null;
 }
 
-// Global registry of input handlers - keyed by owner for re-render safety
-// Using owner as key ensures handlers are updated rather than duplicated on re-render
+// Global registry of active input handlers
 const inputHandlers: Set<RegisteredHandler> = new Set();
 
-// Track registered handlers by owner to update them on re-render
+// Track registered handlers by owner to prevent duplicates
 const ownerToHandler: WeakMap<Owner, RegisteredHandler> = new WeakMap();
 
 /**
+ * Resolve a potentially reactive value
+ */
+function resolveReactive<T>(value: MaybeReactive<T>): T {
+  if (typeof value === 'function') {
+    return (value as () => T)();
+  }
+  if (value !== null && typeof value === 'object' && 'value' in value) {
+    return (value as { value: T }).value;
+  }
+  return value as T;
+}
+
+/**
  * Register a keyboard input handler
- * Similar to React Ink's useInput hook
- *
- * Handles re-renders properly by updating existing handlers instead of
- * accumulating duplicates. Uses owner-based tracking for cleanup.
+ * React Ink compatible API
  *
  * @param handler - The input handler function. Return `true` to stop propagation.
- * @param options - Options including isActive and priority
+ * @param options - Options including reactive isActive
  *
  * @example
- * // Basic usage (low priority, doesn't consume events)
+ * // Basic usage - always active
  * useInput((input, key) => {
  *   if (key.escape) quit();
  * });
  *
  * @example
- * // Focused component (high priority, consumes events)
+ * // With focus (Ink pattern)
+ * const { isFocused } = useFocus();
  * useInput((input, key) => {
- *   if (key.return) { submit(); return true; }  // consumed
- *   if (input) { type(input); return true; }    // consumed
- * }, { priority: 10 });
+ *   if (key.return) submit();
+ * }, { isActive: isFocused });
  */
 export function useInput(handler: InputHandler, options?: UseInputOptions): void {
-  const isActive = options?.isActive ?? true;
-  const priority = options?.priority ?? 0;
+  const isActiveOption = options?.isActive ?? true;
   const owner = getOwner();
 
-  // If this owner already has a handler registered, update it (handles re-renders)
-  if (owner) {
-    const existing = ownerToHandler.get(owner);
-    if (existing) {
-      if (isActive) {
-        // Update existing handler - this is a re-render
-        existing.handler = handler;
-        existing.priority = priority;
-      } else {
-        // Handler became inactive, remove it
-        inputHandlers.delete(existing);
-        ownerToHandler.delete(owner);
-      }
-      return;
-    }
-  }
+  // Create handler object (reused across active/inactive transitions)
+  let registered: RegisteredHandler | null = null;
 
-  // New handler registration
-  if (isActive) {
-    const registered: RegisteredHandler = { handler, priority, owner };
+  const addHandler = () => {
+    if (registered) return; // Already added
+
+    registered = { handler, owner };
     inputHandlers.add(registered);
 
-    // Track by owner for re-render detection
     if (owner) {
       ownerToHandler.set(owner, registered);
     }
+  };
 
-    // Cleanup when component unmounts
-    onCleanup(() => {
-      inputHandlers.delete(registered);
-      if (owner) {
-        ownerToHandler.delete(owner);
-      }
-    });
-  }
+  const removeHandler = () => {
+    if (!registered) return; // Already removed
+
+    inputHandlers.delete(registered);
+    if (owner) {
+      ownerToHandler.delete(owner);
+    }
+    registered = null;
+  };
+
+  // Use effect to track reactive isActive changes
+  // This is the key difference from our previous implementation:
+  // - React Ink uses useEffect with isActive as dependency
+  // - We use effect() which automatically tracks signal/computed dependencies
+  effect(() => {
+    const isActive = resolveReactive(isActiveOption);
+
+    if (isActive) {
+      addHandler();
+    } else {
+      removeHandler();
+    }
+  });
+
+  // Cleanup when component unmounts
+  onCleanup(() => {
+    removeHandler();
+  });
 }
 
 /**
@@ -172,8 +211,7 @@ export function parseKey(str: string): Key {
  * Dispatch keyboard input to all registered handlers
  * Called by renderToTerminalReactive's onKeyPress
  *
- * Handlers are called in priority order (highest first).
- * If a handler returns `true`, propagation stops.
+ * All active handlers are called. If a handler returns `true`, propagation stops.
  */
 export function dispatchInput(input: string): void {
   const key = parseKey(input);
@@ -182,9 +220,6 @@ export function dispatchInput(input: string): void {
   // Handlers may modify the Set (via signal updates triggering re-renders)
   // which would cause infinite iteration if we iterate the Set directly
   const handlers = [...inputHandlers];
-
-  // Sort by priority (highest first)
-  handlers.sort((a, b) => b.priority - a.priority);
 
   for (const { handler } of handlers) {
     const consumed = handler(input, key);

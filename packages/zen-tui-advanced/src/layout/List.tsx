@@ -3,7 +3,7 @@
  * List Component
  *
  * General-purpose list component with keyboard navigation.
- * Unlike MultiSelect, this is a simple single-selection list without checkboxes.
+ * Ink-compatible focus management via useFocus + useInput pattern.
  *
  * Features:
  * - Single selection or no selection
@@ -11,6 +11,7 @@
  * - Custom item rendering
  * - Scrolling support for large lists
  * - Optional selection indicator
+ * - FocusProvider integration (Ink-compatible)
  */
 
 import { Box, Text, computed, signal, useFocus, useInput } from '@zen/tui';
@@ -19,10 +20,10 @@ export interface ListProps<T = unknown> {
   /** Array of items to display */
   items: T[];
 
-  /** Currently selected index (-1 for no selection) */
-  selectedIndex?: number;
+  /** Initially selected index (default: 0) */
+  initialIndex?: number;
 
-  /** Callback when item is selected (Enter key) */
+  /** Callback when selection changes (navigation or Enter) */
   onSelect?: (item: T, index: number) => void;
 
   /** Custom item renderer - returns a TUI node */
@@ -38,17 +39,13 @@ export interface ListProps<T = unknown> {
   /** Selection indicator character (default: '>') */
   indicator?: string;
 
-  /** Focus management - manual override */
-  isFocused?: boolean;
-
   /**
-   * Focus ID for integration with FocusProvider
-   * When provided, List automatically registers with FocusProvider
-   * and uses reactive focus state instead of static isFocused prop
+   * Focus ID for FocusProvider integration (required)
+   * List MUST be used within FocusProvider
    */
-  focusId?: string;
+  focusId: string;
 
-  /** Auto-focus when FocusProvider mounts (only works with focusId) */
+  /** Auto-focus when FocusProvider mounts */
   autoFocus?: boolean;
 }
 
@@ -57,56 +54,38 @@ export interface ListProps<T = unknown> {
  *
  * @example
  * ```tsx
- * const files = ['file1.txt', 'file2.txt', 'file3.txt'];
- * const selected = signal(0);
- *
- * <List
- *   items={files}
- *   selectedIndex={selected.value}
- *   onSelect={(file, index) => {
- *     console.log('Selected:', file);
- *     selected.value = index;
- *   }}
- *   renderItem={(file, index, isSelected) => (
- *     <Text color={isSelected ? 'cyan' : 'white'}>{file}</Text>
- *   )}
- * />
+ * <FocusProvider>
+ *   <List
+ *     focusId="file-list"
+ *     items={files}
+ *     onSelect={(file, index) => console.log('Selected:', file)}
+ *     renderItem={(file, index, isSelected) => (
+ *       <Text color={isSelected ? 'cyan' : 'white'}>{file}</Text>
+ *     )}
+ *   />
+ * </FocusProvider>
  * ```
  */
 export function List<T = unknown>(props: ListProps<T>) {
   const {
     items,
-    selectedIndex: externalSelectedIndex,
+    initialIndex = 0,
     onSelect,
     renderItem,
     limit,
     showIndicator = true,
     indicator = '>',
-    isFocused: isFocusedProp = true,
     focusId,
     autoFocus = false,
   } = props;
 
-  // Focus integration: use FocusProvider if focusId is provided, otherwise use prop
-  // useFocus returns { isFocused: Computed<boolean> } when FocusProvider exists
-  const focusState = focusId ? useFocus({ id: focusId, autoFocus }) : null;
+  // Focus integration with FocusProvider (Ink-compatible)
+  // useFocus returns { isFocused: Computed<boolean> }
+  const { isFocused } = useFocus({ id: focusId, autoFocus });
 
-  // Determine if focused: reactive from FocusProvider or static from prop
-  const getIsFocused = (): boolean => {
-    if (focusState?.isFocused) {
-      return focusState.isFocused.value;
-    }
-    return isFocusedProp;
-  };
-
-  // Internal state for selection
-  // Note: In @zen/tui, props are static (captured at render time), so we always
-  // use internal state. The externalSelectedIndex prop is only the INITIAL value.
-  const internalSelectedIndex = signal(externalSelectedIndex ?? 0);
+  // Internal state
+  const selectedIndex = signal(initialIndex);
   const scrollOffset = signal(0);
-
-  // Always use internal state (props don't update reactively in @zen/tui)
-  const selectedIndex = computed(() => internalSelectedIndex.value);
 
   // Calculate visible window
   const visibleLimit = limit ?? items.length;
@@ -116,19 +95,16 @@ export function List<T = unknown>(props: ListProps<T>) {
     return items.slice(start, end);
   });
 
-  // Handle keyboard input
-  // Use high priority (10) when focused to consume events before parent handlers
+  // Handle keyboard input - ONLY when focused (Ink pattern)
+  // When isFocused becomes false, handler is removed from registry
   useInput(
     (input, key) => {
-      // Check focus state reactively (works with FocusProvider)
-      if (!getIsFocused()) return false;
-
       const currentIndex = selectedIndex.value;
 
       // Move up
       if (key.upArrow || input === 'k') {
         const newIndex = Math.max(0, currentIndex - 1);
-        internalSelectedIndex.value = newIndex;
+        selectedIndex.value = newIndex;
 
         // Scroll up if needed
         if (limit && newIndex < scrollOffset.value) {
@@ -145,7 +121,7 @@ export function List<T = unknown>(props: ListProps<T>) {
       // Move down
       if (key.downArrow || input === 'j') {
         const newIndex = Math.min(items.length - 1, currentIndex + 1);
-        internalSelectedIndex.value = newIndex;
+        selectedIndex.value = newIndex;
 
         // Scroll down if needed
         if (limit && newIndex >= scrollOffset.value + visibleLimit) {
@@ -171,7 +147,7 @@ export function List<T = unknown>(props: ListProps<T>) {
       // Page up
       if (key.pageUp && limit) {
         const newIndex = Math.max(0, currentIndex - visibleLimit);
-        internalSelectedIndex.value = newIndex;
+        selectedIndex.value = newIndex;
         scrollOffset.value = Math.max(0, scrollOffset.value - visibleLimit);
         if (onSelect) {
           onSelect(items[newIndex], newIndex);
@@ -182,7 +158,7 @@ export function List<T = unknown>(props: ListProps<T>) {
       // Page down
       if (key.pageDown && limit) {
         const newIndex = Math.min(items.length - 1, currentIndex + visibleLimit);
-        internalSelectedIndex.value = newIndex;
+        selectedIndex.value = newIndex;
         scrollOffset.value = Math.min(
           Math.max(0, items.length - visibleLimit),
           scrollOffset.value + visibleLimit,
@@ -195,7 +171,7 @@ export function List<T = unknown>(props: ListProps<T>) {
 
       // Home
       if (key.home) {
-        internalSelectedIndex.value = 0;
+        selectedIndex.value = 0;
         scrollOffset.value = 0;
         if (onSelect) {
           onSelect(items[0], 0);
@@ -206,7 +182,7 @@ export function List<T = unknown>(props: ListProps<T>) {
       // End
       if (key.end) {
         const lastIndex = items.length - 1;
-        internalSelectedIndex.value = lastIndex;
+        selectedIndex.value = lastIndex;
         scrollOffset.value = Math.max(0, items.length - visibleLimit);
         if (onSelect) {
           onSelect(items[lastIndex], lastIndex);
@@ -216,9 +192,9 @@ export function List<T = unknown>(props: ListProps<T>) {
 
       return false; // not consumed
     },
-    // Always active - focus is checked dynamically inside handler
-    // This allows proper integration with FocusProvider
-    { isActive: true, priority: 10 },
+    // Ink pattern: pass isFocused directly to isActive
+    // Handler is removed when unfocused, added when focused
+    { isActive: isFocused },
   );
 
   // Default item renderer
