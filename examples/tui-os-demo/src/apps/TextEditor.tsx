@@ -6,7 +6,7 @@
  */
 
 import { Box, Text, signal } from '@zen/tui';
-import { MenuBar, TextArea, type MenuItemConfig } from '@zen/tui-advanced';
+import { CodeEditor, MenuBar, type MenuItemConfig } from '@zen/tui-advanced';
 
 export function TextEditor() {
   const content = signal('# Untitled Document\n\nStart typing...\n');
@@ -45,7 +45,7 @@ export function TextEditor() {
 
       {/* Editor */}
       <Box padding={1} flexGrow={1}>
-        <TextArea
+        <CodeEditor
           value={content.value}
           onChange={(val) => {
             content.value = val;
@@ -54,25 +54,15 @@ export function TextEditor() {
           }}
           rows={15}
           cols={50}
-          showLineNumbers
-          border={false}
+          language="markdown"
         />
       </Box>
 
       {/* Status Bar */}
-      <Box
-        backgroundColor="blue"
-        height={1}
-        paddingX={1}
-        justifyContent="space-between"
-      >
-        <Text color="white">
-          {() => `${filename.value}${saved.value ? '' : ' *'}`}
-        </Text>
+      <Box backgroundColor="blue" height={1} paddingX={1} justifyContent="space-between">
+        <Text color="white">{() => `${filename.value}${saved.value ? '' : ' *'}`}</Text>
         <Text color="white">{() => statusMessage.value}</Text>
-        <Text color="white">
-          {() => `Lines: ${content.value.split('\n').length}`}
-        </Text>
+        <Text color="white">{() => `Lines: ${content.value.split('\n').length}`}</Text>
       </Box>
     </Box>
   );
