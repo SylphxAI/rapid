@@ -3,9 +3,12 @@
  * File Manager App
  *
  * Browse files and folders with keyboard navigation
+ * Uses FocusProvider for proper focus management between panes
+ *
+ * Focus navigation: Tab/Shift+Tab to switch between panes
  */
 
-import { Box, Text, signal } from '@zen/tui';
+import { Box, FocusProvider, Text, signal } from '@zen/tui';
 import { List, Pane, Splitter } from '@zen/tui-advanced';
 
 interface FileItem {
@@ -15,7 +18,7 @@ interface FileItem {
   modified?: string;
 }
 
-export function FileManager() {
+function FileManagerContent() {
   const currentPath = signal('/home/user');
   const files = signal<FileItem[]>([
     { name: '..', type: 'folder' },
@@ -29,30 +32,22 @@ export function FileManager() {
     { name: 'tsconfig.json', type: 'file', size: '856 B', modified: '2024-01-13' },
   ]);
 
-  const selectedIndex = signal(0);
   const selectedFile = signal<FileItem>(files.value[0]);
 
   return (
     <Box flexDirection="column" padding={1}>
       {/* Path bar */}
-      <Box
-        borderStyle="single"
-        borderColor="cyan"
-        paddingX={1}
-        marginBottom={1}
-      >
+      <Box borderStyle="single" borderColor="cyan" paddingX={1} marginBottom={1}>
         <Text color="cyan">{() => `📁 ${currentPath.value}`}</Text>
       </Box>
 
       {/* Content */}
-      <Splitter orientation="horizontal" sizes={[60, 40]} resizable>
-        {/* File list */}
+      <Splitter orientation="horizontal" sizes={[60, 40]}>
+        {/* File list - uses focusId for FocusProvider integration */}
         <Pane minSize={30}>
           <List
             items={files.value}
-            selectedIndex={selectedIndex.value}
-            onSelect={(file, index) => {
-              selectedIndex.value = index;
+            onSelect={(file) => {
               selectedFile.value = file;
             }}
             renderItem={(file, _index, isSelected) => (
@@ -66,6 +61,8 @@ export function FileManager() {
               </Box>
             )}
             limit={12}
+            focusId="file-list"
+            autoFocus
           />
         </Pane>
 
@@ -76,17 +73,9 @@ export function FileManager() {
               File Details
             </Text>
             <Text>─────────────</Text>
-            <Text>
-              {() => `Name: ${selectedFile.value?.name || 'N/A'}`}
-            </Text>
-            <Text>
-              {() => `Type: ${selectedFile.value?.type || 'N/A'}`}
-            </Text>
-            {() =>
-              selectedFile.value?.size && (
-                <Text>{`Size: ${selectedFile.value.size}`}</Text>
-              )
-            }
+            <Text>{() => `Name: ${selectedFile.value?.name || 'N/A'}`}</Text>
+            <Text>{() => `Type: ${selectedFile.value?.type || 'N/A'}`}</Text>
+            {() => selectedFile.value?.size && <Text>{`Size: ${selectedFile.value.size}`}</Text>}
             {() =>
               selectedFile.value?.modified && (
                 <Text>{`Modified: ${selectedFile.value.modified}`}</Text>
@@ -99,9 +88,17 @@ export function FileManager() {
       {/* Status bar */}
       <Box marginTop={1} borderStyle="single" paddingX={1}>
         <Text dimColor>
-          {() => `${files.value.length} items | F1: Help | ↑↓: Navigate | Enter: Open`}
+          {() => `${files.value.length} items | ↑↓: Navigate | Tab: Switch pane | Enter: Open`}
         </Text>
       </Box>
     </Box>
+  );
+}
+
+export function FileManager() {
+  return (
+    <FocusProvider>
+      <FileManagerContent />
+    </FocusProvider>
   );
 }

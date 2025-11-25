@@ -13,7 +13,7 @@
  * - Optional selection indicator
  */
 
-import { Box, Text, computed, signal, useInput } from '@zen/tui';
+import { Box, Text, computed, signal, useFocus, useInput } from '@zen/tui';
 
 export interface ListProps<T = unknown> {
   /** Array of items to display */
@@ -38,8 +38,18 @@ export interface ListProps<T = unknown> {
   /** Selection indicator character (default: '>') */
   indicator?: string;
 
-  /** Focus management */
+  /** Focus management - manual override */
   isFocused?: boolean;
+
+  /**
+   * Focus ID for integration with FocusProvider
+   * When provided, List automatically registers with FocusProvider
+   * and uses reactive focus state instead of static isFocused prop
+   */
+  focusId?: string;
+
+  /** Auto-focus when FocusProvider mounts (only works with focusId) */
+  autoFocus?: boolean;
 }
 
 /**
@@ -72,8 +82,22 @@ export function List<T = unknown>(props: ListProps<T>) {
     limit,
     showIndicator = true,
     indicator = '>',
-    isFocused = true,
+    isFocused: isFocusedProp = true,
+    focusId,
+    autoFocus = false,
   } = props;
+
+  // Focus integration: use FocusProvider if focusId is provided, otherwise use prop
+  // useFocus returns { isFocused: Computed<boolean> } when FocusProvider exists
+  const focusState = focusId ? useFocus({ id: focusId, autoFocus }) : null;
+
+  // Determine if focused: reactive from FocusProvider or static from prop
+  const getIsFocused = (): boolean => {
+    if (focusState?.isFocused) {
+      return focusState.isFocused.value;
+    }
+    return isFocusedProp;
+  };
 
   // Internal state for selection
   // Note: In @zen/tui, props are static (captured at render time), so we always
@@ -96,7 +120,8 @@ export function List<T = unknown>(props: ListProps<T>) {
   // Use high priority (10) when focused to consume events before parent handlers
   useInput(
     (input, key) => {
-      if (!isFocused) return false;
+      // Check focus state reactively (works with FocusProvider)
+      if (!getIsFocused()) return false;
 
       const currentIndex = selectedIndex.value;
 
@@ -191,7 +216,9 @@ export function List<T = unknown>(props: ListProps<T>) {
 
       return false; // not consumed
     },
-    { isActive: isFocused, priority: 10 },
+    // Always active - focus is checked dynamically inside handler
+    // This allows proper integration with FocusProvider
+    { isActive: true, priority: 10 },
   );
 
   // Default item renderer
