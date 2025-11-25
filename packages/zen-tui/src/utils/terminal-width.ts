@@ -9,12 +9,15 @@
  * - Different terminals have different Unicode version support
  *
  * Solution:
+ * - Auto-detect terminal emoji rendering capabilities
+ * - Use profile-based width calculation for known terminals
  * - Normalize emoji by handling VS16 consistently
  * - Use grapheme-aware iteration for proper cluster handling
  * - Provide fallback to string-width for standard characters
  */
 
 import stringWidth from 'string-width';
+import { getEmojiWidthProfile } from './emoji-width-detector.js';
 
 // Variation Selector 16 - forces emoji presentation
 const VS16 = '\uFE0F';
@@ -156,12 +159,21 @@ function graphemeWidth(grapheme: string): number {
     return stringWidth(grapheme);
   }
 
-  // For emoji with VS16, check if base would be narrow
+  // Auto-detect terminal emoji width behavior
+  const profile = getEmojiWidthProfile();
+
+  // For emoji with VS16, handle based on terminal capabilities
   if (hasVS16(grapheme)) {
+    // If terminal doesn't support VS16, strip it and calculate base width
+    if (!profile.vs16Supported) {
+      return stringWidth(base);
+    }
+
+    // Terminal supports VS16, but check if base is already narrow
     const baseWidth = stringWidth(base);
-    // If base is narrow (1), stay narrow even with VS16
-    // This handles cases where terminal ignores VS16
     if (baseWidth === 1) {
+      // Base is narrow, VS16 might make it wide (if terminal supports it)
+      // But most terminals that support VS16 still keep narrow emojis narrow
       return 1;
     }
   }
