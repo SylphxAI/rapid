@@ -482,33 +482,11 @@ export function renderToBuffer(node: TUINode, buffer: TerminalBuffer, layoutMap:
   findAbsoluteNodes(node);
 
   // Render normal flow first
-  renderNodeToBuffer(
-    node,
-    buffer,
-    layoutMap,
-    0,
-    0,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    true,
-  );
+  renderNodeToBuffer(node, buffer, layoutMap, 0, 0, undefined, undefined, undefined, undefined, true);
 
   // Sort absolute nodes by zIndex and render them
   absoluteNodes.sort((a, b) => a.zIndex - b.zIndex);
   for (const { node: absNode } of absoluteNodes) {
-    renderNodeToBuffer(
-      absNode,
-      buffer,
-      layoutMap,
-      0,
-      0,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      false,
-    );
+    renderNodeToBuffer(absNode, buffer, layoutMap, 0, 0, undefined, undefined, undefined, undefined, false);
   }
 }
