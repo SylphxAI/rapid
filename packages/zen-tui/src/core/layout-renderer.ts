@@ -369,12 +369,11 @@ function renderNodeToBuffer(
         buffer.writeAt(contentX, contentY, styledText, contentWidth);
       } else if (typeof child === 'object' && child !== null) {
         // Calculate child offset
-        // Children are positioned relative to parent's content area (inside border+padding)
-        // Yoga gives child.layout.x relative to content area, so we need absolute content position
-        const childOffsetX = contentX;
-        const childOffsetY = isScrollBox
-          ? contentY - scrollOffset  // ScrollBox: offset by scroll amount
-          : contentY;
+        // Yoga's getComputedLeft() already includes parent's border/padding
+        // So extractLayout stores correct absolute positions - no additional offset needed
+        // Exception: ScrollBox needs to apply scroll offset to shift content
+        const childOffsetX = 0;
+        const childOffsetY = isScrollBox ? -scrollOffset : 0;
 
         if ('type' in child) {
           const childNode = child as TUINode;
