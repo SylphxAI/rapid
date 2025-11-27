@@ -91,7 +91,8 @@ function InputTest() {
                 isFocused={contentFocused}
                 onChange={(v) => {
                   textareaValue.value = v;
-                  textareaReceived.value = `Changed to: ${v.slice(0, 20)}...`;
+                  // Replace newlines with ↵ to avoid breaking layout
+                  textareaReceived.value = `Changed to: ${v.slice(0, 20).replace(/\n/g, '↵')}...`;
                   log('[TextArea] Changed');
                 }}
               />
