@@ -26,7 +26,7 @@
  * ```
  */
 
-import { onCleanup, onMount, signal } from '@zen/runtime';
+import { createUniqueId, onCleanup, onMount, signal } from '@zen/runtime';
 import { appendChild } from '../core/jsx-runtime.js';
 import type { TUINode } from '../core/types.js';
 import { type HoverEvent, useMouseContext } from '../providers/MouseProvider.js';
@@ -42,17 +42,20 @@ export interface HoverableProps {
   disabled?: boolean;
 }
 
-let hoverableIdCounter = 0;
-
 export function Hoverable(props: HoverableProps): TUINode {
-  const id = `hoverable-${++hoverableIdCounter}`;
+  const id = `hoverable-${createUniqueId()}`;
   const isHovered = signal(false);
 
   // Register with mouse context (delayed to mount for proper context resolution)
   onMount(() => {
     const mouseContext = useMouseContext();
     if (!mouseContext) {
-      // Silent - MouseProvider may not be present for non-interactive apps
+      // Warn in development - MouseProvider is required for Hoverable to work
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(
+          '[Hoverable] MouseProvider not found. Hoverable requires a MouseProvider ancestor to track hover state.',
+        );
+      }
       return;
     }
 

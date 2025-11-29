@@ -5,7 +5,7 @@
  * Enables mouse wheel and keyboard navigation.
  */
 
-import { type MaybeReactive, resolve } from '@zen/runtime';
+import { type MaybeReactive, resolve, type Signal } from '@zen/runtime';
 import { effect, signal } from '@zen/signal';
 import { appendChild } from '../core/jsx-runtime.js';
 import { scheduleNodeUpdate } from '../core/render-context.js';
@@ -14,7 +14,8 @@ import { useInput } from '../hooks/useInput.js';
 import { useMouseScroll } from '../hooks/useMouse.js';
 
 export interface ScrollBoxProps {
-  children?: any;
+  /** Child content to scroll */
+  children?: TUINode | TUINode[];
   style?: TUIStyle;
   /** Viewport height (required) - supports MaybeReactive */
   height: MaybeReactive<number>;
@@ -23,7 +24,7 @@ export interface ScrollBoxProps {
   /** Lines to scroll on page up/down (default: height - 1) - supports MaybeReactive */
   pageSize?: MaybeReactive<number>;
   /** Optional external scroll offset signal (for integration with Scrollbar) */
-  scrollOffset?: any;
+  scrollOffset?: Signal<number>;
   /** Total content height (for scroll limiting) - supports MaybeReactive */
   contentHeight?: MaybeReactive<number>;
 }

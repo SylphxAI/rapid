@@ -15,7 +15,7 @@
  * ```
  */
 
-import { onCleanup, onMount, signal } from '@zen/runtime';
+import { createUniqueId, onCleanup, onMount, signal } from '@zen/runtime';
 import { appendChild } from '../core/jsx-runtime.js';
 import type { TUINode } from '../core/types.js';
 import { type PressEvent, useMouseContext } from '../providers/MouseProvider.js';
@@ -32,16 +32,19 @@ export interface PressableProps {
   disabled?: boolean;
 }
 
-let pressableIdCounter = 0;
-
 export function Pressable(props: PressableProps): TUINode {
-  const id = `pressable-${++pressableIdCounter}`;
+  const id = `pressable-${createUniqueId()}`;
 
   // Register with mouse context (delayed to mount for proper context resolution)
   onMount(() => {
     const mouseContext = useMouseContext();
     if (!mouseContext) {
-      // Silent - MouseProvider may not be present for non-interactive apps
+      // Warn in development - MouseProvider is required for Pressable to work
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(
+          '[Pressable] MouseProvider not found. Pressable requires a MouseProvider ancestor to handle click events.',
+        );
+      }
       return;
     }
 

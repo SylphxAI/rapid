@@ -4,7 +4,7 @@
  * Interactive button with visual feedback and keyboard support.
  */
 
-import { type MaybeReactive, type Signal, resolve, signal } from '@zen/runtime';
+import { createUniqueId, type MaybeReactive, onCleanup, type Signal, resolve, signal } from '@zen/runtime';
 import type { TUINode } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { Box } from '../primitives/Box.js';
@@ -27,12 +27,23 @@ export interface ButtonProps {
 }
 
 export function Button(props: ButtonProps): TUINode {
-  const id = props.id || `button-${Math.random().toString(36).slice(2, 9)}`;
+  const id = props.id || `button-${createUniqueId()}`;
   const variant = props.variant || 'primary';
   const width = props.width;
 
   // Visual pressed state
   const isPressed = signal(false);
+
+  // Track timeout for cleanup
+  let pressTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Cleanup timeout on unmount
+  onCleanup(() => {
+    if (pressTimeout !== null) {
+      clearTimeout(pressTimeout);
+      pressTimeout = null;
+    }
+  });
 
   // Helper to get current disabled state (uses resolve for MaybeReactive)
   const getDisabled = () => resolve(props.disabled) || false;
@@ -58,8 +69,12 @@ export function Button(props: ButtonProps): TUINode {
     if (key.return || input === ' ') {
       // Visual feedback: press and release
       isPressed.value = true;
-      setTimeout(() => {
+      if (pressTimeout !== null) {
+        clearTimeout(pressTimeout);
+      }
+      pressTimeout = setTimeout(() => {
         isPressed.value = false;
+        pressTimeout = null;
       }, 100);
 
       props.onClick?.();

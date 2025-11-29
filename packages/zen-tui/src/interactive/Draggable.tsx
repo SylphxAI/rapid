@@ -19,7 +19,7 @@
  * ```
  */
 
-import { onCleanup, onMount } from '@zen/runtime';
+import { createUniqueId, onCleanup, onMount } from '@zen/runtime';
 import { appendChild } from '../core/jsx-runtime.js';
 import type { TUINode } from '../core/types.js';
 import { type DragEvent, useMouseContext } from '../providers/MouseProvider.js';
@@ -36,16 +36,19 @@ export interface DraggableProps {
   disabled?: boolean;
 }
 
-let draggableIdCounter = 0;
-
 export function Draggable(props: DraggableProps): TUINode {
-  const id = `draggable-${++draggableIdCounter}`;
+  const id = `draggable-${createUniqueId()}`;
 
   // Register with mouse context (delayed to mount for proper context resolution)
   onMount(() => {
     const mouseContext = useMouseContext();
     if (!mouseContext) {
-      // Silent - MouseProvider may not be present for non-interactive apps
+      // Warn in development - MouseProvider is required for Draggable to work
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(
+          '[Draggable] MouseProvider not found. Draggable requires a MouseProvider ancestor to handle drag events.',
+        );
+      }
       return;
     }
 

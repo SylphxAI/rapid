@@ -22,6 +22,14 @@ export function dispatchMouseEvent(event: MouseEvent): void {
 }
 
 /**
+ * Clear all mouse listeners
+ * Useful for cleanup in tests
+ */
+export function clearMouseListeners(): void {
+  mouseListeners.clear();
+}
+
+/**
  * Hook for handling mouse events
  *
  * @example

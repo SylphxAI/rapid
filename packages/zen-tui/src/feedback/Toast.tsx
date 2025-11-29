@@ -6,7 +6,7 @@
  * Supports different types (success, error, warning, info).
  */
 
-import { For, Show } from '@zen/runtime';
+import { createUniqueId, For, Show } from '@zen/runtime';
 import { effect, onCleanup, signal } from '@zen/signal';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { Box } from '../primitives/Box.js';
@@ -37,7 +37,6 @@ export interface ToastProps {
 
 // Global toast store
 const toastStore = signal<ToastMessage[]>([]);
-let toastIdCounter = 0;
 
 /**
  * Show a toast notification
@@ -55,7 +54,7 @@ export const toast = {
    * Show a toast message
    */
   show(type: ToastType, message: string, duration = 3000): string {
-    const id = `toast-${++toastIdCounter}`;
+    const id = `toast-${createUniqueId()}`;
     const newToast: ToastMessage = { id, type, message, duration };
 
     toastStore.value = [...toastStore.value, newToast];
