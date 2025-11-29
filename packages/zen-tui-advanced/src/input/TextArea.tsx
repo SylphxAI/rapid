@@ -41,7 +41,7 @@ import {
   useFocus,
   useInput,
 } from '@zen/tui';
-import { type VisualLine, wrapText, isCursorOnLine } from './text-wrap';
+import { type VisualLine, isCursorOnLine, wrapText } from './text-wrap';
 
 export interface TextAreaProps {
   /** Current text value - supports MaybeReactive for reactivity */
@@ -243,63 +243,67 @@ export function TextArea(props: TextAreaProps) {
     updateText(newLines.join('\n'), undefined, col + text.length);
   };
 
-  const deleteChar = (direction: 'forward' | 'backward') => {
+  /** Find grapheme boundary before cursor position */
+  const findGraphemeBefore = (line: string, col: number) => {
+    const graphemes = getGraphemes(line);
+    let charIndex = 0;
+    let prevCharIndex = 0;
+    let grapheme = '';
+    for (const g of graphemes) {
+      if (charIndex >= col) break;
+      prevCharIndex = charIndex;
+      grapheme = g;
+      charIndex += g.length;
+    }
+    return { start: prevCharIndex, grapheme };
+  };
+
+  /** Find grapheme at cursor position */
+  const findGraphemeAt = (line: string, col: number) => {
+    const graphemes = getGraphemes(line);
+    let charIndex = 0;
+    for (const g of graphemes) {
+      if (charIndex >= col) return { start: charIndex, grapheme: g };
+      charIndex += g.length;
+    }
+    return { start: col, grapheme: '' };
+  };
+
+  const deleteBackward = () => {
     if (readOnly) return;
     const lines = [...logicalLines.value];
     const row = cursorRow.value;
     const col = cursorCol.value;
     const line = lines[row] || '';
 
-    let newCol = col;
-    let newRow = row;
-
-    if (direction === 'backward') {
-      if (col > 0) {
-        const graphemes = getGraphemes(line);
-        let charIndex = 0;
-        let prevCharIndex = 0;
-        let graphemeToDelete = '';
-
-        for (const g of graphemes) {
-          if (charIndex >= col) break;
-          prevCharIndex = charIndex;
-          graphemeToDelete = g;
-          charIndex += g.length;
-        }
-
-        lines[row] = line.slice(0, prevCharIndex) + line.slice(prevCharIndex + graphemeToDelete.length);
-        newCol = prevCharIndex;
-      } else if (row > 0) {
-        const prevLine = lines[row - 1];
-        lines[row - 1] = prevLine + line;
-        lines.splice(row, 1);
-        newRow = row - 1;
-        newCol = prevLine.length;
-      }
-    } else {
-      if (col < line.length) {
-        const graphemes = getGraphemes(line);
-        let charIndex = 0;
-        let graphemeToDelete = '';
-        let graphemeStart = col;
-
-        for (const g of graphemes) {
-          if (charIndex >= col) {
-            graphemeToDelete = g;
-            graphemeStart = charIndex;
-            break;
-          }
-          charIndex += g.length;
-        }
-
-        lines[row] = line.slice(0, graphemeStart) + line.slice(graphemeStart + graphemeToDelete.length);
-      } else if (row < lines.length - 1) {
-        lines[row] = line + lines[row + 1];
-        lines.splice(row + 1, 1);
-      }
+    if (col > 0) {
+      const { start, grapheme } = findGraphemeBefore(line, col);
+      lines[row] = line.slice(0, start) + line.slice(start + grapheme.length);
+      updateText(lines.join('\n'), row, start);
+    } else if (row > 0) {
+      const prevLine = lines[row - 1];
+      lines[row - 1] = prevLine + line;
+      lines.splice(row, 1);
+      updateText(lines.join('\n'), row - 1, prevLine.length);
     }
+  };
 
-    updateText(lines.join('\n'), newRow, newCol);
+  const deleteForward = () => {
+    if (readOnly) return;
+    const lines = [...logicalLines.value];
+    const row = cursorRow.value;
+    const col = cursorCol.value;
+    const line = lines[row] || '';
+
+    if (col < line.length) {
+      const { start, grapheme } = findGraphemeAt(line, col);
+      lines[row] = line.slice(0, start) + line.slice(start + grapheme.length);
+      updateText(lines.join('\n'), row, col);
+    } else if (row < lines.length - 1) {
+      lines[row] = line + lines[row + 1];
+      lines.splice(row + 1, 1);
+      updateText(lines.join('\n'), row, col);
+    }
   };
 
   const insertNewline = () => {
@@ -365,24 +369,49 @@ export function TextArea(props: TextAreaProps) {
   // Input Handling
   // ==========================================================================
 
+  const handleCursorUp = () => {
+    if (cursorRow.value > 0) {
+      cursorRow.value -= 1;
+      constrainCursor();
+    }
+  };
+
+  const handleCursorDown = () => {
+    if (cursorRow.value < logicalLines.value.length - 1) {
+      cursorRow.value += 1;
+      constrainCursor();
+    }
+  };
+
+  const handlePageUp = () => {
+    cursorRow.value = Math.max(0, cursorRow.value - rows);
+    constrainCursor();
+  };
+
+  const handlePageDown = () => {
+    cursorRow.value = Math.min(logicalLines.value.length - 1, cursorRow.value + rows);
+    constrainCursor();
+  };
+
+  const handleHome = () => {
+    cursorCol.value = 0;
+  };
+
+  const handleEnd = () => {
+    cursorCol.value = (logicalLines.value[cursorRow.value] || '').length;
+  };
+
   useInput(
     (input, key) => {
       if (!effectiveFocused.value || readOnly) return false;
 
-      const lines = logicalLines.value;
-
+      // Navigation keys
       if (key.upArrow) {
-        if (cursorRow.value > 0) {
-          cursorRow.value -= 1;
-          constrainCursor();
-        }
+        handleCursorUp();
         return true;
       }
       if (key.downArrow) {
-        if (cursorRow.value < lines.length - 1) {
-          cursorRow.value += 1;
-          constrainCursor();
-        }
+        handleCursorDown();
         return true;
       }
       if (key.leftArrow) {
@@ -394,31 +423,37 @@ export function TextArea(props: TextAreaProps) {
         return true;
       }
       if (key.home) {
-        cursorCol.value = 0;
+        handleHome();
         return true;
       }
       if (key.end) {
-        cursorCol.value = (lines[cursorRow.value] || '').length;
+        handleEnd();
         return true;
       }
       if (key.pageUp) {
-        cursorRow.value = Math.max(0, cursorRow.value - rows);
-        constrainCursor();
+        handlePageUp();
         return true;
       }
       if (key.pageDown) {
-        cursorRow.value = Math.min(lines.length - 1, cursorRow.value + rows);
-        constrainCursor();
+        handlePageDown();
         return true;
       }
-      if (key.backspace || key.delete) {
-        deleteChar(key.backspace ? 'backward' : 'forward');
+
+      // Editing keys
+      if (key.backspace) {
+        deleteBackward();
+        return true;
+      }
+      if (key.delete) {
+        deleteForward();
         return true;
       }
       if (key.return) {
         insertNewline();
         return true;
       }
+
+      // Text input
       if (input && !key.ctrl && !key.meta && !key.tab) {
         insertText(input);
         return true;

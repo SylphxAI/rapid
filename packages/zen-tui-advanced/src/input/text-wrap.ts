@@ -195,11 +195,12 @@ export function wrapText(text: string, options: WrapOptions): WrapResult {
 
 /**
  * Find which visual line contains a cursor position.
+ * Uses isCursorOnLine for consistent logic.
  *
  * @param lines - Visual lines from wrapText
  * @param logicalRow - Cursor's logical row
  * @param logicalCol - Cursor's logical column
- * @returns Visual line index, or -1 if not found
+ * @returns Visual line index, or 0 if not found
  */
 export function findCursorVisualLine(
   lines: VisualLine[],
@@ -207,28 +208,10 @@ export function findCursorVisualLine(
   logicalCol: number,
 ): number {
   for (let i = 0; i < lines.length; i++) {
-    const vl = lines[i];
-    if (vl.logicalRow !== logicalRow) continue;
-
-    const lineEnd = vl.startCol + vl.text.length;
-    const nextLine = lines[i + 1];
-    const isLastOfLogical = !nextLine || nextLine.logicalRow !== logicalRow;
-
-    // Cursor is in this visual line if:
-    // - col >= startCol AND
-    // - col < lineEnd (for non-last lines) OR col <= lineEnd (for last line)
-    if (logicalCol >= vl.startCol) {
-      if (isLastOfLogical ? logicalCol <= lineEnd : logicalCol < lineEnd) {
-        return i;
-      }
+    if (isCursorOnLine(lines[i], lines[i + 1], logicalRow, logicalCol)) {
+      return i;
     }
   }
-
-  // Fallback: find last visual line for this logical row
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].logicalRow === logicalRow) return i;
-  }
-
   return 0;
 }
 
