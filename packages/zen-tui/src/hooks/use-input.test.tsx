@@ -4,15 +4,15 @@
  *
  * Tests for keyboard input handling with parseKey and dispatchInput.
  */
-import { describe, expect, it, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { createRoot, signal } from '@zen/runtime';
 import {
-  parseKey,
-  dispatchInput,
-  useInput,
-  clearInputHandlers,
-  type Key,
   type InputHandler,
+  type Key,
+  clearInputHandlers,
+  dispatchInput,
+  parseKey,
+  useInput,
 } from './useInput.js';
 
 describe('parseKey', () => {
