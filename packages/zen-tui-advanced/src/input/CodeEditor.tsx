@@ -23,40 +23,40 @@
  * ```
  */
 
-import { Box, Text, batch, computed, signal, useInput } from '@zen/tui';
+import { Box, type MaybeReactive, Text, batch, computed, resolve, signal, useInput } from '@zen/tui';
 
 export type Language = 'javascript' | 'typescript' | 'python' | 'json' | 'markdown' | 'plain';
 
 export interface CodeEditorProps {
-  /** Current code value */
-  value?: string;
+  /** Current code value - supports MaybeReactive */
+  value?: MaybeReactive<string>;
 
   /** Callback when code changes */
   onChange?: (value: string) => void;
 
-  /** Programming language for syntax highlighting */
-  language?: Language;
+  /** Programming language for syntax highlighting - supports MaybeReactive */
+  language?: MaybeReactive<Language>;
 
-  /** Number of visible rows */
-  rows?: number;
+  /** Number of visible rows - supports MaybeReactive */
+  rows?: MaybeReactive<number>;
 
-  /** Number of columns (width) */
-  cols?: number;
+  /** Number of columns (width) - supports MaybeReactive */
+  cols?: MaybeReactive<number>;
 
-  /** Read-only mode */
-  readOnly?: boolean;
+  /** Read-only mode - supports MaybeReactive */
+  readOnly?: MaybeReactive<boolean>;
 
-  /** Focus management */
-  isFocused?: boolean;
+  /** Focus management - supports MaybeReactive */
+  isFocused?: MaybeReactive<boolean>;
 
-  /** Border style */
-  border?: boolean;
+  /** Border style - supports MaybeReactive */
+  border?: MaybeReactive<boolean>;
 
-  /** Show line numbers (default: true for CodeEditor) */
-  showLineNumbers?: boolean;
+  /** Show line numbers (default: true for CodeEditor) - supports MaybeReactive */
+  showLineNumbers?: MaybeReactive<boolean>;
 
-  /** Enable line wrapping (default: false for code) */
-  wrap?: boolean;
+  /** Enable line wrapping (default: false for code) - supports MaybeReactive */
+  wrap?: MaybeReactive<boolean>;
 }
 
 // Token types for syntax highlighting
@@ -376,32 +376,39 @@ function tokenize(line: string, language: Language): Token[] {
  * CodeEditor Component
  */
 export function CodeEditor(props: CodeEditorProps) {
-  const {
-    value: externalValue = '',
-    onChange,
-    language = 'typescript',
-    rows = 20,
-    cols = 80,
-    readOnly = false,
-    isFocused = true,
-    border = true,
-    showLineNumbers = true,
-    wrap = false, // Default off for code (preserve formatting)
-  } = props;
+  // Do NOT destructure props - resolve them reactively inside computed/effects
+  const { onChange } = props;
 
-  // Calculate available content width
-  const lineNumberWidth = showLineNumbers ? 5 : 0; // "   1 " = 5 chars
-  const borderWidth = border ? 2 : 0;
-  const contentWidth = Math.max(1, cols - borderWidth - lineNumberWidth);
+  // Resolve reactive props
+  const rows$ = computed(() => resolve(props.rows) ?? 20);
+  const cols$ = computed(() => resolve(props.cols) ?? 80);
+  const language$ = computed(() => resolve(props.language) ?? 'typescript');
+  const readOnly$ = computed(() => resolve(props.readOnly) ?? false);
+  const isFocused$ = computed(() => resolve(props.isFocused) ?? true);
+  const border$ = computed(() => resolve(props.border) ?? true);
+  const showLineNumbers$ = computed(() => resolve(props.showLineNumbers) ?? true);
+  const wrap$ = computed(() => resolve(props.wrap) ?? false);
+
+  // External value (reactive)
+  const externalValue = computed(() => resolve(props.value) ?? '');
+  const isControlled = props.value !== undefined;
+
+  // Calculate available content width (reactive)
+  const lineNumberWidth$ = computed(() => (showLineNumbers$.value ? 5 : 0));
+  const borderWidth$ = computed(() => (border$.value ? 2 : 0));
+  const contentWidth$ = computed(() =>
+    Math.max(1, cols$.value - borderWidth$.value - lineNumberWidth$.value),
+  );
 
   // Internal state
-  const internalValue = signal(externalValue);
+  const internalValue = signal(externalValue.value);
   const cursorRow = signal(0);
   const cursorCol = signal(0);
   const scrollOffset = signal(0);
   const horizontalScroll = signal(0); // For non-wrapped mode
 
-  const currentValue = computed(() => internalValue.value);
+  // Current value: use external if controlled, internal otherwise
+  const currentValue = computed(() => (isControlled ? externalValue.value : internalValue.value));
 
   // Split into lines
   const lines = computed(() => {
@@ -409,11 +416,11 @@ export function CodeEditor(props: CodeEditorProps) {
     return text ? text.split('\n') : [''];
   });
 
-  // Visible lines
+  // Visible lines (reactive to rows$)
   const visibleLines = computed(() => {
     const allLines = lines.value;
     const start = scrollOffset.value;
-    const end = Math.min(start + rows, allLines.length);
+    const end = Math.min(start + rows$.value, allLines.length);
     return allLines.slice(start, end);
   });
 
@@ -429,6 +436,7 @@ export function CodeEditor(props: CodeEditorProps) {
     cursorCol.value = Math.min(cursorCol.value, maxCol);
 
     // Vertical scroll
+    const rows = rows$.value;
     if (cursorRow.value < scrollOffset.value) {
       scrollOffset.value = cursorRow.value;
     } else if (cursorRow.value >= scrollOffset.value + rows) {
@@ -436,7 +444,8 @@ export function CodeEditor(props: CodeEditorProps) {
     }
 
     // Horizontal scroll (for non-wrapped mode)
-    if (!wrap) {
+    const contentWidth = contentWidth$.value;
+    if (!wrap$.value) {
       if (cursorCol.value < horizontalScroll.value) {
         horizontalScroll.value = cursorCol.value;
       } else if (cursorCol.value >= horizontalScroll.value + contentWidth) {
@@ -447,7 +456,7 @@ export function CodeEditor(props: CodeEditorProps) {
 
   // Insert text
   const insertText = (text: string) => {
-    if (readOnly) return;
+    if (readOnly$.value) return;
 
     const currentLines = lines.value;
     const row = cursorRow.value;
@@ -471,7 +480,7 @@ export function CodeEditor(props: CodeEditorProps) {
 
   // Delete character
   const deleteChar = (direction: 'forward' | 'backward') => {
-    if (readOnly) return;
+    if (readOnly$.value) return;
 
     const currentLines = [...lines.value];
     const row = cursorRow.value;
@@ -515,7 +524,7 @@ export function CodeEditor(props: CodeEditorProps) {
 
   // Insert newline
   const insertNewline = () => {
-    if (readOnly) return;
+    if (readOnly$.value) return;
 
     const currentLines = [...lines.value];
     const row = cursorRow.value;
@@ -544,7 +553,7 @@ export function CodeEditor(props: CodeEditorProps) {
   // Keyboard input handler
   useInput(
     (input, key) => {
-      if (!isFocused || readOnly) return false;
+      if (!isFocused$.value || readOnly$.value) return false;
 
       const currentLines = lines.value;
 
@@ -594,12 +603,12 @@ export function CodeEditor(props: CodeEditorProps) {
         return true;
       }
       if (key.pageUp) {
-        cursorRow.value = Math.max(0, cursorRow.value - rows);
+        cursorRow.value = Math.max(0, cursorRow.value - rows$.value);
         constrainCursor();
         return true;
       }
       if (key.pageDown) {
-        cursorRow.value = Math.min(currentLines.length - 1, cursorRow.value + rows);
+        cursorRow.value = Math.min(currentLines.length - 1, cursorRow.value + rows$.value);
         constrainCursor();
         return true;
       }
@@ -624,35 +633,36 @@ export function CodeEditor(props: CodeEditorProps) {
 
       return false;
     },
-    { isActive: isFocused, priority: 10 },
+    { isActive: () => isFocused$.value, priority: 10 },
   );
 
   // Render a single line with syntax highlighting
   const renderLine = (lineText: string, lineIndex: number, isCursorLine: boolean) => {
-    const _tokens = tokenize(lineText, language);
+    const _tokens = tokenize(lineText, language$.value);
     const globalLineNum = scrollOffset.value + lineIndex;
 
     // For horizontal scrolling in non-wrap mode
     const hScroll = horizontalScroll.value;
+    const contentWidth = contentWidth$.value;
     let displayText = lineText;
-    if (!wrap && lineText.length > contentWidth) {
+    if (!wrap$.value && lineText.length > contentWidth) {
       displayText = lineText.slice(hScroll, hScroll + contentWidth);
     }
 
     // Line number
-    const lineNumber = showLineNumbers ? `${`${globalLineNum + 1}`.padStart(4, ' ')} ` : '';
+    const lineNumber = showLineNumbers$.value ? `${`${globalLineNum + 1}`.padStart(4, ' ')} ` : '';
 
-    if (isCursorLine && isFocused) {
+    if (isCursorLine && isFocused$.value) {
       // Render with cursor
-      const cursorPosInDisplay = wrap ? cursorCol.value : cursorCol.value - hScroll;
+      const cursorPosInDisplay = wrap$.value ? cursorCol.value : cursorCol.value - hScroll;
 
       // Re-tokenize the visible portion for cursor line
-      const visibleTokens = tokenize(displayText, language);
+      const visibleTokens = tokenize(displayText, language$.value);
       let charIndex = 0;
       // biome-ignore lint/suspicious/noExplicitAny: JSX return types vary by runtime
       const elements: any[] = [];
 
-      if (showLineNumbers) {
+      if (showLineNumbers$.value) {
         elements.push(
           <Text key="ln" style={{ dim: true }}>
             {lineNumber}
@@ -713,7 +723,7 @@ export function CodeEditor(props: CodeEditorProps) {
     }
 
     // Non-cursor line with highlighting
-    const visibleTokens = tokenize(displayText, language);
+    const visibleTokens = tokenize(displayText, language$.value);
 
     // Render tokens with character position as key
     let charPos = 0;
@@ -729,7 +739,7 @@ export function CodeEditor(props: CodeEditorProps) {
 
     return (
       <Text key={globalLineNum}>
-        {showLineNumbers && <Text style={{ dim: true }}>{lineNumber}</Text>}
+        {showLineNumbers$.value && <Text style={{ dim: true }}>{lineNumber}</Text>}
         {tokenElements}
         {displayText === '' && ' '}
       </Text>
@@ -738,14 +748,14 @@ export function CodeEditor(props: CodeEditorProps) {
 
   return (
     <Box
-      style={{
+      style={() => ({
         flexDirection: 'column',
-        width: cols,
-        height: rows + (border ? 2 : 0),
-        borderStyle: border ? 'single' : undefined,
-        borderColor: isFocused ? 'cyan' : 'gray',
+        width: cols$.value,
+        height: rows$.value + (border$.value ? 2 : 0),
+        borderStyle: border$.value ? 'single' : undefined,
+        borderColor: isFocused$.value ? 'cyan' : 'gray',
         overflow: 'hidden',
-      }}
+      })}
     >
       {() => {
         const displayLines = visibleLines.value;

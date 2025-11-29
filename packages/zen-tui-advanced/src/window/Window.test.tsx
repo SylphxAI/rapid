@@ -6,13 +6,8 @@
  */
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { Text } from '@zen/tui';
-import {
-  $focusedWindowId,
-  $nextZIndex,
-  $windows,
-  type WindowState,
-} from './WindowManager.js';
 import { Window } from './Window.js';
+import { $focusedWindowId, $nextZIndex, $windows, type WindowState } from './WindowManager.js';
 
 describe('Window', () => {
   beforeEach(() => {
@@ -238,10 +233,7 @@ describe('Window', () => {
       const win = createWindowState();
       const result = Window({
         window: win,
-        children: [
-          <Text key="1">Line 1</Text>,
-          <Text key="2">Line 2</Text>,
-        ],
+        children: [<Text key="1">Line 1</Text>, <Text key="2">Line 2</Text>],
       });
 
       expect(result).toBeDefined();

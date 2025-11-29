@@ -300,17 +300,22 @@ describe('CodeEditor', () => {
 
     it('should insert multiple characters', async () => {
       const changes: string[] = [];
+      const value = signal('');
 
       createRoot(() => {
         return CodeEditor({
-          value: '',
+          value: () => value.value,
           isFocused: true,
-          onChange: (v) => changes.push(v),
+          onChange: (v) => {
+            value.value = v;
+            changes.push(v);
+          },
         });
       });
 
       await new Promise((r) => setTimeout(r, 50));
       dispatchInput('h');
+      await new Promise((r) => setTimeout(r, 5));
       dispatchInput('i');
       await new Promise((r) => setTimeout(r, 10));
 
@@ -711,20 +716,25 @@ describe('CodeEditor', () => {
 
     it('should handle rapid key presses', async () => {
       const changes: string[] = [];
+      const value = signal('');
 
       createRoot(() => {
         return CodeEditor({
-          value: '',
+          value: () => value.value,
           isFocused: true,
-          onChange: (v) => changes.push(v),
+          onChange: (v) => {
+            value.value = v;
+            changes.push(v);
+          },
         });
       });
 
       await new Promise((r) => setTimeout(r, 50));
 
-      // Rapid typing
+      // Rapid typing with small delays for state to propagate
       for (const char of 'hello world') {
         dispatchInput(char);
+        await new Promise((r) => setTimeout(r, 2));
       }
       await new Promise((r) => setTimeout(r, 10));
 
