@@ -6,7 +6,7 @@
  * Supports different types (success, error, warning, info).
  */
 
-import { createUniqueId, For, Show } from '@zen/runtime';
+import { For, Show, createUniqueId } from '@zen/runtime';
 import { effect, onCleanup, signal } from '@zen/signal';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { Box } from '../primitives/Box.js';

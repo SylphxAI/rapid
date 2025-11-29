@@ -5,7 +5,7 @@
  * keyboard navigation, and optional selection.
  */
 
-import { type MaybeReactive, type Signal, resolve, signal } from '@zen/runtime';
+import { createUniqueId, type MaybeReactive, type Signal, resolve, signal } from '@zen/runtime';
 import type { TUINode } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { Box } from '../primitives/Box.js';
@@ -56,7 +56,7 @@ interface FlatNode<T> {
 }
 
 export function TreeView<T = unknown>(props: TreeViewProps<T>): TUINode {
-  const id = props.id || `tree-${Math.random().toString(36).slice(2, 9)}`;
+  const id = props.id || `tree-${createUniqueId()}`;
 
   // Resolve reactive options
   const getShowLines = () => resolve(props.showLines) !== false;

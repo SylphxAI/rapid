@@ -41,9 +41,7 @@ export function Pressable(props: PressableProps): TUINode {
     if (!mouseContext) {
       // Warn in development - MouseProvider is required for Pressable to work
       if (process.env.NODE_ENV !== 'production') {
-        console.warn(
-          '[Pressable] MouseProvider not found. Pressable requires a MouseProvider ancestor to handle click events.',
-        );
+        console.warn('[Pressable] MouseProvider not found. Wrap your app with <MouseProvider> for mouse interaction.');
       }
       return;
     }

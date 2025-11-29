@@ -4,7 +4,14 @@
  * Interactive button with visual feedback and keyboard support.
  */
 
-import { createUniqueId, type MaybeReactive, onCleanup, type Signal, resolve, signal } from '@zen/runtime';
+import {
+  type MaybeReactive,
+  type Signal,
+  createUniqueId,
+  onCleanup,
+  resolve,
+  signal,
+} from '@zen/runtime';
 import type { TUINode } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { Box } from '../primitives/Box.js';

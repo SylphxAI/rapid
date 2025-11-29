@@ -45,9 +45,7 @@ export function Draggable(props: DraggableProps): TUINode {
     if (!mouseContext) {
       // Warn in development - MouseProvider is required for Draggable to work
       if (process.env.NODE_ENV !== 'production') {
-        console.warn(
-          '[Draggable] MouseProvider not found. Draggable requires a MouseProvider ancestor to handle drag events.',
-        );
+        console.warn('[Draggable] MouseProvider not found. Wrap your app with <MouseProvider> for mouse interaction.');
       }
       return;
     }

@@ -5,7 +5,7 @@
  * Enables mouse wheel and keyboard navigation.
  */
 
-import { type MaybeReactive, resolve, type Signal } from '@zen/runtime';
+import { type MaybeReactive, type Signal, resolve } from '@zen/runtime';
 import { effect, signal } from '@zen/signal';
 import { appendChild } from '../core/jsx-runtime.js';
 import { scheduleNodeUpdate } from '../core/render-context.js';
@@ -93,7 +93,7 @@ export function ScrollBox(props: ScrollBoxProps): TUINode {
     style: {
       ...props?.style,
       height: getHeight(),
-      overflow: 'hidden' as any, // Mark as scrollable container
+      overflow: 'hidden', // Mark as scrollable container
     },
   };
 

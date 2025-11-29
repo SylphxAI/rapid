@@ -52,9 +52,7 @@ export function Hoverable(props: HoverableProps): TUINode {
     if (!mouseContext) {
       // Warn in development - MouseProvider is required for Hoverable to work
       if (process.env.NODE_ENV !== 'production') {
-        console.warn(
-          '[Hoverable] MouseProvider not found. Hoverable requires a MouseProvider ancestor to track hover state.',
-        );
+        console.warn('[Hoverable] MouseProvider not found. Wrap your app with <MouseProvider> for mouse interaction.');
       }
       return;
     }
