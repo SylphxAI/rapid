@@ -177,8 +177,20 @@ describe('MenuBar', () => {
       createRoot(() => {
         return MenuBar({
           items: [
-            { label: 'File', key: 'F1', onSelect: () => { selected = 'File'; } },
-            { label: 'Edit', key: 'F2', onSelect: () => { selected = 'Edit'; } },
+            {
+              label: 'File',
+              key: 'F1',
+              onSelect: () => {
+                selected = 'File';
+              },
+            },
+            {
+              label: 'Edit',
+              key: 'F2',
+              onSelect: () => {
+                selected = 'Edit';
+              },
+            },
           ],
           activeIndex: 1,
           isFocused: true,
@@ -198,9 +210,27 @@ describe('MenuBar', () => {
       createRoot(() => {
         return MenuBar({
           items: [
-            { label: 'File', key: 'F1', onSelect: () => { selected = 'File'; } },
-            { label: 'Edit', key: 'F2', onSelect: () => { selected = 'Edit'; } },
-            { label: 'View', key: 'F3', onSelect: () => { selected = 'View'; } },
+            {
+              label: 'File',
+              key: 'F1',
+              onSelect: () => {
+                selected = 'File';
+              },
+            },
+            {
+              label: 'Edit',
+              key: 'F2',
+              onSelect: () => {
+                selected = 'Edit';
+              },
+            },
+            {
+              label: 'View',
+              key: 'F3',
+              onSelect: () => {
+                selected = 'View';
+              },
+            },
           ],
           isFocused: true,
         });
@@ -225,8 +255,21 @@ describe('MenuBar', () => {
       createRoot(() => {
         return MenuBar({
           items: [
-            { label: 'File', key: 'F1', onSelect: () => { selected = 'File'; } },
-            { label: 'Edit', key: 'F2', disabled: true, onSelect: () => { selected = 'Edit'; } },
+            {
+              label: 'File',
+              key: 'F1',
+              onSelect: () => {
+                selected = 'File';
+              },
+            },
+            {
+              label: 'Edit',
+              key: 'F2',
+              disabled: true,
+              onSelect: () => {
+                selected = 'Edit';
+              },
+            },
           ],
           activeIndex: 1, // Disabled item selected
           isFocused: true,
@@ -246,8 +289,21 @@ describe('MenuBar', () => {
       createRoot(() => {
         return MenuBar({
           items: [
-            { label: 'File', key: 'F1', onSelect: () => { selected = 'File'; } },
-            { label: 'Edit', key: 'F2', disabled: true, onSelect: () => { selected = 'Edit'; } },
+            {
+              label: 'File',
+              key: 'F1',
+              onSelect: () => {
+                selected = 'File';
+              },
+            },
+            {
+              label: 'Edit',
+              key: 'F2',
+              disabled: true,
+              onSelect: () => {
+                selected = 'Edit';
+              },
+            },
           ],
           isFocused: true,
         });
@@ -485,7 +541,15 @@ describe('MenuBar', () => {
 
       createRoot(() => {
         return MenuBar({
-          items: [{ label: 'File', key: 'F1', onSelect: () => { selected = true; } }],
+          items: [
+            {
+              label: 'File',
+              key: 'F1',
+              onSelect: () => {
+                selected = true;
+              },
+            },
+          ],
           isFocused: true,
         });
       });
@@ -502,7 +566,15 @@ describe('MenuBar', () => {
 
       createRoot(() => {
         return MenuBar({
-          items: [{ label: 'File', key: 'F1', onSelect: () => { selected = true; } }],
+          items: [
+            {
+              label: 'File',
+              key: 'F1',
+              onSelect: () => {
+                selected = true;
+              },
+            },
+          ],
           isFocused: true,
         });
       });
