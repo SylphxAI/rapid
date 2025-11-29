@@ -6,7 +6,7 @@
  */
 
 import { type MaybeReactive, resolve } from '@zen/runtime';
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 import { Box } from '../primitives/Box.js';
 import { Text } from '../primitives/Text.js';
 
@@ -18,7 +18,7 @@ export interface StatusMessageProps {
   /** Message content - supports MaybeReactive */
   children: MaybeReactive<string>;
   /** Custom styles */
-  style?: any;
+  style?: TUIStyle;
 }
 
 const STATUS_CONFIG = {

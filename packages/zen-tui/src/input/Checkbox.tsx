@@ -5,7 +5,7 @@
  */
 
 import { type MaybeReactive, type Signal, resolve, signal } from '@zen/runtime';
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { Box } from '../primitives/Box.js';
 import { Text } from '../primitives/Text.js';
@@ -23,7 +23,7 @@ export interface CheckboxProps {
   /** Fixed width */
   width?: number;
   /** Custom styles */
-  style?: any;
+  style?: TUIStyle;
 }
 
 export function Checkbox(props: CheckboxProps): TUINode {

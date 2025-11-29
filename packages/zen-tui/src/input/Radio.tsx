@@ -6,7 +6,7 @@
  */
 
 import { type MaybeReactive, type Signal, resolve, signal } from '@zen/runtime';
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { Box } from '../primitives/Box.js';
 import { Text } from '../primitives/Text.js';
@@ -27,7 +27,7 @@ export interface RadioProps<T = string> {
   /** Focus ID for FocusProvider */
   id?: string;
   /** Custom styles */
-  style?: any;
+  style?: TUIStyle;
   /** External highlight control */
   highlightedIndex?: Signal<number>;
 }

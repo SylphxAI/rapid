@@ -6,7 +6,7 @@
  */
 
 import { signal } from '@zen/runtime';
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { Box } from '../primitives/Box.js';
 import { Text } from '../primitives/Text.js';
@@ -20,7 +20,7 @@ export interface ConfirmationProps {
   noLabel?: string;
   defaultYes?: boolean; // Default to Yes (default: true)
   id?: string;
-  style?: any;
+  style?: TUIStyle;
 }
 
 export function Confirmation(props: ConfirmationProps): TUINode {

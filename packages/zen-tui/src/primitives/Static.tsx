@@ -24,14 +24,13 @@
  */
 
 import { appendChild } from '../core/jsx-runtime.js';
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 
 // biome-ignore lint/suspicious/noExplicitAny: Generic component supports any item type
 export interface StaticProps<T = any> {
   items: T[] | (() => T[]);
   children: (item: T, index: number) => TUINode | string;
-  // biome-ignore lint/suspicious/noExplicitAny: Style can be any CSS-like object
-  style?: any;
+  style?: TUIStyle;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: Generic component supports any item type

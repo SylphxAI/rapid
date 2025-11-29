@@ -5,7 +5,7 @@
  */
 
 import { type MaybeReactive, resolve } from '@zen/runtime';
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 import { Box } from '../primitives/Box.js';
 import { Text } from '../primitives/Text.js';
 
@@ -17,7 +17,7 @@ export interface BadgeProps {
   /** Badge color - supports MaybeReactive */
   color?: MaybeReactive<BadgeColor>;
   /** Custom styles */
-  style?: any;
+  style?: TUIStyle;
 }
 
 export function Badge(props: BadgeProps): TUINode {

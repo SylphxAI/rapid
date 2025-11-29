@@ -4,7 +4,7 @@
  * Horizontal divider line for separating content.
  */
 
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 import { Text } from '../primitives/Text.js';
 
 export interface DividerProps {
@@ -12,7 +12,7 @@ export interface DividerProps {
   width?: number; // Width of divider (default: full width)
   color?: string;
   padding?: number; // Vertical padding (default: 0)
-  style?: any;
+  style?: TUIStyle;
 }
 
 export function Divider(props: DividerProps): TUINode {

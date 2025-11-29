@@ -6,7 +6,7 @@
  */
 
 import { type MaybeReactive, resolve } from '@zen/runtime';
-import type { TUINode } from '../core/types.js';
+import type { TUINode, TUIStyle } from '../core/types.js';
 import { Text } from '../primitives/Text.js';
 
 export interface LinkProps {
@@ -17,7 +17,7 @@ export interface LinkProps {
   /** Show URL in parentheses if true (default: false) - supports MaybeReactive */
   fallback?: MaybeReactive<boolean>;
   /** Custom styles */
-  style?: any;
+  style?: TUIStyle;
 }
 
 /**
