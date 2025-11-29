@@ -23,7 +23,16 @@
  * ```
  */
 
-import { Box, type MaybeReactive, Text, batch, computed, resolve, signal, useInput } from '@zen/tui';
+import {
+  Box,
+  type MaybeReactive,
+  Text,
+  batch,
+  computed,
+  resolve,
+  signal,
+  useInput,
+} from '@zen/tui';
 
 export type Language = 'javascript' | 'typescript' | 'python' | 'json' | 'markdown' | 'plain';
 
