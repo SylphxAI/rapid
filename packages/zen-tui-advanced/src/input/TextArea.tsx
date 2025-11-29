@@ -244,7 +244,8 @@ export function TextArea(props: TextAreaProps) {
       const line = logical[logicalRow];
       const lineWidth = terminalWidth(line);
 
-      if (!wrap || lineWidth < contentWidth) {
+      // Reserve 1 column for cursor at end - wrap when text fills line
+      if (!wrap || lineWidth < contentWidth - 1) {
         // No wrapping needed - single visual line (with room for cursor at end)
         result.push({ text: line, logicalRow, startCol: 0, startVisualCol: 0 });
       } else {
