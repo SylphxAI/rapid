@@ -281,27 +281,100 @@ render(App);
 
 See [INK-COMPATIBILITY.md](./INK-COMPATIBILITY.md) for full migration guide.
 
-## Advanced Features
+## Rendering Modes
 
-### Full-Screen Mode
+Zen TUI supports two rendering modes, each optimized for different use cases:
 
-Take over the entire terminal with alternate screen buffer.
+### Inline Mode (Default)
+
+Console applications that render within the normal terminal flow. Content can be **arbitrarily long** and the terminal naturally scrolls.
+
+```tsx
+import { render, Box, Text } from '@zen/tui';
+
+// Inline mode - no wrapper needed
+// Content can be any height, terminal scrolls naturally
+await render(() => (
+  <Box flexDirection="column">
+    <Text>Question 1: ...</Text>
+    <Text>Question 2: ...</Text>
+    {/* Can have 100+ lines - no problem! */}
+  </Box>
+));
+```
+
+**Use cases:**
+- CLI wizards and questionnaires
+- Installation progress (like `npm install`)
+- Interactive prompts
+- Log viewers
+
+**Characteristics:**
+- ✅ Unlimited content height
+- ✅ Natural terminal scrolling
+- ✅ Content persists in scrollback
+- ✅ Mouse support available
+
+### Fullscreen Mode
+
+Applications that take over the entire terminal using the alternate screen buffer.
 
 ```tsx
 import { render, FullscreenLayout, Box, Text } from '@zen/tui';
 
-function App() {
-  return (
-    <FullscreenLayout>
-      <Box flexDirection="column" height="100%">
-        <Text>Full-screen app</Text>
-      </Box>
-    </FullscreenLayout>
-  );
-}
-
-render(App);
+// Fullscreen mode - wrap with FullscreenLayout
+await render(() => (
+  <FullscreenLayout>
+    <Box flexDirection="column" height="100%">
+      <Text>Dashboard</Text>
+    </Box>
+  </FullscreenLayout>
+));
 ```
+
+**Use cases:**
+- Dashboards and monitoring tools
+- Text editors (like vim)
+- File browsers
+- Full-screen games
+
+**Characteristics:**
+- ✅ Fixed to terminal dimensions
+- ✅ Fine-grained updates (efficient)
+- ✅ Preserves main screen on exit
+- ✅ Mouse support available
+
+### Mixed Mode
+
+Applications can switch between modes at runtime:
+
+```tsx
+import { render, FullscreenLayout, Router, Route } from '@zen/tui';
+
+await render(() => (
+  <Router>
+    {/* Inline pages */}
+    <Route path="/" component={InlineHome} />
+    <Route path="/survey" component={Questionnaire} />
+
+    {/* Fullscreen pages - just wrap with FullscreenLayout */}
+    <Route path="/dashboard" component={() => (
+      <FullscreenLayout>
+        <Dashboard />
+      </FullscreenLayout>
+    )} />
+  </Router>
+));
+```
+
+When navigating from inline to fullscreen:
+1. Alternate screen buffer activates
+2. Main screen content is preserved
+3. On return, main screen is restored
+
+See [ADR-001](./docs/adr/001-dual-renderer-architecture.md) for technical details.
+
+## Advanced Features
 
 ### Mouse Support
 
@@ -347,14 +420,17 @@ See [ADVANCED-FEATURES.md](./ADVANCED-FEATURES.md) for more details.
 
 ## Architecture
 
-Zen TUI uses a **fragment-based reactive architecture** for efficient updates:
+Zen TUI uses a **dual renderer architecture** with **fragment-based reactivity**:
 
-1. **Fragment Nodes**: Transparent containers for reactive content (like React Fragments)
-2. **Fine-Grained Reactivity**: Only dirty nodes update on signal changes
-3. **Incremental Layout**: Yoga layout calculated incrementally
-4. **Persistent Tree**: No virtual DOM, direct node updates
+1. **Dual Renderers**: Separate `InlineRenderer` and `FullscreenRenderer` optimized for each mode
+2. **Fragment Nodes**: Transparent containers for reactive content (like React Fragments)
+3. **Fine-Grained Reactivity**: Only dirty nodes update on signal changes
+4. **Incremental Layout**: Yoga layout calculated incrementally
+5. **Persistent Tree**: No virtual DOM, direct node updates
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for technical details.
+See:
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Fragment-based reactivity
+- [ADR-001](./docs/adr/001-dual-renderer-architecture.md) - Dual renderer design
 
 ## Examples
 
