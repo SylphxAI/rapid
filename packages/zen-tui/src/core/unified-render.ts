@@ -163,8 +163,6 @@ export async function render(createApp: () => unknown): Promise<() => void> {
 
   // Track actual content height for inline mode cursor management
   let actualContentHeight = 0;
-  // Track maximum content height ever rendered (for cleanup)
-  let maxContentHeight = 0;
 
   // Create component tree with settings provider
   const node = createRoot(() => {
@@ -342,11 +340,25 @@ export async function render(createApp: () => unknown): Promise<() => void> {
         // Write new output
         process.stdout.write(output);
 
-        // Move cursor back to top for next render
-        if (newLines.length > 1) {
-          process.stdout.write(`\x1b[${newLines.length - 1}A`);
+        // If content shrank, clear the extra lines that are no longer used
+        if (previousContentHeight > newOutputHeight) {
+          // Cursor is at end of last content line, move down to first extra line
+          process.stdout.write('\n\r');
+          for (let i = newOutputHeight; i < previousContentHeight; i++) {
+            process.stdout.write('\x1b[2K');
+            if (i < previousContentHeight - 1) {
+              process.stdout.write('\x1b[1B\r');
+            }
+          }
+          // Move back to line 0
+          process.stdout.write(`\x1b[${previousContentHeight - 1}A\r`);
+        } else {
+          // Move cursor back to top for next render
+          if (newLines.length > 1) {
+            process.stdout.write(`\x1b[${newLines.length - 1}A`);
+          }
+          process.stdout.write('\r');
         }
-        process.stdout.write('\r');
       }
     }
 
@@ -354,10 +366,6 @@ export async function render(createApp: () => unknown): Promise<() => void> {
     // This ensures cleanup uses the correct current height, not a stale value
     if (!inFullscreen) {
       actualContentHeight = newOutputHeight;
-      // Track max height for cleanup (in case content shrinks)
-      if (newOutputHeight > maxContentHeight) {
-        maxContentHeight = newOutputHeight;
-      }
     }
 
     // Phase 5: Update diff buffer
@@ -504,23 +512,7 @@ export async function render(createApp: () => unknown): Promise<() => void> {
 
     // Move cursor below content (inline mode only)
     if (!isFullscreenActive() && actualContentHeight > 0) {
-      // If content shrank, we need to clear the extra lines first
-      // Cursor is at line 0, move to actualContentHeight, then clear lines up to maxContentHeight
-      if (maxContentHeight > actualContentHeight) {
-        // Move to first line that needs clearing
-        process.stdout.write(`\x1b[${actualContentHeight}B`);
-        // Clear lines from actualContentHeight to maxContentHeight-1
-        for (let i = actualContentHeight; i < maxContentHeight; i++) {
-          process.stdout.write('\x1b[2K');
-          if (i < maxContentHeight - 1) {
-            process.stdout.write('\x1b[1B');
-          }
-        }
-        // Move back up to line 0
-        process.stdout.write(`\x1b[${maxContentHeight - 1}A\r`);
-      }
-
-      // Move to bottom of actual content
+      // Move to bottom of content
       if (actualContentHeight > 1) {
         process.stdout.write(`\x1b[${actualContentHeight - 1}B`);
       }
