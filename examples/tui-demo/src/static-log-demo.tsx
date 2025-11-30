@@ -1,3 +1,4 @@
+/** @jsxImportSource @zen/tui */
 /**
  * Demo: Static Component with Accumulating Logs (React Ink style)
  *
@@ -9,7 +10,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, FullscreenLayout, Static, Text, render, useInput } from '@zen/tui';
+import { Box, Static, Text, render, useInput } from '@zen/tui';
 
 interface LogEntry {
   id: number;
@@ -35,7 +36,7 @@ function App() {
   });
 
   return (
-    <>
+    <Box style={{ flexDirection: 'column' }}>
       {/* Static content - accumulates and persists in terminal history */}
       <Static items={() => logs.value}>
         {(log) => (
@@ -67,12 +68,9 @@ function App() {
           </Box>
         </Box>
       </Box>
-    </>
+    </Box>
   );
 }
 
-await render(() => (
-  <FullscreenLayout>
-    <App />
-  </FullscreenLayout>
-));
+// Use inline mode (no FullscreenLayout) so Static items persist in terminal scrollback
+await render(() => <App />);

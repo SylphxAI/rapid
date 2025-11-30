@@ -188,8 +188,9 @@ function renderBorder(
     if (backgroundColor && width > 2) {
       const bgCode = getBgColorCode(backgroundColor);
       // Add background reset at end to prevent bleeding to right border
+      // Use replace=false to preserve content after the filled area (e.g., parent border)
       const fillLine = `${bgCode + ' '.repeat(width - 2)}\x1b[49m`;
-      buffer.writeAt(x + 1, y + i, fillLine, width - 2, true);
+      buffer.writeAt(x + 1, y + i, fillLine, width - 2, false);
     }
     buffer.writeAt(x + width - 1, y + i, colorFn(box.right), 1);
   }
@@ -486,6 +487,17 @@ function renderNodeToBuffer(
       }
     }
     return;
+  }
+
+  // ============================================================================
+  // Skip Static node children - they go to terminal scrollback, not buffer
+  // ============================================================================
+  // Static nodes (tagName: 'static') are special: their children are printed
+  // directly to stdout and persist in terminal scrollback. They are NOT
+  // rendered to the managed buffer. The TUIRenderer handles printing new
+  // static items before each render cycle.
+  if (node.tagName === 'static') {
+    return; // Don't render children - handled by TUIRenderer static output
   }
 
   // ============================================================================

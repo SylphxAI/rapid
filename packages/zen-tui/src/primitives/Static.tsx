@@ -37,7 +37,12 @@ export interface StaticProps<T = any> {
 export function Static<T = any>(props: StaticProps<T>): TUINode {
   // For fine-grained reactivity: store items getter on the node
   // The renderer will check for new items and render them to scrollback
-  const itemsGetter = typeof props?.items === 'function' ? props.items : () => props?.items || [];
+  const itemsGetter: () => T[] =
+    typeof props?.items === 'function' ? props.items : () => (props?.items as T[]) || [];
+
+  // Get initial items
+  const items = itemsGetter();
+  const initialCount = items?.length || 0;
 
   const node: TUINode = {
     type: 'box',
@@ -46,13 +51,11 @@ export function Static<T = any>(props: StaticProps<T>): TUINode {
       ...props,
       __itemsGetter: itemsGetter, // Store getter for renderer to use
       __renderChild: props.children, // Store render function
+      __lastRenderedCount: initialCount, // Track rendered count for incremental updates
     },
     children: [],
     style: props?.style || {},
   };
-
-  // Get initial items
-  const items = itemsGetter();
 
   // Render initial items
   if (items && props.children) {
