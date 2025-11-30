@@ -40,6 +40,7 @@ import {
 } from './renderer/index.js';
 import type { TUINode, TUIStyle } from './types.js';
 import { type LayoutMap, computeLayout } from './yoga-layout.js';
+import { executeDescriptor, isDescriptor } from '@zen/runtime';
 
 // ============================================================================
 // Static Component Helpers
@@ -158,16 +159,16 @@ function renderNodeToString(node: TUINode | string, parentStyle: TUIStyle = {}):
 
 /**
  * Process static nodes and print new items to stdout.
- * Returns true if any static content was printed.
+ * Returns the number of lines printed.
  */
-function processStaticNodes(rootNode: TUINode, isInlineMode: boolean): boolean {
+function processStaticNodes(rootNode: TUINode, isInlineMode: boolean): number {
   if (!isInlineMode) {
     // Static output only works in inline mode (scrollback)
-    return false;
+    return 0;
   }
 
   const staticNodes = findStaticNodes(rootNode);
-  let printed = false;
+  let linesPrinted = 0;
 
   for (const staticNode of staticNodes) {
     const itemsGetter = staticNode.props?.__itemsGetter as (() => unknown[]) | undefined;
@@ -191,11 +192,15 @@ function processStaticNodes(rootNode: TUINode, isInlineMode: boolean): boolean {
       for (let i = 0; i < newItems.length; i++) {
         const item = newItems[i];
         const index = lastCount + i;
-        const rendered = renderChild(item, index);
+        let rendered = renderChild(item, index);
+        // Execute descriptor if needed (JSX returns descriptors)
+        if (isDescriptor(rendered)) {
+          rendered = executeDescriptor(rendered);
+        }
         const line = renderNodeToString(rendered as TUINode);
         // Print to stdout directly (goes to scrollback)
         process.stdout.write(`${line}\n`);
-        printed = true;
+        linesPrinted++;
       }
 
       // Update the rendered count
@@ -205,7 +210,7 @@ function processStaticNodes(rootNode: TUINode, isInlineMode: boolean): boolean {
     }
   }
 
-  return printed;
+  return linesPrinted;
 }
 
 // ============================================================================
@@ -497,11 +502,11 @@ export class TUIRenderer {
     // Process Static nodes - print new items to scrollback (inline mode only)
     // This must happen BEFORE the main render so static content appears above dynamic UI
     const isInlineMode = !isFullscreenActive();
-    const staticPrinted = processStaticNodes(this.rootNode, isInlineMode);
+    const staticLinesPrinted = processStaticNodes(this.rootNode, isInlineMode);
 
-    // If static content was printed, force full refresh so dynamic UI re-renders below
-    if (staticPrinted) {
-      dirtyTracker.markFullDirty();
+    // If static content was printed, reset cursor tracking so we don't clear the static content
+    if (staticLinesPrinted > 0) {
+      this.bufferRenderer.resetCursorForStaticContent(staticLinesPrinted);
     }
 
     // Render

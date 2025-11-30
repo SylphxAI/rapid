@@ -191,14 +191,6 @@ export class Renderer {
         this.currentBuffer.clear();
       }
       this.renderNodeFn(root, this.currentBuffer, layoutMap, fullRender);
-
-      // For inline mode: clear buffer lines beyond new content height
-      // This ensures calculateContentHeight() returns correct value
-      if (this.mode === 'inline' && newContentHeight !== undefined) {
-        for (let y = newContentHeight; y < this.height; y++) {
-          this.currentBuffer.setLine(y, '');
-        }
-      }
     }
 
     // Phase 4: Diff and output
@@ -461,6 +453,23 @@ export class Renderer {
    */
   forceFullRefresh(): void {
     this.dirtyTracker.markFullDirty();
+    this.isFirstRender = true;
+  }
+
+  /**
+   * Reset cursor position tracking after static content is printed.
+   * Call this after printing static content to stdout - it tells the renderer
+   * that the cursor is now at a "new" starting position and previous content
+   * should not be cleared.
+   */
+  resetCursorForStaticContent(linesPrinted: number): void {
+    // Reset content height to 0 - the previous content is now in scrollback
+    // and should not be cleared on next render
+    this.contentHeight = 0;
+    this.cursorLine = 0;
+    // Clear previous buffer so we don't try to diff against old content
+    this.previousBuffer.clear();
+    // Mark as first render to ensure full render without trying to clear
     this.isFirstRender = true;
   }
 
