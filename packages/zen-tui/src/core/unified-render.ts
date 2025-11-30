@@ -4,6 +4,12 @@
  * Single entry point for rendering TUI apps with dual renderer architecture.
  * Supports both inline mode (unlimited height) and fullscreen mode (terminal-constrained).
  *
+ * Uses the optimal renderer architecture from ADR-003:
+ * - Double buffer with smart diffing
+ * - Adaptive strategy (incremental vs full refresh)
+ * - Synchronized output (prevents tearing)
+ * - Fine-grained dirty tracking with region awareness
+ *
  * @example
  * ```tsx
  * import { render } from '@zen/tui';
@@ -20,10 +26,10 @@
  * ```
  *
  * @see ADR-001 for architecture details
+ * @see ADR-003 for renderer architecture
  */
 
 import { createRoot, signal } from '@zen/signal';
-import stripAnsi from 'strip-ansi';
 import { dispatchInput } from '../hooks/useInput.js';
 import { dispatchMouseEvent as dispatchGlobalMouseEvent } from '../hooks/useMouse.js';
 import { terminalHeightSignal, terminalWidthSignal } from '../hooks/useTerminalSize.js';
@@ -38,7 +44,7 @@ import { clearHitTestLayout, hitTestAll, setHitTestLayout } from '../utils/hit-t
 import { parseMouseEvent } from '../utils/mouse-parser.js';
 import { renderToBuffer } from './layout-renderer.js';
 import { clearDirtyFlags, setRenderContext } from './render-context.js';
-import { TerminalBuffer } from './terminal-buffer.js';
+import { ESC, type Renderer, createRenderer, setDirtyTracker } from './renderer/index.js';
 import type { TUINode } from './types.js';
 import { type LayoutMap, computeLayout } from './yoga-layout.js';
 
@@ -47,7 +53,7 @@ import { type LayoutMap, computeLayout } from './yoga-layout.js';
 // ============================================================================
 
 /**
- * Maximum height for inline mode.
+ * Maximum height for inline mode buffer.
  * This allows inline apps to render content of any practical size.
  * Terminal will naturally scroll to accommodate.
  */
@@ -147,22 +153,30 @@ export async function render(createApp: () => unknown): Promise<() => void> {
   let terminalHeight = process.stdout.rows || 24;
 
   // ============================================================================
-  // Buffer Setup
+  // Renderer Setup (ADR-003)
   // ============================================================================
-  // We use different buffer heights for inline vs fullscreen mode:
-  // - Inline: Large buffer (INLINE_MAX_HEIGHT) to support unlimited content
-  // - Fullscreen: Buffer sized to terminal (terminalHeight)
-  //
-  // The actual buffer height is determined by checking isFullscreenActive()
-  // which is set by FullscreenLayout component.
+  // Use the new optimal renderer with:
+  // - Double buffer + smart diffing
+  // - Adaptive strategy (incremental vs full refresh)
+  // - Synchronized output (prevents tearing)
+  // - Fine-grained dirty tracking
 
-  const getBufferHeight = () => (isFullscreenActive() ? terminalHeight : INLINE_MAX_HEIGHT);
+  const getMode = () => (isFullscreenActive() ? 'fullscreen' : 'inline') as const;
 
-  let currentBuffer = new TerminalBuffer(terminalWidth, getBufferHeight());
-  let previousBuffer = new TerminalBuffer(terminalWidth, getBufferHeight());
+  const renderer: Renderer = createRenderer({
+    width: terminalWidth,
+    height: terminalHeight,
+    mode: getMode(),
+    syncEnabled: true,
+  });
 
-  // Track actual content height for inline mode cursor management
-  let actualContentHeight = 0;
+  // Set up the render function for the Renderer
+  renderer.setRenderNodeFn((root, buffer, layoutMap, fullRender) => {
+    renderToBuffer(root, buffer, layoutMap, fullRender);
+  });
+
+  // Connect the DirtyTracker to the global context
+  setDirtyTracker(renderer.getDirtyTracker());
 
   // Create component tree with settings provider
   const node = createRoot(() => {
@@ -186,9 +200,10 @@ export async function render(createApp: () => unknown): Promise<() => void> {
   let layoutMap = await computeLayout(node, terminalWidth, getLayoutHeight());
   setHitTestLayout(layoutMap, node);
 
+  // Use the DirtyTracker from the renderer
+  const dirtyTracker = renderer.getDirtyTracker();
   const dirtyNodes = new Set<TUINode>();
   let layoutDirty = false;
-  let isFirstRender = true;
   let updatePending = false;
   let lastMode: 'inline' | 'fullscreen' = 'inline';
 
@@ -233,7 +248,7 @@ export async function render(createApp: () => unknown): Promise<() => void> {
   process.stdout.write('\x1b[?25l');
 
   // ============================================================================
-  // Flush Updates
+  // Flush Updates (Using Optimal Renderer - ADR-003)
   // ============================================================================
 
   const flushUpdates = async () => {
@@ -244,15 +259,13 @@ export async function render(createApp: () => unknown): Promise<() => void> {
 
     // Check for mode change
     if (currentMode !== lastMode) {
-      // Mode changed - resize buffers and force full re-render
-      const newBufferHeight = getBufferHeight();
-      currentBuffer = new TerminalBuffer(terminalWidth, newBufferHeight);
-      previousBuffer = new TerminalBuffer(terminalWidth, newBufferHeight);
+      // Mode changed - switch renderer mode
+      renderer.switchMode(currentMode, terminalHeight);
       layoutDirty = true;
-      isFirstRender = true;
       lastMode = currentMode;
-      // Reset height tracking - new mode means fresh start
-      actualContentHeight = 0;
+
+      // Mark full dirty for mode transition
+      dirtyTracker.markFullDirty();
     }
 
     // Phase 1: Layout (recompute if dirty)
@@ -261,6 +274,9 @@ export async function render(createApp: () => unknown): Promise<() => void> {
     if (needsLayoutRecompute) {
       layoutMap = await computeLayout(node, terminalWidth, getLayoutHeight());
       setHitTestLayout(layoutMap, node);
+
+      // Update renderer's dirty tracker with new layout regions
+      dirtyTracker.updateNodeRegions(layoutMap);
 
       setRenderContext({
         layoutMap,
@@ -271,124 +287,19 @@ export async function render(createApp: () => unknown): Promise<() => void> {
       });
 
       layoutDirty = false;
+
+      // Mark layout dirty in tracker for strategy selection
+      dirtyTracker.markFullDirty();
     }
 
-    // Phase 2: Render to buffer
-    // For inline mode: ALWAYS do full render (clear buffer) because we use clear+rewrite strategy
-    // The incremental rendering optimization only benefits fullscreen mode with fine-grained updates
-    // For fullscreen mode: Use incremental render when possible for better performance
-    const fullRender = isFirstRender || needsLayoutRecompute || !inFullscreen;
-    renderToBuffer(node, currentBuffer, layoutMap, fullRender);
-
-    if (isFirstRender) {
-      isFirstRender = false;
-    }
-
-    // Phase 3: Generate output
-    let output = currentBuffer.renderFull();
-    let newLines = output.split('\n');
-
-    // For inline mode, trim trailing empty lines
-    // Save previous height for clearing BEFORE updating actualContentHeight
-    const previousContentHeight = actualContentHeight;
-
-    if (!inFullscreen) {
-      let lastContentLine = newLines.length - 1;
-      while (lastContentLine >= 0) {
-        const stripped = stripAnsi(newLines[lastContentLine]);
-        if (stripped.trim() !== '') break;
-        lastContentLine--;
-      }
-      const contentHeight = Math.max(1, lastContentLine + 1);
-      newLines = newLines.slice(0, contentHeight);
-      output = newLines.join('\n');
-    }
-
-    const newOutputHeight = newLines.length;
-
-    // Phase 4: Output to terminal
-    const changes = currentBuffer.diff(previousBuffer);
-
-    if (changes.length > 0 || previousContentHeight !== newOutputHeight) {
-      if (inFullscreen) {
-        // ====================================================================
-        // FULLSCREEN MODE: Fine-grained line updates
-        // ====================================================================
-        for (const change of changes) {
-          const row = change.y + 1; // Convert to 1-indexed
-          process.stdout.write(`\x1b[${row};1H\x1b[2K${change.line}`);
-        }
-      } else {
-        // ====================================================================
-        // INLINE MODE: Fine-grained diff updates with relative positioning
-        // ====================================================================
-        // Unlike fullscreen mode which uses absolute positioning (\x1b[row;1H),
-        // inline mode uses relative positioning because content can start at
-        // any terminal row depending on previous output.
-        //
-        // Strategy:
-        // 1. Update only changed lines (using diff)
-        // 2. Clear extra lines if content shrank
-        // 3. Cursor always returns to line 0 (relative to our content)
-
-        // Track current cursor position (relative to content start)
-        let cursorLine = 0;
-
-        // Update changed lines
-        for (const change of changes) {
-          // Only update lines within new content height
-          if (change.y < newOutputHeight) {
-            // Move to the target line
-            if (change.y > cursorLine) {
-              process.stdout.write(`\x1b[${change.y - cursorLine}B`);
-            } else if (change.y < cursorLine) {
-              process.stdout.write(`\x1b[${cursorLine - change.y}A`);
-            }
-            cursorLine = change.y;
-
-            // Clear line and write new content
-            process.stdout.write(`\r\x1b[2K${change.line}`);
-          }
-        }
-
-        // If content shrank, clear the extra lines
-        if (previousContentHeight > newOutputHeight) {
-          // Move to first extra line
-          const firstExtraLine = newOutputHeight;
-          if (firstExtraLine > cursorLine) {
-            process.stdout.write(`\x1b[${firstExtraLine - cursorLine}B`);
-          } else if (firstExtraLine < cursorLine) {
-            process.stdout.write(`\x1b[${cursorLine - firstExtraLine}A`);
-          }
-          cursorLine = firstExtraLine;
-
-          // Clear each extra line
-          for (let i = newOutputHeight; i < previousContentHeight; i++) {
-            process.stdout.write('\r\x1b[2K');
-            if (i < previousContentHeight - 1) {
-              process.stdout.write('\x1b[1B');
-              cursorLine++;
-            }
-          }
-        }
-
-        // Move cursor back to line 0
-        if (cursorLine > 0) {
-          process.stdout.write(`\x1b[${cursorLine}A`);
-        }
-        process.stdout.write('\r');
-      }
-    }
-
-    // Always update actualContentHeight for inline mode
-    if (!inFullscreen) {
-      actualContentHeight = newOutputHeight;
-    }
-
-    // Phase 5: Update diff buffer
-    for (const change of changes) {
-      previousBuffer.setLine(change.y, change.line);
-    }
+    // Phase 2-5: Render, diff, and output (handled by Renderer)
+    // The Renderer handles:
+    // - Strategy selection (incremental vs full refresh)
+    // - Buffer rendering via renderNodeFn
+    // - Diffing current vs previous buffer
+    // - Synchronized output
+    // - Inline vs fullscreen mode specifics
+    renderer.render(node, layoutMap);
 
     // Phase 6: Clear dirty flags
     clearDirtyFlags();
@@ -413,16 +324,13 @@ export async function render(createApp: () => unknown): Promise<() => void> {
     terminalWidthSignal.value = newWidth;
     terminalHeightSignal.value = newHeight;
 
-    // Resize buffers
-    const newBufferHeight = getBufferHeight();
-    currentBuffer.resize(terminalWidth, newBufferHeight);
-    previousBuffer.resize(terminalWidth, newBufferHeight);
-    previousBuffer.clear();
+    // Resize renderer (handles buffer resizing internally)
+    renderer.resize(newWidth, newHeight);
 
     // Clear screen in fullscreen mode
     if (isFullscreenActive()) {
-      process.stdout.write('\x1b[2J');
-      process.stdout.write('\x1b[H');
+      process.stdout.write(ESC.clearScreen);
+      process.stdout.write(ESC.cursorHome);
     }
 
     layoutDirty = true;
@@ -513,6 +421,7 @@ export async function render(createApp: () => unknown): Promise<() => void> {
     isRunning = false;
     setGlobalRenderSettings(null);
     setRenderContext(null);
+    setDirtyTracker(null);
     clearHitTestLayout();
 
     if (process.stdout.isTTY) {
@@ -521,21 +430,14 @@ export async function render(createApp: () => unknown): Promise<() => void> {
 
     // Exit alternate screen if in fullscreen
     if (isFullscreenActive()) {
-      process.stdout.write('\x1b[?1049l');
+      process.stdout.write(ESC.exitAltScreen);
     }
 
     forceDisableMouse();
-    process.stdout.write('\x1b[?25h');
+    process.stdout.write(ESC.showCursor);
 
-    // Move cursor below content (inline mode only)
-    // Extra lines are already cleared during render (diff-based updates),
-    // so we just need to position cursor at the bottom of current content.
-    if (!isFullscreenActive() && actualContentHeight > 0) {
-      if (actualContentHeight > 1) {
-        process.stdout.write(`\x1b[${actualContentHeight - 1}B`);
-      }
-      process.stdout.write('\n');
-    }
+    // Renderer handles cursor positioning for inline mode
+    renderer.cleanup();
 
     if (process.stdin.isTTY) {
       process.stdin.removeListener('data', keyHandler);
@@ -548,13 +450,20 @@ export async function render(createApp: () => unknown): Promise<() => void> {
   // Exit Handlers
   // ============================================================================
 
+  const emergencyCleanup = () => {
+    // Emergency escape sequence to restore terminal state
+    process.stdout.write(
+      ESC.disableMouseSGR + ESC.disableMouse + ESC.showCursor + ESC.exitAltScreen,
+    );
+  };
+
   const handleExit = () => {
-    process.stdout.write('\x1b[?1006l\x1b[?1000l\x1b[?25h\x1b[?1049l');
+    emergencyCleanup();
     cleanup();
   };
 
   const handleSignal = (sig: string) => () => {
-    process.stdout.write('\x1b[?1006l\x1b[?1000l\x1b[?25h\x1b[?1049l');
+    emergencyCleanup();
     cleanup();
     process.exit(sig === 'SIGINT' ? 130 : 143);
   };
@@ -563,7 +472,7 @@ export async function render(createApp: () => unknown): Promise<() => void> {
   process.on('SIGINT', handleSignal('SIGINT'));
   process.on('SIGTERM', handleSignal('SIGTERM'));
   process.on('uncaughtException', (_err) => {
-    process.stdout.write('\x1b[?1006l\x1b[?1000l\x1b[?25h\x1b[?1049l');
+    emergencyCleanup();
     cleanup();
     process.exit(1);
   });
