@@ -191,6 +191,14 @@ export class Renderer {
         this.currentBuffer.clear();
       }
       this.renderNodeFn(root, this.currentBuffer, layoutMap, fullRender);
+
+      // For inline mode: clear buffer lines beyond new content height
+      // This ensures calculateContentHeight() returns correct value
+      if (this.mode === 'inline' && newContentHeight !== undefined) {
+        for (let y = newContentHeight; y < this.height; y++) {
+          this.currentBuffer.setLine(y, '');
+        }
+      }
     }
 
     // Phase 4: Diff and output
@@ -293,8 +301,7 @@ export class Renderer {
     const prevHeight = this.contentHeight;
 
     // Height change forces full refresh
-    const effectiveStrategy =
-      newHeight !== prevHeight ? RenderStrategy.Full : strategy;
+    const effectiveStrategy = newHeight !== prevHeight ? RenderStrategy.Full : strategy;
 
     if (effectiveStrategy === RenderStrategy.Full) {
       // Clear previous content

@@ -7,12 +7,7 @@
 
 import type { TUINode } from '../types.js';
 import type { LayoutMap } from '../yoga-layout.js';
-import {
-  type Region,
-  createRegion,
-  mergeRegions,
-  totalRegionArea,
-} from './region.js';
+import { type Region, createRegion, mergeRegions, totalRegionArea } from './region.js';
 
 /**
  * Types of dirty state.
@@ -163,8 +158,8 @@ export class DirtyTracker {
           Math.floor(layout.left),
           Math.floor(layout.top),
           Math.ceil(layout.width),
-          Math.ceil(layout.height)
-        )
+          Math.ceil(layout.height),
+        ),
       );
     }
   }

@@ -299,7 +299,12 @@ export async function render(createApp: () => unknown): Promise<() => void> {
     // - Diffing current vs previous buffer
     // - Synchronized output
     // - Inline vs fullscreen mode specifics
-    renderer.render(node, layoutMap);
+    //
+    // For inline mode, we pass the actual content height from layout
+    // to ensure correct cursor positioning when content shrinks
+    const rootLayout = layoutMap.get(node);
+    const contentHeight = rootLayout ? Math.ceil(rootLayout.height) : undefined;
+    renderer.render(node, layoutMap, contentHeight);
 
     // Phase 6: Clear dirty flags
     clearDirtyFlags();
