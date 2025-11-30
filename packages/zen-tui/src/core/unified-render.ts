@@ -563,11 +563,15 @@ export async function render(createApp: () => unknown): Promise<() => void> {
     process.stdout.write('\x1b[?25h');
 
     // Move cursor to bottom (inline mode)
+    // Cursor is at row 1 after rendering, need to move to row lastOutputHeight
+    // then print newline to position prompt below content
     if (!isFullscreenActive() && lastOutputHeight > 0) {
-      for (let i = 0; i < lastOutputHeight; i++) {
+      // Move down to last line of content (lastOutputHeight - 1 moves from row 1)
+      for (let i = 0; i < lastOutputHeight - 1; i++) {
         process.stdout.write('\x1b[1B');
       }
-      process.stdout.write('\n');
+      // Move to end of last line and print newlines to position prompt below
+      process.stdout.write('\n\n');
     }
 
     if (process.stdin.isTTY) {
