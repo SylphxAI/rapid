@@ -340,6 +340,10 @@ export async function render(createApp: () => unknown): Promise<() => void> {
         // Write new output
         process.stdout.write(output);
 
+        // Clear everything below the new content
+        // This removes leftover empty lines when content shrinks
+        process.stdout.write('\x1b[J');
+
         // Move cursor back to top for next render
         if (newLines.length > 1) {
           process.stdout.write(`\x1b[${newLines.length - 1}A`);
