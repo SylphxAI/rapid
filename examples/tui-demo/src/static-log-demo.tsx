@@ -9,7 +9,7 @@
  */
 
 import { signal } from '@zen/signal';
-import { Box, FullscreenLayout, Static, Text, useInput, render } from '@zen/tui';
+import { Box, FullscreenLayout, Static, Text, render, useInput } from '@zen/tui';
 
 interface LogEntry {
   id: number;
@@ -26,7 +26,10 @@ function App() {
 
     // Add new log entry (accumulates)
     const newLog: LogEntry = {
-      id: counter.value, message: `Key pressed: "${input}"`, timestamp: new Date().toLocaleTimeString()};
+      id: counter.value,
+      message: `Key pressed: "${input}"`,
+      timestamp: new Date().toLocaleTimeString(),
+    };
 
     logs.value = [...logs.value, newLog];
   });

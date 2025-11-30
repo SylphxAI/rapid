@@ -7,7 +7,7 @@
  * - Real-time re-rendering
  */
 
-import { signal, render, useInput, FullscreenLayout } from '@zen/tui';
+import { FullscreenLayout, render, signal, useInput } from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 // Create reactive state

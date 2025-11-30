@@ -5,7 +5,20 @@
  */
 
 import {
-  Box, Button, FocusProvider, Fragment, FullscreenLayout, ProgressBar, Spinner, Text, incrementProgress, signal, useFocusManager, useInput, render } from '@zen/tui';
+  Box,
+  Button,
+  FocusProvider,
+  Fragment,
+  FullscreenLayout,
+  ProgressBar,
+  Spinner,
+  Text,
+  incrementProgress,
+  render,
+  signal,
+  useFocusManager,
+  useInput,
+} from '@zen/tui';
 
 // State
 const progress = signal(0);
@@ -31,7 +44,12 @@ function AppContent() {
   return (
     <Box
       style={{
-        flexDirection: 'column', padding: 2, borderStyle: 'double', borderColor: 'cyan', width: 70}}
+        flexDirection: 'column',
+        padding: 2,
+        borderStyle: 'double',
+        borderColor: 'cyan',
+        width: 70,
+      }}
     >
       {/* Header */}
       <Text color="cyan" bold={true}>
@@ -150,14 +168,17 @@ const _buttonHandlers = {
     isLoading.value = true;
     message.value = 'Task started! Watch the progress...';
     progress.value = 0;
-  }, stop: () => {
+  },
+  stop: () => {
     isLoading.value = false;
     message.value = 'Task stopped.';
-  }, reset: () => {
+  },
+  reset: () => {
     isLoading.value = false;
     progress.value = 0;
     message.value = 'Reset complete. Click Start to begin again.';
-  }};
+  },
+};
 
 // Global focus context access (will be set during render)
 const _focusContext: unknown = null;

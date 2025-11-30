@@ -8,15 +8,39 @@
 
 import { signal } from '@zen/signal';
 import {
-  Badge, Box, Divider, FocusProvider, Markdown, Spinner, Text, TextInput, ToastContainer, type TreeNode, TreeView, toast, useInput, render, FullscreenLayout } from '@zen/tui';
+  Badge,
+  Box,
+  Divider,
+  FocusProvider,
+  FullscreenLayout,
+  Markdown,
+  Spinner,
+  Text,
+  TextInput,
+  ToastContainer,
+  type TreeNode,
+  TreeView,
+  render,
+  toast,
+  useInput,
+} from '@zen/tui';
 
 // Sample data
 const COMMANDS = ['/help', '/clear', '/files', '/model'];
 
 const FILE_TREE: TreeNode[] = [
   {
-    id: 'src', label: 'src', icon: '📁', defaultExpanded: true, children: [
-      { id: 'app', label: 'App.tsx', icon: '⚛️' }, { id: 'main', label: 'main.ts', icon: '📄' }, ]}, { id: 'pkg', label: 'package.json', icon: '📋' }, ];
+    id: 'src',
+    label: 'src',
+    icon: '📁',
+    defaultExpanded: true,
+    children: [
+      { id: 'app', label: 'App.tsx', icon: '⚛️' },
+      { id: 'main', label: 'main.ts', icon: '📄' },
+    ],
+  },
+  { id: 'pkg', label: 'package.json', icon: '📋' },
+];
 
 function ChatbotDemo() {
   const inputValue = signal('');
@@ -143,7 +167,13 @@ This demo showcases **all features**:
             showFiles.value ? (
               <Box
                 style={{
-                  flexDirection: 'column', width: sidebarWidth, borderStyle: 'single', borderColor: 'gray', padding: 1, marginRight: 1}}
+                  flexDirection: 'column',
+                  width: sidebarWidth,
+                  borderStyle: 'single',
+                  borderColor: 'gray',
+                  padding: 1,
+                  marginRight: 1,
+                }}
               >
                 <Text style={{ bold: true, color: 'yellow' }}>📁 Files</Text>
                 <Divider />
@@ -156,7 +186,12 @@ This demo showcases **all features**:
           <Box style={{ flexDirection: 'column', flex: 1 }}>
             <Box
               style={{
-                flexDirection: 'column', borderStyle: 'round', borderColor: 'cyan', padding: 1, flex: 1}}
+                flexDirection: 'column',
+                borderStyle: 'round',
+                borderColor: 'cyan',
+                padding: 1,
+                flex: 1,
+              }}
             >
               <Text style={{ bold: true, color: 'cyan' }}>🤖 Assistant</Text>
               <Box style={{ paddingLeft: 1 }}>

@@ -1,8 +1,18 @@
 /** @jsxImportSource @zen/tui */
 import { signal } from '@zen/signal';
-import { render, FullscreenLayout } from '@zen/tui';
+import { FullscreenLayout, render } from '@zen/tui';
 import {
-  Box, Button, Checkbox, FocusProvider, SelectInput, type SelectOption, Text, TextInput, useFocusManager, useInput } from '@zen/tui';
+  Box,
+  Button,
+  Checkbox,
+  FocusProvider,
+  SelectInput,
+  type SelectOption,
+  Text,
+  TextInput,
+  useFocusManager,
+  useInput,
+} from '@zen/tui';
 
 // Form state
 const name = signal('');
@@ -21,11 +31,22 @@ const submitted = signal(false);
 
 // Age range options
 const ageRangeOptions: SelectOption[] = [
-  { label: 'Under 18', value: 'under-18' }, { label: '18-24', value: '18-24' }, { label: '25-34', value: '25-34' }, { label: '35-44', value: '35-44' }, { label: '45-54', value: '45-54' }, { label: '55+', value: '55+' }, ];
+  { label: 'Under 18', value: 'under-18' },
+  { label: '18-24', value: '18-24' },
+  { label: '25-34', value: '25-34' },
+  { label: '35-44', value: '35-44' },
+  { label: '45-54', value: '45-54' },
+  { label: '55+', value: '55+' },
+];
 
 // Occupation options
 const occupationOptions: SelectOption[] = [
-  { label: 'Student', value: 'student' }, { label: 'Developer', value: 'developer' }, { label: 'Designer', value: 'designer' }, { label: 'Manager', value: 'manager' }, { label: 'Other', value: 'other' }, ];
+  { label: 'Student', value: 'student' },
+  { label: 'Developer', value: 'developer' },
+  { label: 'Designer', value: 'designer' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Other', value: 'other' },
+];
 
 // Handle submit
 function handleSubmit() {

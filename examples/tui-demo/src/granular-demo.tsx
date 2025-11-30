@@ -4,7 +4,7 @@
  * 展示細粒度更新 - 只重繪變化的行，不是整個畫面
  */
 
-import { signal, render, FullscreenLayout } from '@zen/tui';
+import { FullscreenLayout, render, signal } from '@zen/tui';
 import { Box, Text } from '@zen/tui';
 
 // 多個獨立的 counter
@@ -35,7 +35,11 @@ function App() {
   return (
     <Box
       style={{
-        width: 70, padding: 2, borderStyle: 'double', borderColor: 'cyan'}}
+        width: 70,
+        padding: 2,
+        borderStyle: 'double',
+        borderColor: 'cyan',
+      }}
     >
       <Text style={{ bold: true, color: 'green' }}>🎯 細粒度更新 Demo (Granular Updates)</Text>
 
@@ -45,7 +49,10 @@ function App() {
 
       <Box
         style={{
-          padding: 1, borderStyle: 'single', borderColor: 'blue'}}
+          padding: 1,
+          borderStyle: 'single',
+          borderColor: 'blue',
+        }}
       >
         <Text style={{ bold: true }}>Counter 1 (每秒): </Text>
         <Text style={{ color: 'yellow' }}>{counter1}</Text>
@@ -53,7 +60,10 @@ function App() {
 
       <Box
         style={{
-          padding: 1, borderStyle: 'single', borderColor: 'green'}}
+          padding: 1,
+          borderStyle: 'single',
+          borderColor: 'green',
+        }}
       >
         <Text style={{ bold: true }}>Counter 2 (3秒): </Text>
         <Text style={{ color: 'cyan' }}>{counter2}</Text>
@@ -61,7 +71,10 @@ function App() {
 
       <Box
         style={{
-          padding: 1, borderStyle: 'single', borderColor: 'magenta'}}
+          padding: 1,
+          borderStyle: 'single',
+          borderColor: 'magenta',
+        }}
       >
         <Text style={{ bold: true }}>Counter 3 (5秒): </Text>
         <Text style={{ color: 'red' }}>{counter3}</Text>

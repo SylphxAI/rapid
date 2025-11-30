@@ -148,7 +148,7 @@ const windowId = openWindow('terminal', {
 ## Complete Example
 
 ```tsx
-import { FullscreenLayout, Text, renderApp, signal } from '@zen/tui';
+import { FullscreenLayout, Text, render, signal, MouseProvider } from '@zen/tui';
 import { List, MenuBar, Pane, Splitter, TextArea } from '@zen/tui-advanced';
 
 function FileEditor() {
@@ -163,36 +163,38 @@ function FileEditor() {
 
   return (
     <FullscreenLayout>
-      <MenuBar items={menuItems} />
+      <MouseProvider>
+        <MenuBar items={menuItems} />
 
-      <Splitter orientation="horizontal" sizes={[30, 70]} resizable>
-        <Pane minSize={20}>
-          <Text bold color="cyan">Files</Text>
-          <List
-            items={files}
-            selectedIndex={selectedIndex.value}
-            onSelect={(file, index) => {
-              selectedIndex.value = index;
-              fileContent.value = `# ${file}\n\nContent here...`;
-            }}
-          />
-        </Pane>
+        <Splitter orientation="horizontal" sizes={[30, 70]} resizable>
+          <Pane minSize={20}>
+            <Text bold color="cyan">Files</Text>
+            <List
+              items={files}
+              selectedIndex={selectedIndex.value}
+              onSelect={(file, index) => {
+                selectedIndex.value = index;
+                fileContent.value = `# ${file}\n\nContent here...`;
+              }}
+            />
+          </Pane>
 
-        <Pane>
-          <Text bold color="cyan">Editor</Text>
-          <TextArea
-            value={fileContent.value}
-            onChange={(val) => fileContent.value = val}
-            rows={20}
-            showLineNumbers
-          />
-        </Pane>
-      </Splitter>
+          <Pane>
+            <Text bold color="cyan">Editor</Text>
+            <TextArea
+              value={fileContent.value}
+              onChange={(val) => fileContent.value = val}
+              rows={20}
+              showLineNumbers
+            />
+          </Pane>
+        </Splitter>
+      </MouseProvider>
     </FullscreenLayout>
   );
 }
 
-await renderApp(() => FileEditor(), { fullscreen: true, mouse: true });
+await render(FileEditor);
 ```
 
 ## Examples
