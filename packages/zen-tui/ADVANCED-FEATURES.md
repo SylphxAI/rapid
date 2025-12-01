@@ -249,7 +249,7 @@ function Dashboard() {
 
       {/* Footer */}
       <Box borderStyle="single" padding={1}>
-        <Text dim>Press q to quit • ↑↓ to scroll</Text>
+        <Text dim>Press Ctrl+C to quit • ↑↓ to scroll</Text>
       </Box>
     </Box>
   );

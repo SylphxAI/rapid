@@ -41,6 +41,13 @@ function TestList({ id, autoFocus = false }: { id: string; autoFocus?: boolean }
 }
 
 function App() {
+  // Handle 'q' to quit
+  useInput((input) => {
+    if (input === 'q') {
+      process.exit(0);
+    }
+  });
+
   return (
     <FocusProvider>
       <Box flexDirection="column" padding={1}>

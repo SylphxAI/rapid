@@ -849,11 +849,11 @@ export class TUIRenderer {
         return;
       }
 
-      // Ctrl+C / q to exit
-      if (key === '\u0003' || key === 'q' || key === 'Q') {
+      // Ctrl+C to exit (standard terminal exit signal)
+      if (key === '\u0003') {
         this.emergencyCleanup();
         this.unmount();
-        process.exit(key === '\u0003' ? 130 : 0);
+        process.exit(130);
       }
 
       // Dispatch to useInput handlers
