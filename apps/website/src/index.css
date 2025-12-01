@@ -6,56 +6,271 @@
 @tailwind utilities;
 
 @layer base {
-  /* CSS Variables for automatic dark mode - framework-level solution */
   :root {
-    /* Light mode (default) */
-    --color-bg: #ffffff;
-    --color-bg-light: #f9fafb;
-    --color-bg-lighter: #f3f4f6;
-    --color-text: #111827;
-    --color-text-muted: #6b7280;
-    --color-border: #e5e7eb;
+    /* Modern color palette - Light mode */
+    --color-bg: #fafafa;
+    --color-bg-light: #ffffff;
+    --color-bg-lighter: #f5f5f5;
+    --color-bg-dark: #e5e5e5;
+    --color-text: #171717;
+    --color-text-muted: #525252;
+    --color-text-subtle: #737373;
+    --color-border: #e5e5e5;
+    --color-border-light: #f0f0f0;
+
+    /* Accent colors */
+    --color-primary: #6366f1;
+    --color-primary-dark: #4f46e5;
+    --color-primary-light: #818cf8;
+    --color-secondary: #8b5cf6;
+    --color-accent: #06b6d4;
+
+    /* Status colors */
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --gradient-hero: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-light) 100%);
   }
 
   .dark {
-    /* Dark mode - automatically switches when .dark class is on html element */
-    --color-bg: #0a0a0a;
-    --color-bg-light: #1a1a1a;
-    --color-bg-lighter: #2a2a2a;
-    --color-text: #ffffff;
-    --color-text-muted: #a0a0a0;
-    --color-border: #333;
+    /* Dark mode palette */
+    --color-bg: #09090b;
+    --color-bg-light: #18181b;
+    --color-bg-lighter: #27272a;
+    --color-bg-dark: #000000;
+    --color-text: #fafafa;
+    --color-text-muted: #a1a1aa;
+    --color-text-subtle: #71717a;
+    --color-border: #27272a;
+    --color-border-light: #3f3f46;
+
+    --gradient-hero: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-light) 100%);
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     background-color: var(--color-bg);
     color: var(--color-text);
-    overflow-x: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-      sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, sans-serif;
     line-height: 1.6;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  * {
-    @apply transition-colors duration-200;
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-lighter);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-subtle);
+  }
+
+  /* Selection */
+  ::selection {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .dark .glass {
+    background: rgba(24, 24, 27, 0.8);
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-bg-light border border-border rounded-xl p-6 transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply hover:border-primary/50 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  /* Button styles */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 font-medium rounded-xl transition-all duration-200 active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white shadow-lg shadow-primary/25;
+  }
+
+  .btn-secondary {
+    @apply bg-bg-lighter hover:bg-bg-dark border border-border text-text;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-bg-lighter text-text;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 text-sm font-medium rounded-full;
+  }
+
+  .badge-primary {
+    @apply bg-primary/10 text-primary border border-primary/20;
+  }
+
+  .badge-success {
+    @apply bg-success/10 text-success border border-success/20;
+  }
+
+  /* Code block styles */
+  .code-block {
+    @apply bg-bg-lighter border border-border rounded-xl p-4 font-mono text-sm overflow-x-auto;
+  }
+
+  /* Section styles */
+  .section {
+    @apply py-24 px-6;
+  }
+
+  .section-alt {
+    @apply bg-bg-light;
+  }
+
+  /* Container */
+  .container-zen {
+    @apply max-w-6xl mx-auto px-6;
+  }
+
+  /* Heading styles */
+  .heading-1 {
+    @apply text-5xl md:text-6xl font-bold tracking-tight;
+  }
+
+  .heading-2 {
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+  }
+
+  .heading-3 {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
 }
 
 @layer utilities {
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Hover effects */
   .hover-lift {
     @apply transition-transform duration-300 hover:-translate-y-1;
   }
 
   .hover-glow {
-    @apply transition-shadow duration-300 hover:shadow-zen-lg;
+    @apply transition-shadow duration-300 hover:shadow-xl;
   }
 
-  .interactive-scale {
-    @apply transition-transform duration-200 active:scale-95;
+  /* Animation utilities */
+  .animate-in {
+    animation: fadeInUp 0.6s ease-out forwards;
   }
 
-  .smooth-appear {
-    animation: fadeInUp 0.5s ease-out;
+  .animate-in-delay-1 {
+    animation: fadeInUp 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-in-delay-2 {
+    animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-in-delay-3 {
+    animation: fadeInUp 0.6s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+
+  /* Gradient backgrounds */
+  .bg-gradient-radial {
+    background: radial-gradient(circle at 50% 50%, var(--color-primary) 0%, transparent 70%);
+  }
+
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  /* Grid pattern background */
+  .bg-grid {
+    background-image: linear-gradient(var(--color-border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  /* Dot pattern background */
+  .bg-dots {
+    background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+/* Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
   }
 }

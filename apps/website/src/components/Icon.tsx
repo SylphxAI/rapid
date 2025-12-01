@@ -38,6 +38,7 @@ import IconLucideLeaf from '~icons/lucide/leaf?raw';
 import IconLucideLightbulb from '~icons/lucide/lightbulb?raw';
 import IconLucideList from '~icons/lucide/list?raw';
 import IconLucideLoader from '~icons/lucide/loader?raw';
+import IconLucideMenu from '~icons/lucide/menu?raw';
 import IconLucideMoon from '~icons/lucide/moon?raw';
 import IconLucideMousePointerClick from '~icons/lucide/mouse-pointer-click?raw';
 import IconLucidePackage from '~icons/lucide/package?raw';
@@ -108,6 +109,7 @@ const iconMap: Record<string, string> = {
   'lucide:lightbulb': IconLucideLightbulb,
   'lucide:list': IconLucideList,
   'lucide:loader': IconLucideLoader,
+  'lucide:menu': IconLucideMenu,
   'lucide:moon': IconLucideMoon,
   'lucide:mouse-pointer-click': IconLucideMousePointerClick,
   'lucide:package': IconLucidePackage,
