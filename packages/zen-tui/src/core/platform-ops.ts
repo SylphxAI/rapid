@@ -30,15 +30,14 @@ export const tuiPlatformOps: PlatformOps<TUINode> = {
   createContainer(name: string): TUINode {
     const parent = getCurrentParent();
 
+    // Fragment containers are transparent - they should not affect layout.
+    // Children inherit layout from the fragment's parent, not the fragment itself.
+    // This matches React Fragment and web's display:contents behavior.
     const container: TUINode = {
       type: 'fragment',
       props: { _containerName: name },
       children: [],
-      // Ensure fragments take up available space for proper flex layout
-      style: {
-        flex: 1,
-        flexDirection: 'column',
-      },
+      // No style - fragments are layout-transparent
     };
 
     // Set parentNode immediately if parent is available
