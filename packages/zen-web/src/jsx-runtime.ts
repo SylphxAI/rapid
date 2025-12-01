@@ -83,6 +83,17 @@ export function jsx(
 
     // Mismatch warning in dev only
     if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+      const actual = node
+        ? node.nodeType === Node.ELEMENT_NODE
+          ? (node as Element).tagName.toLowerCase()
+          : node.nodeType === Node.TEXT_NODE
+            ? '#text'
+            : '#comment'
+        : 'null';
+      console.warn(
+        `[zen-web] Hydration mismatch: expected <${type}>, found ${actual}. ` +
+          'This may cause UI inconsistencies. Ensure server and client render the same content.',
+      );
     }
   }
 
@@ -408,6 +419,15 @@ function appendChild(parent: Element, child: unknown, hydrating: boolean): void 
       process.env?.NODE_ENV === 'development' &&
       (!node || node.nodeType !== Node.TEXT_NODE)
     ) {
+      const actual = node
+        ? node.nodeType === Node.ELEMENT_NODE
+          ? `<${(node as Element).tagName.toLowerCase()}>`
+          : '#comment'
+        : 'null';
+      console.warn(
+        `[zen-web] Hydration mismatch: expected text "${String(child).slice(0, 20)}...", found ${actual}. ` +
+          'Ensure server and client render the same content.',
+      );
     }
   } else {
     parent.appendChild(document.createTextNode(String(child)));
