@@ -6,7 +6,8 @@
  */
 
 import { computed, signal } from '@zen/signal';
-import { Show } from '@zen/web';
+import { Show, Switch, Match } from '@zen/web';
+import { createContext, useContext } from '@zen/runtime';
 
 export function InteractiveDemo() {
   return (
@@ -44,10 +45,16 @@ export function InteractiveDemo() {
           {/* Demo 2: Computed Values */}
           <ComputedDemo />
 
-          {/* Demo 3: Effect & Side Effects */}
+          {/* Demo 3: Switch/Match - Pattern Matching */}
+          <SwitchDemo />
+
+          {/* Demo 4: Context API */}
+          <ContextDemo />
+
+          {/* Demo 5: Effect & Side Effects */}
           <EffectDemo />
 
-          {/* Demo 4: Complex State */}
+          {/* Demo 6: Complex State */}
           <ComplexStateDemo />
         </div>
       </div>
@@ -180,7 +187,210 @@ const fahrenheit = computed(() =>
 }
 
 /**
- * Demo 3: Effect - Shows side effects
+ * Demo 3: Switch/Match - Pattern matching for conditional rendering
+ */
+function SwitchDemo() {
+  const status = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const cycleStatus = () => {
+    const states: Array<'idle' | 'loading' | 'success' | 'error'> = ['idle', 'loading', 'success', 'error'];
+    const currentIndex = states.indexOf(status.value);
+    status.value = states[(currentIndex + 1) % states.length];
+  };
+
+  return (
+    <div class="demo-card">
+      <h3 class="demo-title">Switch / Match</h3>
+      <p class="demo-description">
+        Pattern matching for cleaner conditional rendering.
+      </p>
+
+      <div class="demo-visual">
+        <div class="demo-output">
+          <div style={{
+            padding: '24px',
+            borderRadius: '12px',
+            background: '#f9fafb',
+            textAlign: 'center',
+            minHeight: '100px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Switch>
+              <Match when={computed(() => status.value === 'idle')}>
+                <div style={{ color: '#6b7280' }}>
+                  <span style={{ fontSize: '32px' }}>⏸️</span>
+                  <p style={{ marginTop: '8px' }}>Ready to start</p>
+                </div>
+              </Match>
+              <Match when={computed(() => status.value === 'loading')}>
+                <div style={{ color: '#3b82f6' }}>
+                  <span style={{ fontSize: '32px', display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
+                  <p style={{ marginTop: '8px' }}>Loading...</p>
+                </div>
+              </Match>
+              <Match when={computed(() => status.value === 'success')}>
+                <div style={{ color: '#22c55e' }}>
+                  <span style={{ fontSize: '32px' }}>✅</span>
+                  <p style={{ marginTop: '8px' }}>Success!</p>
+                </div>
+              </Match>
+              <Match when={computed(() => status.value === 'error')}>
+                <div style={{ color: '#ef4444' }}>
+                  <span style={{ fontSize: '32px' }}>❌</span>
+                  <p style={{ marginTop: '8px' }}>Something went wrong</p>
+                </div>
+              </Match>
+            </Switch>
+          </div>
+        </div>
+
+        <div class="demo-controls" style={{ marginTop: '16px' }}>
+          <button type="button" class="btn btn-primary" onClick={cycleStatus}>
+            Next State: {() => {
+              const states = ['idle', 'loading', 'success', 'error'];
+              const next = states[(states.indexOf(status.value) + 1) % states.length];
+              return next;
+            }}
+          </button>
+          <span style={{ marginLeft: '12px', color: '#666', fontSize: '14px' }}>
+            Current: <strong>{status}</strong>
+          </span>
+        </div>
+      </div>
+
+      <div class="demo-code">
+        <pre>
+          <code>{`const status = signal('idle')
+
+<Switch>
+  <Match when={() => status.value === 'loading'}>
+    <Spinner />
+  </Match>
+  <Match when={() => status.value === 'error'}>
+    <Error />
+  </Match>
+  <Match when={() => status.value === 'success'}>
+    <Content />
+  </Match>
+</Switch>`}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Demo 4: Context API - Dependency injection
+ */
+const ThemeContext = createContext<'light' | 'dark'>('light');
+
+function ContextDemo() {
+  const theme = signal<'light' | 'dark'>('light');
+
+  const toggleTheme = () => {
+    theme.value = theme.value === 'light' ? 'dark' : 'light';
+  };
+
+  return (
+    <div class="demo-card">
+      <h3 class="demo-title">Context API</h3>
+      <p class="demo-description">
+        Share state across components without prop drilling.
+      </p>
+
+      <div class="demo-visual">
+        <ThemeContext.Provider value={theme.value}>
+          <div
+            style={{
+              padding: '20px',
+              borderRadius: '12px',
+              background: () => theme.value === 'dark' ? '#1f2937' : '#f9fafb',
+              border: () => `2px solid ${theme.value === 'dark' ? '#374151' : '#e5e7eb'}`,
+              transition: 'all 0.3s ease',
+            }}
+          >
+            <ThemedHeader />
+            <ThemedContent />
+            <ThemedButton onToggle={toggleTheme} />
+          </div>
+        </ThemeContext.Provider>
+      </div>
+
+      <div class="demo-code">
+        <pre>
+          <code>{`const ThemeContext = createContext('light')
+
+// Provider wraps app
+<ThemeContext.Provider value={theme}>
+  <App />
+</ThemeContext.Provider>
+
+// Any child can consume
+function Child() {
+  const theme = useContext(ThemeContext)
+  return <div class={theme}>...</div>
+}`}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function ThemedHeader() {
+  const theme = useContext(ThemeContext);
+  return (
+    <h4 style={{
+      margin: '0 0 12px 0',
+      color: theme === 'dark' ? '#f9fafb' : '#111827',
+      fontSize: '18px',
+      fontWeight: '600',
+    }}>
+      🎨 Themed Component
+    </h4>
+  );
+}
+
+function ThemedContent() {
+  const theme = useContext(ThemeContext);
+  return (
+    <p style={{
+      margin: '0 0 16px 0',
+      color: theme === 'dark' ? '#9ca3af' : '#6b7280',
+      fontSize: '14px',
+    }}>
+      Current theme: <strong>{theme}</strong>
+      <br />
+      All children receive the theme via Context.
+    </p>
+  );
+}
+
+function ThemedButton({ onToggle }: { onToggle: () => void }) {
+  const theme = useContext(ThemeContext);
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      style={{
+        padding: '8px 16px',
+        borderRadius: '6px',
+        border: 'none',
+        background: theme === 'dark' ? '#3b82f6' : '#667eea',
+        color: 'white',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+      }}
+    >
+      Toggle Theme
+    </button>
+  );
+}
+
+/**
+ * Demo 5: Effect - Shows side effects
  */
 function EffectDemo() {
   const name = signal('');

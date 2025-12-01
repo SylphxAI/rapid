@@ -120,6 +120,47 @@ const settings = persistentSignal('settings', {
 theme.value = 'light'
 settings.value.language = 'en'`,
     },
+    {
+      name: '@zen/tui',
+      size: '<8 KB',
+      description: 'Terminal UI with fine-grained reactivity',
+      features: [
+        'Ink-like API for terminal apps',
+        'Same reactive model as web',
+        'Flexbox layout (Yoga engine)',
+        'Rich component library',
+        'Mouse & keyboard support',
+      ],
+      integrations: [
+        { name: 'Box', pkg: 'layout', icon: 'lucide:square' },
+        { name: 'Text', pkg: 'primitives', icon: 'lucide:type' },
+        { name: 'Input', pkg: 'forms', icon: 'lucide:text-cursor' },
+        { name: 'Spinner', pkg: 'feedback', icon: 'lucide:loader' },
+      ],
+      example: `// Terminal UI app
+import { signal } from '@zen/signal'
+import { render, Box, Text, TextInput } from '@zen/tui'
+
+function App() {
+  const name = signal('')
+
+  return (
+    <Box flexDirection="column" padding={1}>
+      <Text bold color="cyan">Welcome!</Text>
+      <TextInput
+        value={name}
+        placeholder="Your name..."
+        onChange={v => name.value = v}
+      />
+      <Text color="green">
+        Hello, {() => name.value || 'stranger'}!
+      </Text>
+    </Box>
+  )
+}
+
+render(<App />)`,
+    },
   ];
 
   return (
