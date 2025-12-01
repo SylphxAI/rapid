@@ -76,15 +76,27 @@ function styleToString(style: Record<string, any>): string {
 function renderAttributes(props: Record<string, any>): string {
   const attrs: string[] = [];
 
-  for (const [key, value] of Object.entries(props)) {
+  for (const [key, rawValue] of Object.entries(props)) {
     // Skip special props
     if (key === 'children' || key === 'ref' || key === 'key') continue;
 
-    // Skip undefined/null
-    if (value == null) continue;
-
     // Skip event handlers (client-only)
     if (key.startsWith('on')) continue;
+
+    // Unwrap reactive values (signals and functions)
+    let value = rawValue;
+    if (isSignal(value)) {
+      value = value.value;
+    } else if (typeof value === 'function') {
+      // Only unwrap for reactive attributes (same list as client-side)
+      const reactiveAttrs = ['value', 'checked', 'disabled', 'selected', 'innerHTML', 'textContent'];
+      if (reactiveAttrs.includes(key)) {
+        value = value();
+      }
+    }
+
+    // Skip undefined/null (check after unwrapping)
+    if (value == null) continue;
 
     // Boolean attributes
     if (typeof value === 'boolean') {
