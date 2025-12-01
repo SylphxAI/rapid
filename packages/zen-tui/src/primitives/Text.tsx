@@ -5,10 +5,10 @@
  */
 
 import { appendChild } from '../core/jsx-runtime.js';
-import type { TUINode, TUIStyle } from '../core/types.js';
+import type { TUIChildren, TUINode, TUIStyle } from '../core/types.js';
 
 export interface TextProps {
-  children?: any;
+  children?: TUIChildren;
   style?: TUIStyle;
   color?: string;
   backgroundColor?: string;

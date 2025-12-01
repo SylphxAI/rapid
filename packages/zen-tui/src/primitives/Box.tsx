@@ -12,7 +12,7 @@
  */
 
 import { appendChild } from '../core/jsx-runtime.js';
-import type { MouseClickEvent, TUINode, TUIStyle } from '../core/types.js';
+import type { MouseClickEvent, TUIChildren, TUINode, TUIStyle } from '../core/types.js';
 
 /**
  * BoxProps - Ink-compatible props interface
@@ -21,7 +21,7 @@ import type { MouseClickEvent, TUINode, TUIStyle } from '../core/types.js';
  * or nested in a `style` object.
  */
 export interface BoxProps extends TUIStyle {
-  children?: any;
+  children?: TUIChildren;
   style?: TUIStyle;
   /** Click handler - called when the box is clicked */
   onClick?: (event: MouseClickEvent) => void;

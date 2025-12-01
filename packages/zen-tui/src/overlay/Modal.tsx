@@ -8,6 +8,7 @@
 
 import { type MaybeReactive, Show, resolve } from '@zen/runtime';
 import { signal } from '@zen/signal';
+import type { TUIChildren } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { Box } from '../primitives/Box.js';
@@ -28,7 +29,7 @@ export interface ModalProps {
   /** Modal title - supports MaybeReactive */
   title?: MaybeReactive<string>;
   /** Modal content - can be string or JSX */
-  children?: any;
+  children?: TUIChildren;
   /** Close handler (called when ESC is pressed or overlay is clicked) */
   onClose?: () => void;
   /** Modal width (default: 50) - supports MaybeReactive */

@@ -7,13 +7,13 @@
 import { open } from '@zen/router-core';
 import { createUniqueId, signal } from '@zen/runtime';
 import { appendChild } from '../core/jsx-runtime.js';
-import type { TUINode, TUIStyle } from '../core/types.js';
+import type { TUIChildren, TUINode, TUIStyle } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { useFocus } from '../utils/focus.js';
 
 export interface RouterLinkProps {
   href: string;
-  children?: any;
+  children?: TUIChildren;
   style?: TUIStyle;
   color?: string;
   focusColor?: string;

@@ -3,6 +3,21 @@
  */
 
 /**
+ * Children type for TUI components
+ *
+ * Supports:
+ * - TUINode: Single node
+ * - string: Text content
+ * - (TUINode | string)[]: Array of mixed content
+ * - () => ...: Reactive function returning any of the above
+ */
+export type TUIChildren =
+  | TUINode
+  | string
+  | (TUINode | string)[]
+  | (() => TUINode | string | (TUINode | string)[]);
+
+/**
  * Node types:
  * - 'box': Container with layout (flexbox)
  * - 'text': Text content
