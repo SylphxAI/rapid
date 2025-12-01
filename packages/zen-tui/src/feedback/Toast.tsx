@@ -38,6 +38,9 @@ export interface ToastProps {
 // Global toast store
 const toastStore = signal<ToastMessage[]>([]);
 
+// Track timeouts for cleanup
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+
 /**
  * Show a toast notification
  *
@@ -59,11 +62,13 @@ export const toast = {
 
     toastStore.value = [...toastStore.value, newToast];
 
-    // Auto dismiss
+    // Auto dismiss with tracked timeout
     if (duration > 0) {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
+        toastTimeouts.delete(id);
         toast.dismiss(id);
       }, duration);
+      toastTimeouts.set(id, timeoutId);
     }
 
     return id;
@@ -89,6 +94,12 @@ export const toast = {
    * Dismiss a specific toast
    */
   dismiss(id: string): void {
+    // Clear timeout if still pending
+    const timeoutId = toastTimeouts.get(id);
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+      toastTimeouts.delete(id);
+    }
     toastStore.value = toastStore.value.filter((t) => t.id !== id);
   },
 
@@ -96,6 +107,11 @@ export const toast = {
    * Dismiss all toasts
    */
   dismissAll(): void {
+    // Clear all pending timeouts
+    for (const timeoutId of toastTimeouts.values()) {
+      clearTimeout(timeoutId);
+    }
+    toastTimeouts.clear();
     toastStore.value = [];
   },
 };

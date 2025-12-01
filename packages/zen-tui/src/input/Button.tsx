@@ -178,26 +178,44 @@ export function Button(props: ButtonProps): TUINode {
 /**
  * Handle button keyboard input
  * Call this from your app's onKeyPress handler for the focused button
+ *
+ * @returns Object with `handled` boolean and optional `cleanup` function.
+ *          Call `cleanup()` if you need to cancel the press animation early.
+ *
+ * @example
+ * ```tsx
+ * const result = handleButton(isPressed, false, key, onClick);
+ * if (result.handled) {
+ *   // Optional: store cleanup for later cancellation
+ *   onCleanup(() => result.cleanup?.());
+ * }
+ * ```
  */
 export function handleButton(
   isPressed: Signal<boolean>,
   disabled: boolean,
   key: string,
   onClick?: () => void,
-): boolean {
-  if (disabled) return false;
+): { handled: boolean; cleanup?: () => void } {
+  if (disabled) return { handled: false };
 
   // Enter or Space to activate
   if (key === '\r' || key === '\n' || key === ' ') {
     // Visual feedback: press and release
     isPressed.value = true;
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       isPressed.value = false;
     }, 100);
 
     onClick?.();
-    return true;
+    return {
+      handled: true,
+      cleanup: () => {
+        clearTimeout(timeoutId);
+        isPressed.value = false;
+      },
+    };
   }
 
-  return false;
+  return { handled: false };
 }
