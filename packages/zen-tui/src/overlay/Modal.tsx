@@ -8,7 +8,7 @@
 
 import { type MaybeReactive, Show, resolve } from '@zen/runtime';
 import { signal } from '@zen/signal';
-import type { TUIChildren } from '../core/types.js';
+import type { TUIChildren, TUINode } from '../core/types.js';
 import { useInput } from '../hooks/useInput.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { Box } from '../primitives/Box.js';
@@ -56,7 +56,7 @@ export interface ModalProps {
  * </Modal>
  * ```
  */
-export function Modal(props: ModalProps) {
+export function Modal(props: ModalProps): TUINode {
   const { children, onClose } = props;
 
   // Get terminal size for centering
@@ -133,7 +133,7 @@ export interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
-export function ConfirmDialog(props: ConfirmDialogProps) {
+export function ConfirmDialog(props: ConfirmDialogProps): TUINode {
   const { open, title = 'Confirm', message, onConfirm, onCancel } = props;
 
   useInput((input, key) => {
@@ -161,7 +161,7 @@ export interface AlertDialogProps {
   onClose: () => void;
 }
 
-export function AlertDialog(props: AlertDialogProps) {
+export function AlertDialog(props: AlertDialogProps): TUINode {
   const { open, title = 'Alert', message, onClose } = props;
 
   useInput((_input, key) => {

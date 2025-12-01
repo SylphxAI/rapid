@@ -8,6 +8,7 @@
 
 import { For, Show, createUniqueId } from '@zen/runtime';
 import { effect, onCleanup, signal } from '@zen/signal';
+import type { TUINode } from '../core/types.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { Box } from '../primitives/Box.js';
 import { Text } from '../primitives/Text.js';
@@ -165,7 +166,7 @@ function getToastColor(type: ToastType): string {
  * }
  * ```
  */
-export function ToastContainer(props: ToastProps) {
+export function ToastContainer(props: ToastProps): TUINode {
   const { position = 'top-right', maxWidth = 40 } = props;
 
   const { width: _termWidth } = useTerminalSize();
@@ -228,7 +229,7 @@ export interface SingleToastProps {
   onDismiss?: () => void;
 }
 
-export function Toast(props: SingleToastProps) {
+export function Toast(props: SingleToastProps): TUINode {
   const { type, message, onDismiss } = props;
   const color = getToastColor(type);
   const icon = getToastIcon(type);
