@@ -21,10 +21,15 @@ export interface TerminalSize {
   height: number;
 }
 
+/** Default terminal width (VT100 standard) */
+export const DEFAULT_TERMINAL_WIDTH = 80;
+/** Default terminal height (VT100 standard) */
+export const DEFAULT_TERMINAL_HEIGHT = 24;
+
 // Global terminal size signals (shared across all hooks and render system)
 // These are the single source of truth for terminal dimensions
-export const terminalWidthSignal = signal(process.stdout.columns || 80);
-export const terminalHeightSignal = signal(process.stdout.rows || 24);
+export const terminalWidthSignal = signal(process.stdout.columns || DEFAULT_TERMINAL_WIDTH);
+export const terminalHeightSignal = signal(process.stdout.rows || DEFAULT_TERMINAL_HEIGHT);
 
 // Legacy aliases for internal use
 const terminalWidth = terminalWidthSignal;
@@ -35,8 +40,8 @@ let resizeListenerActive = false;
 let listenerCount = 0;
 
 function handleResize() {
-  terminalWidth.value = process.stdout.columns || 80;
-  terminalHeight.value = process.stdout.rows || 24;
+  terminalWidth.value = process.stdout.columns || DEFAULT_TERMINAL_WIDTH;
+  terminalHeight.value = process.stdout.rows || DEFAULT_TERMINAL_HEIGHT;
 }
 
 function setupResizeListener() {
@@ -91,8 +96,8 @@ export function useTerminalSize(): TerminalSize {
  */
 export function getTerminalSize(): TerminalSize {
   return {
-    width: process.stdout.columns || 80,
-    height: process.stdout.rows || 24,
+    width: process.stdout.columns || DEFAULT_TERMINAL_WIDTH,
+    height: process.stdout.rows || DEFAULT_TERMINAL_HEIGHT,
   };
 }
 
