@@ -123,16 +123,22 @@ export {
   type TextInputProps,
   type SuggestionProvider,
 } from './input/TextInput.js';
-export { SelectInput, handleSelectInput, type SelectOption } from './input/SelectInput.js';
+export {
+  SelectInput,
+  handleSelectInput,
+  type SelectOption,
+  type SelectInputProps,
+} from './input/SelectInput.js';
 export {
   MultiSelect,
   handleMultiSelectInput,
   type MultiSelectOption,
+  type MultiSelectProps,
 } from './input/MultiSelect.js';
-export { Checkbox, handleCheckbox } from './input/Checkbox.js';
-export { Radio, handleRadioInput, type RadioOption } from './input/Radio.js';
-export { Button, handleButton } from './input/Button.js';
-export { Confirmation } from './input/Confirmation.js';
+export { Checkbox, handleCheckbox, type CheckboxProps } from './input/Checkbox.js';
+export { Radio, handleRadioInput, type RadioOption, type RadioProps } from './input/Radio.js';
+export { Button, handleButton, type ButtonProps } from './input/Button.js';
+export { Confirmation, type ConfirmationProps } from './input/Confirmation.js';
 
 // ============================================================================
 // Feedback - User feedback and status
