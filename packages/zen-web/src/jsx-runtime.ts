@@ -153,15 +153,13 @@ function setAttribute(element: Element, key: string, value: unknown): void {
 
   // Reactive value (signal)
   if (isSignal(value)) {
-    // Special case: form control values
+    // Special case: form control values - effect handles initial + updates
     if (
       key === 'value' &&
       (element instanceof HTMLInputElement ||
         element instanceof HTMLTextAreaElement ||
         element instanceof HTMLSelectElement)
     ) {
-      (element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement)[key] = value.value;
-
       effect(() => {
         const newValue = value.value;
         const formElement = element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -186,15 +184,13 @@ function setAttribute(element: Element, key: string, value: unknown): void {
     const reactiveAttrs = ['value', 'checked', 'disabled', 'selected', 'innerHTML', 'textContent'];
 
     if (reactiveAttrs.includes(key)) {
-      // Special case: form control values
+      // Special case: form control values - effect handles initial + updates
       if (
         key === 'value' &&
         (element instanceof HTMLInputElement ||
           element instanceof HTMLTextAreaElement ||
           element instanceof HTMLSelectElement)
       ) {
-        (element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement)[key] = value();
-
         effect(() => {
           const newValue = value();
           const formElement = element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -272,6 +268,18 @@ function appendChild(parent: Element, child: unknown, hydrating: boolean): void 
     }
 
     let currentNodes: Node[] = [];
+
+    // Cleanup marker and content nodes when disposed
+    onCleanup(() => {
+      for (const node of currentNodes) {
+        if (node.parentNode === parent) {
+          parent.removeChild(node);
+        }
+      }
+      if (marker.parentNode === parent) {
+        parent.removeChild(marker);
+      }
+    });
     let previousValue: unknown;
 
     // Wrap in effect for reactivity
@@ -356,6 +364,18 @@ function appendChild(parent: Element, child: unknown, hydrating: boolean): void 
 
     let currentNodes: Node[] = [];
     let previousValue: unknown;
+
+    // Cleanup marker and content nodes when disposed
+    onCleanup(() => {
+      for (const node of currentNodes) {
+        if (node.parentNode === parent) {
+          parent.removeChild(node);
+        }
+      }
+      if (marker.parentNode === parent) {
+        parent.removeChild(marker);
+      }
+    });
 
     // Wrap in effect for reactivity
     effect(() => {
