@@ -276,10 +276,13 @@ export function Playground() {
       {/* Header */}
       <header class="flex-shrink-0 h-14 border-b border-border bg-bg-light flex items-center justify-between px-4">
         <div class="flex items-center gap-4">
-          <h1 class="text-lg font-bold text-text flex items-center gap-2">
+          <a
+            href="/"
+            class="text-lg font-bold text-text flex items-center gap-2 hover:text-primary transition-colors"
+          >
             <Icon icon="lucide:play-circle" width="20" height="20" class="text-primary" />
             Zen Playground
-          </h1>
+          </a>
 
           {/* Examples Dropdown */}
           <div class="relative">
