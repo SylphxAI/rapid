@@ -9,6 +9,7 @@
  */
 
 import IconHeroiconsUser from '~icons/heroicons/user';
+import IconLucideArrowLeft from '~icons/lucide/arrow-left';
 import IconLucideAtom from '~icons/lucide/atom';
 import IconLucideBarChart from '~icons/lucide/bar-chart';
 import IconLucideBell from '~icons/lucide/bell';
@@ -80,6 +81,7 @@ interface IconProps {
 // Map icon names to raw SVG strings
 const iconMap: Record<string, string> = {
   // Lucide icons
+  'lucide:arrow-left': IconLucideArrowLeft,
   'lucide:atom': IconLucideAtom,
   'lucide:bar-chart': IconLucideBarChart,
   'lucide:bell': IconLucideBell,
