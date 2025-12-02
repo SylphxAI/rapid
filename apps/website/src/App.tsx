@@ -1,5 +1,5 @@
-import { Router } from '@zen/router';
-import { Show, signal } from '@zen/web';
+import { $router, Router } from '@zen/router';
+import { Show, computed } from '@zen/web';
 import { Footer } from './components/Footer.tsx';
 import { Header } from './components/Header.tsx';
 import { Examples } from './pages/Examples.tsx';
@@ -9,33 +9,8 @@ import { NewHome } from './pages/NewHome.tsx';
 import { Playground } from './pages/Playground.tsx';
 import { TestDescriptor } from './pages/TestDescriptor.tsx';
 
-// Track if current page is full-screen (no header/footer)
-const isFullScreen = signal(false);
-
-// Update full-screen state based on pathname
-const updateFullScreen = () => {
-  isFullScreen.value = window.location.pathname === '/playground';
-};
-
-// Check path on load and navigation events
-if (typeof window !== 'undefined') {
-  updateFullScreen();
-  window.addEventListener('popstate', updateFullScreen);
-
-  // Intercept History API for SPA navigation
-  const originalPushState = history.pushState.bind(history);
-  const originalReplaceState = history.replaceState.bind(history);
-
-  history.pushState = (...args) => {
-    originalPushState(...args);
-    updateFullScreen();
-  };
-
-  history.replaceState = (...args) => {
-    originalReplaceState(...args);
-    updateFullScreen();
-  };
-}
+// Derive full-screen state from router's reactive path signal
+const isFullScreen = computed(() => $router.value.path === '/playground');
 
 export function App() {
   return (
