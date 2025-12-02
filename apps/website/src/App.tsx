@@ -25,7 +25,7 @@ if (typeof window !== 'undefined') {
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
     const anchor = target.closest('a');
-    if (anchor?.href && anchor.href.startsWith(window.location.origin)) {
+    if (anchor?.href?.startsWith(window.location.origin)) {
       // Defer check until after navigation completes
       setTimeout(updateFullScreen, 0);
     }
@@ -41,10 +41,34 @@ export function App() {
       <main>
         <Router
           routes={[
-            { path: '/', component: () => <NewHome /> },
-            { path: '/docs', component: () => <NewDocs /> },
-            { path: '/examples', component: () => <Examples /> },
-            { path: '/migration', component: () => <Migration /> },
+            {
+              path: '/',
+              component: () => {
+                isFullScreen.value = false;
+                return <NewHome />;
+              },
+            },
+            {
+              path: '/docs',
+              component: () => {
+                isFullScreen.value = false;
+                return <NewDocs />;
+              },
+            },
+            {
+              path: '/examples',
+              component: () => {
+                isFullScreen.value = false;
+                return <Examples />;
+              },
+            },
+            {
+              path: '/migration',
+              component: () => {
+                isFullScreen.value = false;
+                return <Migration />;
+              },
+            },
             {
               path: '/playground',
               component: () => {
@@ -52,7 +76,13 @@ export function App() {
                 return <Playground />;
               },
             },
-            { path: '/test-descriptor', component: () => <TestDescriptor /> },
+            {
+              path: '/test-descriptor',
+              component: () => {
+                isFullScreen.value = false;
+                return <TestDescriptor />;
+              },
+            },
           ]}
           fallback={() => (
             <div class="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
