@@ -295,62 +295,68 @@ document.getElementById('btn').onclick = () => count.value++;`,
         </div>
       </section>
 
-      <div class="max-w-6xl mx-auto px-6 py-12">
+      <div class="max-w-5xl mx-auto px-6 py-12">
         {/* Framework selector */}
-        <div class="flex flex-wrap gap-3 justify-center mb-12">
-          <For each={frameworks}>
-            {(fw) => (
-              <button
-                type="button"
-                class={
-                  activeFramework.value === fw.id
-                    ? 'inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-xl shadow-lg transition-all duration-200 hover:bg-primary-dark'
-                    : 'inline-flex items-center gap-2 px-5 py-2.5 bg-bg-lighter text-text font-medium rounded-xl border border-border transition-all duration-200 hover:bg-bg-dark hover:border-primary/50'
-                }
-                onClick={() => {
-                  activeFramework.value = fw.id;
-                }}
-              >
-                <Icon icon={fw.icon} width="18" height="18" />
-                {fw.name}
-              </button>
-            )}
-          </For>
+        <div class="flex justify-center mb-10">
+          <div class="inline-flex bg-bg-light border border-border rounded-2xl p-1.5 gap-1">
+            <For each={frameworks}>
+              {(fw) => (
+                <button
+                  type="button"
+                  class={
+                    activeFramework.value === fw.id
+                      ? 'flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-xl shadow-md transition-all duration-200'
+                      : 'flex items-center gap-2 px-5 py-2.5 text-text-muted font-medium rounded-xl transition-all duration-200 hover:text-text hover:bg-bg-lighter'
+                  }
+                  onClick={() => {
+                    activeFramework.value = fw.id;
+                  }}
+                >
+                  <Icon icon={fw.icon} width="18" height="18" />
+                  {fw.name}
+                </button>
+              )}
+            </For>
+          </div>
         </div>
 
         {/* Migration content */}
         <div class="space-y-8">
           {/* Title */}
-          <div class="card text-center">
-            <h2 class="heading-2 text-text mb-2">{currentMigration().title}</h2>
+          <div class="bg-bg-light border border-border rounded-2xl p-8 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-text mb-3">{currentMigration().title}</h2>
             <p class="text-lg text-text-muted">{currentMigration().description}</p>
           </div>
 
           {/* Comparison table */}
-          <div class="card p-0 overflow-hidden">
-            <div class="bg-bg-lighter border-b border-border px-6 py-4">
-              <h3 class="heading-3 text-text">Side-by-Side Comparison</h3>
+          <div class="bg-bg-light border border-border rounded-2xl overflow-hidden">
+            <div class="bg-bg-lighter border-b border-border px-6 py-4 flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-lg">
+                <Icon icon="lucide:code-2" width="18" height="18" />
+              </div>
+              <h3 class="text-lg font-semibold text-text">Side-by-Side Comparison</h3>
             </div>
             <div class="divide-y divide-border">
               <For each={currentMigration().comparison}>
                 {(item) => (
-                  <div class="grid grid-cols-1 md:grid-cols-3">
-                    <div class="p-4 bg-bg-lighter border-b md:border-b-0 md:border-r border-border flex items-center">
-                      <span class="font-medium text-text">{item.aspect}</span>
+                  <div class="grid grid-cols-1 lg:grid-cols-[200px_1fr_1fr]">
+                    <div class="p-5 bg-bg-lighter border-b lg:border-b-0 lg:border-r border-border flex items-center">
+                      <span class="font-semibold text-text">{item.aspect}</span>
                     </div>
-                    <div class="p-4 border-b md:border-b-0 md:border-r border-border">
-                      <div class="text-xs text-text-subtle uppercase tracking-wide mb-2">
+                    <div class="p-5 border-b lg:border-b-0 lg:border-r border-border">
+                      <div class="text-xs text-text-subtle uppercase tracking-wider font-medium mb-3">
                         Before
                       </div>
-                      <pre class="text-sm text-text-muted font-mono whitespace-pre-wrap">
+                      <pre class="text-sm text-text-muted font-mono whitespace-pre-wrap bg-bg rounded-lg p-3 border border-border">
                         {item.before}
                       </pre>
                     </div>
-                    <div class="p-4 bg-success/5">
-                      <div class="text-xs text-success uppercase tracking-wide font-medium mb-2">
+                    <div class="p-5 bg-success/5">
+                      <div class="text-xs text-success uppercase tracking-wider font-semibold mb-3 flex items-center gap-1.5">
+                        <Icon icon="lucide:zap" width="12" height="12" />
                         After (Zen)
                       </div>
-                      <pre class="text-sm text-text font-mono whitespace-pre-wrap">
+                      <pre class="text-sm text-text font-mono whitespace-pre-wrap bg-bg-light rounded-lg p-3 border border-success/20">
                         {item.after}
                       </pre>
                     </div>
@@ -361,20 +367,23 @@ document.getElementById('btn').onclick = () => count.value++;`,
           </div>
 
           {/* Migration steps */}
-          <div class="card p-0 overflow-hidden">
-            <div class="bg-bg-lighter border-b border-border px-6 py-4">
-              <h3 class="heading-3 text-text">Migration Steps</h3>
+          <div class="bg-bg-light border border-border rounded-2xl overflow-hidden">
+            <div class="bg-bg-lighter border-b border-border px-6 py-4 flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-secondary/10 text-secondary rounded-lg">
+                <Icon icon="lucide:list" width="18" height="18" />
+              </div>
+              <h3 class="text-lg font-semibold text-text">Migration Steps</h3>
             </div>
             <div class="p-6 space-y-6">
               <For each={currentMigration().steps}>
                 {(step) => (
-                  <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full font-bold">
+                  <div class="flex gap-5">
+                    <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-primary to-secondary text-white rounded-xl font-bold shadow-md">
                       {step.step}
                     </div>
                     <div class="flex-1 min-w-0">
-                      <h4 class="font-semibold text-text mb-3">{step.title}</h4>
-                      <pre class="code-block overflow-x-auto">{step.code}</pre>
+                      <h4 class="font-semibold text-text mb-3 text-lg">{step.title}</h4>
+                      <pre class="text-sm font-mono whitespace-pre-wrap bg-bg-lighter rounded-xl p-4 border border-border overflow-x-auto">{step.code}</pre>
                     </div>
                   </div>
                 )}
@@ -383,40 +392,43 @@ document.getElementById('btn').onclick = () => count.value++;`,
           </div>
 
           {/* Benefits */}
-          <div class="card p-0 overflow-hidden">
-            <div class="bg-bg-lighter border-b border-border px-6 py-4">
-              <h3 class="heading-3 text-text">Benefits</h3>
+          <div class="bg-bg-light border border-border rounded-2xl overflow-hidden">
+            <div class="bg-bg-lighter border-b border-border px-6 py-4 flex items-center gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-success/10 text-success rounded-lg">
+                <Icon icon="lucide:sparkles" width="18" height="18" />
+              </div>
+              <h3 class="text-lg font-semibold text-text">Benefits</h3>
             </div>
             <div class="p-6">
-              <ul class="space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <For each={currentMigration().benefits}>
                   {(benefit) => (
-                    <li class="flex items-start gap-3">
-                      <div class="w-6 h-6 flex items-center justify-center bg-success/10 text-success rounded-full flex-shrink-0">
+                    <div class="flex items-start gap-3 p-4 bg-bg rounded-xl border border-border">
+                      <div class="w-6 h-6 flex items-center justify-center bg-success/10 text-success rounded-lg flex-shrink-0">
                         <Icon icon="lucide:check" width="14" height="14" />
                       </div>
-                      <span class="text-text-muted">{benefit}</span>
-                    </li>
+                      <span class="text-text-muted text-sm">{benefit}</span>
+                    </div>
                   )}
                 </For>
-              </ul>
+              </div>
             </div>
           </div>
         </div>
 
         {/* CTA */}
-        <div class="mt-12 card text-center">
-          <h3 class="heading-3 text-text mb-3">Ready to get started?</h3>
+        <div class="mt-12 bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 rounded-2xl p-8 text-center">
+          <h3 class="text-xl font-bold text-text mb-3">Ready to get started?</h3>
           <p class="text-text-muted mb-6 max-w-xl mx-auto">
             Check out our documentation for detailed guides and API references.
           </p>
           <div class="flex gap-4 justify-center flex-wrap">
-            <a href="/docs" class="btn btn-primary text-lg px-8 py-4">
-              <Icon icon="lucide:book-open" width="20" height="20" />
+            <a href="/docs" class="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl shadow-lg transition-all">
+              <Icon icon="lucide:book-open" width="18" height="18" />
               Read the Docs
             </a>
-            <a href="/playground" class="btn btn-secondary text-lg px-8 py-4">
-              <Icon icon="lucide:terminal" width="20" height="20" />
+            <a href="/playground" class="inline-flex items-center gap-2 px-6 py-3 bg-bg-light hover:bg-bg-lighter text-text font-medium rounded-xl border border-border transition-all">
+              <Icon icon="lucide:terminal" width="18" height="18" />
               Try in Playground
             </a>
           </div>

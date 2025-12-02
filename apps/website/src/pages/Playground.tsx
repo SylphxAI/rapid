@@ -235,26 +235,26 @@ export function Playground() {
       <div class="max-w-7xl mx-auto px-6 py-8">
         <div class="grid grid-cols-12 gap-6">
           {/* Sidebar */}
-          <aside class="col-span-12 lg:col-span-3 space-y-4">
+          <aside class="col-span-12 lg:col-span-3 space-y-6">
             {/* Categories */}
-            <div class="card">
-              <h3 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+            <div class="bg-bg-light border border-border rounded-2xl p-5">
+              <h3 class="text-xs font-bold text-text-subtle uppercase tracking-widest mb-4">
                 Categories
               </h3>
-              <nav class="space-y-1">
+              <nav class="flex flex-wrap gap-2">
                 <For each={categories}>
                   {(category) => (
                     <button
                       type="button"
                       class={
                         selectedCategory.value === category.id
-                          ? 'w-full flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-xl font-medium transition-all'
-                          : 'w-full flex items-center gap-2 px-3 py-2 text-text-muted hover:text-text hover:bg-bg-lighter rounded-xl transition-all'
+                          ? 'flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm shadow-md transition-all'
+                          : 'flex items-center gap-2 px-4 py-2 bg-bg-lighter text-text-muted hover:text-text hover:bg-bg-dark border border-border rounded-lg text-sm transition-all'
                       }
                       onClick={() => handleCategoryChange(category.id)}
                     >
-                      <Icon icon={category.icon} width="18" height="18" />
-                      <span class="text-sm">{category.name}</span>
+                      <Icon icon={category.icon} width="16" height="16" />
+                      {category.name}
                     </button>
                   )}
                 </For>
@@ -262,8 +262,8 @@ export function Playground() {
             </div>
 
             {/* Examples List */}
-            <div class="card">
-              <h3 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+            <div class="bg-bg-light border border-border rounded-2xl p-5">
+              <h3 class="text-xs font-bold text-text-subtle uppercase tracking-widest mb-4">
                 Examples
               </h3>
               <div class="space-y-2">
@@ -273,8 +273,8 @@ export function Playground() {
                       type="button"
                       class={
                         selectedExampleId.value === example.id
-                          ? 'w-full text-left p-3 bg-primary/10 border-2 border-primary rounded-xl transition-all'
-                          : 'w-full text-left p-3 bg-bg-lighter hover:bg-bg-dark border-2 border-transparent rounded-xl transition-all'
+                          ? 'w-full text-left p-3 bg-bg-lighter border-2 border-primary rounded-xl transition-all shadow-sm'
+                          : 'w-full text-left p-3 bg-bg hover:bg-bg-lighter border border-border hover:border-border-light rounded-xl transition-all'
                       }
                       onClick={() => loadExample(example.id)}
                     >
@@ -282,15 +282,15 @@ export function Playground() {
                         <div
                           class={
                             selectedExampleId.value === example.id
-                              ? 'flex-shrink-0 w-8 h-8 flex items-center justify-center bg-primary text-white rounded-lg'
-                              : 'flex-shrink-0 w-8 h-8 flex items-center justify-center bg-bg text-primary rounded-lg'
+                              ? 'flex-shrink-0 w-9 h-9 flex items-center justify-center bg-primary text-white rounded-lg shadow-sm'
+                              : 'flex-shrink-0 w-9 h-9 flex items-center justify-center bg-bg-lighter text-text-muted rounded-lg border border-border'
                           }
                         >
-                          <Icon icon={example.icon} width="16" height="16" />
+                          <Icon icon={example.icon} width="18" height="18" />
                         </div>
                         <div class="flex-1 min-w-0">
-                          <h4 class="text-sm font-semibold text-text truncate">{example.title}</h4>
-                          <p class="text-xs text-text-muted line-clamp-2">{example.description}</p>
+                          <h4 class="text-sm font-semibold text-text">{example.title}</h4>
+                          <p class="text-xs text-text-muted mt-0.5 line-clamp-2">{example.description}</p>
                         </div>
                       </div>
                     </button>
@@ -301,32 +301,43 @@ export function Playground() {
           </aside>
 
           {/* Main Content Area */}
-          <main class="col-span-12 lg:col-span-9 space-y-4">
+          <main class="col-span-12 lg:col-span-9 space-y-5">
             {/* Current Example Header */}
-            <div class="card flex items-center gap-4">
-              <div class="w-12 h-12 flex items-center justify-center bg-primary text-white rounded-xl">
-                <Icon icon={selectedExample.value.icon} width="24" height="24" />
+            <div class="bg-bg-light border border-border rounded-2xl p-5 flex items-center gap-4">
+              <div class="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-primary to-secondary text-white rounded-xl shadow-lg">
+                <Icon icon={selectedExample.value.icon} width="28" height="28" />
               </div>
               <div class="flex-1">
-                <h2 class="text-lg font-semibold text-text">{selectedExample.value.title}</h2>
-                <p class="text-sm text-text-muted">{selectedExample.value.description}</p>
+                <h2 class="text-xl font-bold text-text">{selectedExample.value.title}</h2>
+                <p class="text-sm text-text-muted mt-1">{selectedExample.value.description}</p>
               </div>
             </div>
 
             <Show when={() => error.value !== ''}>
-              <div class="p-4 bg-error/10 border border-error/30 rounded-xl text-error font-mono text-sm">
-                <strong>Error:</strong> {error}
+              <div class="p-4 bg-error/10 border border-error/30 rounded-xl text-error font-mono text-sm flex items-start gap-3">
+                <Icon icon="lucide:x" width="18" height="18" class="flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong class="block mb-1">Error</strong>
+                  {error}
+                </div>
               </div>
             </Show>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
               {/* Editor */}
-              <div class="card p-0 overflow-hidden">
-                <div class="flex items-center justify-between bg-bg-lighter border-b border-border px-4 py-3">
-                  <span class="font-medium text-text text-sm">Code Editor</span>
+              <div class="bg-bg-light border border-border rounded-2xl overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between bg-bg-lighter border-b border-border px-5 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="flex gap-1.5">
+                      <div class="w-3 h-3 rounded-full bg-error/60" />
+                      <div class="w-3 h-3 rounded-full bg-warning/60" />
+                      <div class="w-3 h-3 rounded-full bg-success/60" />
+                    </div>
+                    <span class="font-medium text-text text-sm ml-2">Code Editor</span>
+                  </div>
                   <button
                     type="button"
-                    class="btn btn-ghost text-sm px-3 py-1"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text bg-bg hover:bg-bg-dark border border-border rounded-lg transition-all"
                     onClick={() => {
                       code.value = selectedExample.value.code;
                       if (editorView) {
@@ -340,12 +351,12 @@ export function Playground() {
                       }
                     }}
                   >
-                    <Icon icon="lucide:rotate-ccw" width="14" height="14" />
+                    <Icon icon="lucide:rotate-ccw" width="12" height="12" />
                     Reset
                   </button>
                 </div>
                 <div
-                  class="min-h-[500px]"
+                  class="flex-1 min-h-[480px]"
                   ref={(el) => {
                     if (el && !editorView) {
                       initEditor(el as HTMLDivElement);
@@ -355,55 +366,60 @@ export function Playground() {
               </div>
 
               {/* Preview */}
-              <div class="card p-0 overflow-hidden">
-                <div class="flex items-center justify-between bg-bg-lighter border-b border-border px-4 py-3">
-                  <span class="font-medium text-text text-sm">Live Preview</span>
+              <div class="bg-bg-light border border-border rounded-2xl overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between bg-bg-lighter border-b border-border px-5 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-success animate-pulse" />
+                    <span class="font-medium text-text text-sm">Live Preview</span>
+                  </div>
                   <button
                     type="button"
-                    class="btn btn-ghost text-sm px-3 py-1"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text bg-bg hover:bg-bg-dark border border-border rounded-lg transition-all"
                     onClick={() => {
                       const el = document.getElementById('preview');
                       if (el) el.innerHTML = '';
                     }}
                   >
-                    <Icon icon="lucide:x" width="14" height="14" />
+                    <Icon icon="lucide:x" width="12" height="12" />
                     Clear
                   </button>
                 </div>
-                <div id="preview" class="min-h-[500px] p-4 overflow-auto" />
+                <div id="preview" class="flex-1 min-h-[480px] p-5 overflow-auto bg-bg" />
               </div>
             </div>
 
             {/* Tips */}
-            <div class="card">
+            <div class="bg-bg-light border border-border rounded-2xl p-5">
               <h3 class="font-semibold text-text mb-4 flex items-center gap-2">
-                <Icon icon="lucide:lightbulb" width="18" height="18" class="text-warning" />
+                <div class="w-8 h-8 flex items-center justify-center bg-warning/10 text-warning rounded-lg">
+                  <Icon icon="lucide:lightbulb" width="18" height="18" />
+                </div>
                 Playground Tips
               </h3>
-              <ul class="space-y-2 text-sm text-text-muted">
-                <li class="flex items-start gap-2">
-                  <span class="text-primary">1.</span>
-                  <span>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="flex items-start gap-3 p-3 bg-bg rounded-xl">
+                  <span class="w-6 h-6 flex items-center justify-center bg-primary/10 text-primary rounded-md text-xs font-bold">1</span>
+                  <span class="text-sm text-text-muted">
                     Create a variable called{' '}
-                    <code class="px-1.5 py-0.5 bg-bg-lighter border border-border rounded text-primary text-xs">
+                    <code class="px-1.5 py-0.5 bg-bg-lighter border border-border rounded text-primary text-xs font-mono">
                       app
                     </code>{' '}
                     with your component
                   </span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <span class="text-primary">2.</span>
-                  <span>Code runs automatically 1 second after you stop typing</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <span class="text-primary">3.</span>
-                  <span>Errors won't clear your preview - previous version stays visible</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <span class="text-primary">4.</span>
-                  <span>All Zen features available: signal, computed, effect, Show, For</span>
-                </li>
-              </ul>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-bg rounded-xl">
+                  <span class="w-6 h-6 flex items-center justify-center bg-primary/10 text-primary rounded-md text-xs font-bold">2</span>
+                  <span class="text-sm text-text-muted">Code runs automatically 1 second after you stop typing</span>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-bg rounded-xl">
+                  <span class="w-6 h-6 flex items-center justify-center bg-primary/10 text-primary rounded-md text-xs font-bold">3</span>
+                  <span class="text-sm text-text-muted">Errors won't clear your preview - previous version stays visible</span>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-bg rounded-xl">
+                  <span class="w-6 h-6 flex items-center justify-center bg-primary/10 text-primary rounded-md text-xs font-bold">4</span>
+                  <span class="text-sm text-text-muted">All Zen features: signal, computed, effect, Show, For</span>
+                </div>
+              </div>
             </div>
           </main>
         </div>
