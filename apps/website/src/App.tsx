@@ -1,5 +1,5 @@
 import { Router } from '@zen/router';
-import { signal } from '@zen/web';
+import { Show, signal } from '@zen/web';
 import { Footer } from './components/Footer.tsx';
 import { Header } from './components/Header.tsx';
 import { Examples } from './pages/Examples.tsx';
@@ -23,7 +23,9 @@ if (typeof window !== 'undefined') {
 export function App() {
   return (
     <div class="app">
-      {() => (!isFullScreen.value ? <Header /> : null)}
+      <Show when={() => !isFullScreen.value}>
+        <Header />
+      </Show>
       <main>
         <Router
           routes={[
@@ -51,7 +53,9 @@ export function App() {
           )}
         />
       </main>
-      {() => (!isFullScreen.value ? <Footer /> : null)}
+      <Show when={() => !isFullScreen.value}>
+        <Footer />
+      </Show>
     </div>
   );
 }
