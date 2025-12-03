@@ -91,7 +91,12 @@ export function Calculator() {
     }
   });
 
-  const Button = ({ label, color = 'white', bg = 'gray', onClick }: any) => (
+  const Button = ({
+    label,
+    color = 'white',
+    bg = 'gray',
+    onClick,
+  }: { label: string; color?: string; bg?: string; onClick?: () => void }) => (
     <Box
       width={5}
       height={1}

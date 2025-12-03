@@ -76,7 +76,6 @@ export function resolveChildren(children: unknown): unknown {
   //    Execute the function to get the actual children
   //    This is used for: <Provider>{() => <Child />}</Provider>
   if (typeof children === 'function') {
-    // biome-ignore lint/suspicious/noExplicitAny: Generic callback type
     const result = executeComponent(children as () => any, (node: any, owner: any) => {
       // Only attach objects to owner (primitives can't be WeakMap keys)
       if (node !== null && typeof node === 'object' && !Array.isArray(node)) {

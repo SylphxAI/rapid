@@ -10,7 +10,6 @@ import type { TUINode, TUIStyle } from '../core/types.js';
 import { Box } from '../primitives/Box.js';
 import { Text } from '../primitives/Text.js';
 
-// biome-ignore lint/suspicious/noExplicitAny: Generic table column type default
 export interface TableColumn<T = any> {
   header: string;
   key: keyof T;
@@ -20,7 +19,6 @@ export interface TableColumn<T = any> {
 
 type BorderStyleType = 'single' | 'double' | 'round' | 'bold';
 
-// biome-ignore lint/suspicious/noExplicitAny: Generic table props type default
 export interface TableProps<T = any> {
   /** Table data - supports MaybeReactive */
   data: MaybeReactive<T[]>;
@@ -36,11 +34,9 @@ export interface TableProps<T = any> {
   style?: TUIStyle;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Generic table component type default
 export function Table<T = any>(props: TableProps<T>): TUINode {
   // Format cell value with alignment
   const formatCell = (
-    // biome-ignore lint/suspicious/noExplicitAny: Cell values can be any type
     value: any,
     width: number,
     align: 'left' | 'center' | 'right' = 'left',

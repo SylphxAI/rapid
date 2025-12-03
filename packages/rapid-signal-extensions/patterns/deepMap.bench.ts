@@ -140,7 +140,6 @@ describe('deepMap patterns', () => {
   });
 
   bench('create missing intermediates', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: Benchmark requires dynamic property creation
     const data = deepMap<any>({});
 
     let i = 0;

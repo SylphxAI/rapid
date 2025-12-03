@@ -361,7 +361,6 @@ describe('Interactive Components with MouseContext', () => {
       const provider = MouseProvider({ enabled: false });
       // The provider returns a fragment with the box as first child
       // The context is stored in the box's props.__mouseContext
-      // biome-ignore lint/suspicious/noExplicitAny: Test helper accessing internal structure
       const box = provider.children?.[0] as any;
       context = box?.props?.__mouseContext as MouseContextValue;
       if (context) {

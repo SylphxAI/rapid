@@ -73,7 +73,6 @@ describe('Static Component - Scrollback Behavior', () => {
     };
 
     // Process should write directly to stdout
-    // biome-ignore lint/suspicious/noExplicitAny: accessing internal function signature
     const linesPrinted = (processStaticNodes as any)(staticNode, true);
 
     expect(linesPrinted).toBe(1);

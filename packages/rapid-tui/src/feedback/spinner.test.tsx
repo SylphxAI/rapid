@@ -3,7 +3,6 @@ import { signal } from '../index';
 import { Spinner, createAnimatedSpinner, updateSpinner } from './Spinner';
 
 // Helper to resolve reactive style values
-// biome-ignore lint/suspicious/noExplicitAny: Test helper for reactive values
 const resolveStyle = (value: any) => (typeof value === 'function' ? value() : value);
 
 describe('Spinner', () => {

@@ -32,7 +32,6 @@ export type MaybeReactive<T> = T | Reactive<T>;
 /**
  * Check if a value is a signal
  */
-// biome-ignore lint/suspicious/noExplicitAny: Need any for type guard parameter
 export function isSignal(value: any): value is AnySignal {
   return value !== null && typeof value === 'object' && '_kind' in value;
 }
@@ -122,7 +121,6 @@ export function executeComponent<T>(
  * @param props - Component props with possibly eager children
  * @returns Props with lazy children getter
  */
-// biome-ignore lint/suspicious/noExplicitAny: Generic props type
 export function makeLazyProps(props: Record<string, any> | null): Record<string, any> | null {
   if (!props || !('children' in props)) {
     return props; // No children to make lazy

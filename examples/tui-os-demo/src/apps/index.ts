@@ -9,7 +9,9 @@ import { Notepad } from './Notepad.js';
 import { Settings } from './Settings.js';
 import { Terminal } from './Terminal.js';
 
-export const apps: Record<string, () => any> = {
+import type { TUINode } from '@rapid/tui';
+
+export const apps: Record<string, () => TUINode> = {
   terminal: Terminal,
   calculator: Calculator,
   about: About,

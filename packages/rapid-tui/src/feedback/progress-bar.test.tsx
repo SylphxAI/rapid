@@ -3,7 +3,6 @@ import { signal } from '../index';
 import { ProgressBar, incrementProgress, resetProgress, setProgress } from './ProgressBar';
 
 // Helper to resolve reactive style values
-// biome-ignore lint/suspicious/noExplicitAny: Test helper for reactive values
 const resolveStyle = (value: any) => (typeof value === 'function' ? value() : value);
 
 describe('ProgressBar', () => {

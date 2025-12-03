@@ -26,14 +26,12 @@
 import { appendChild } from '../core/jsx-runtime.js';
 import type { TUINode, TUIStyle } from '../core/types.js';
 
-// biome-ignore lint/suspicious/noExplicitAny: Generic component supports any item type
 export interface StaticProps<T = any> {
   items: T[] | (() => T[]);
   children: (item: T, index: number) => TUINode | string;
   style?: TUIStyle;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Generic component supports any item type
 export function Static<T = any>(props: StaticProps<T>): TUINode {
   // For fine-grained reactivity: store items getter on the node
   // The renderer will check for new items and render them to scrollback

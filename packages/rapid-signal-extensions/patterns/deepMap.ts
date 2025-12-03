@@ -5,12 +5,9 @@ export type Path = string | (string | number)[];
 
 export interface DeepMapStore<T extends object> {
   readonly value: T;
-  // biome-ignore lint/suspicious/noExplicitAny: Paths can point to values of any type
   setPath(path: Path, value: any): void;
-  // biome-ignore lint/suspicious/noExplicitAny: Path values can be any type
   selectPath(path: Path): Computed<any>;
   _state: Signal<T>;
-  // biome-ignore lint/suspicious/noExplicitAny: Cache stores computed values of unknown types
   _cache: Map<string, Computed<any>>;
 }
 
@@ -32,7 +29,6 @@ const parsePath = (path: Path): (string | number)[] => {
 };
 
 // Helper: get deep value
-// biome-ignore lint/suspicious/noExplicitAny: Generic deep access requires any type
 const getDeep = (obj: any, path: Path): any => {
   const keys = parsePath(path);
   let value = obj;
@@ -44,7 +40,6 @@ const getDeep = (obj: any, path: Path): any => {
 };
 
 // Helper: set deep value (immutable)
-// biome-ignore lint/suspicious/noExplicitAny: Generic deep modification requires any type
 const setDeep = (obj: any, path: Path, value: any): any => {
   const keys = parsePath(path);
 
@@ -103,7 +98,6 @@ const setDeep = (obj: any, path: Path, value: any): any => {
  */
 export function deepMap<T extends object>(initial: T): DeepMapStore<T> {
   const state = signal(initial);
-  // biome-ignore lint/suspicious/noExplicitAny: Cache stores computed values of unknown types
   const cache = new Map<string, Computed<any>>();
 
   return {
@@ -111,12 +105,10 @@ export function deepMap<T extends object>(initial: T): DeepMapStore<T> {
       return state.value;
     },
 
-    // biome-ignore lint/suspicious/noExplicitAny: Paths can point to values of any type
     setPath(path: Path, value: any) {
       state.value = setDeep(state.value, path, value);
     },
 
-    // biome-ignore lint/suspicious/noExplicitAny: Path values can be any type
     selectPath(path: Path): Computed<any> {
       const key = pathToKey(path);
 
@@ -154,7 +146,6 @@ export function deepMap<T extends object>(initial: T): DeepMapStore<T> {
 export function listenPaths<T extends object>(
   deepMapStore: DeepMapStore<T>,
   paths: Path[],
-  // biome-ignore lint/suspicious/noExplicitAny: Path values can be any type
   listener: (value: any, path: Path, obj: T) => void,
 ): Unsubscribe {
   const unsubscribers = paths.map((path) => {
@@ -175,7 +166,6 @@ export function listenPaths<T extends object>(
 export function setPath<T extends object>(
   deepMapStore: DeepMapStore<T>,
   path: Path,
-  // biome-ignore lint/suspicious/noExplicitAny: Path values can be any type
   value: any,
 ): void {
   deepMapStore.setPath(path, value);

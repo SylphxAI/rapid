@@ -6,7 +6,6 @@ export interface MapStore<T extends object> {
   setKey<K extends keyof T>(key: K, value: T[K]): void;
   selectKey<K extends keyof T>(key: K): Computed<T[K]>;
   _state: Signal<T>;
-  // biome-ignore lint/suspicious/noExplicitAny: Cache stores computed values of unknown types
   _cache: Map<keyof T, Computed<any>>;
 }
 
@@ -34,7 +33,6 @@ export interface MapStore<T extends object> {
  */
 export function map<T extends object>(initial: T): MapStore<T> {
   const state = signal(initial);
-  // biome-ignore lint/suspicious/noExplicitAny: Cache stores computed values of unknown types
   const cache = new Map<keyof T, Computed<any>>();
 
   return {

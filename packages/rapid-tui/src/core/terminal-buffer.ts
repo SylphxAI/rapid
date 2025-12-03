@@ -61,7 +61,6 @@ function extractActiveBackground(str: string): string {
   let lastBgCode = '';
   let match: RegExpExecArray | null;
 
-  // biome-ignore lint/suspicious/noAssignInExpressions: Standard pattern for regex.exec() iteration
   while ((match = ansiCodePattern.exec(str)) !== null) {
     const codes = match[1].split(';');
     for (const code of codes) {
@@ -105,7 +104,6 @@ export class TerminalBuffer {
    * Returns the bounding box of what was written
    * @param replace If true, don't preserve content after the written text (used for clearing areas)
    */
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex buffer merging logic requires detailed control flow
   writeAt(
     x: number,
     y: number,

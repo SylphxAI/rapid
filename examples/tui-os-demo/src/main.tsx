@@ -278,6 +278,7 @@ function ZenOS() {
 
   // Mouse drag handling for window movement
   useMouseDrag({
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Mouse drag handler needs multiple branches for window interactions
     onDragStart: (x, y, button) => {
       if (button !== 'left') return false;
 

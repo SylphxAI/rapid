@@ -39,7 +39,6 @@ export interface ListProps<T = unknown> {
   onSelect?: (item: T, index: number) => void;
 
   /** Custom item renderer - returns a TUI node */
-  // biome-ignore lint/suspicious/noExplicitAny: JSX return types vary by runtime
   renderItem?: (item: T, index: number, isSelected: boolean) => any;
 
   /** Maximum visible items (enables scrolling) */

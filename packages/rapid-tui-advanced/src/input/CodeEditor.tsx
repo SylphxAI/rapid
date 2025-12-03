@@ -668,7 +668,6 @@ export function CodeEditor(props: CodeEditorProps) {
       // Re-tokenize the visible portion for cursor line
       const visibleTokens = tokenize(displayText, language$.value);
       let charIndex = 0;
-      // biome-ignore lint/suspicious/noExplicitAny: JSX return types vary by runtime
       const elements: any[] = [];
 
       if (showLineNumbers$.value) {

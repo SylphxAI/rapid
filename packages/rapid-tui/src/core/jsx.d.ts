@@ -16,7 +16,6 @@ export type TUIElement = TUINode | TUINode[] | ComponentDescriptor;
 
 export namespace JSX {
   // Base element props for intrinsic elements
-  // biome-ignore lint/correctness/noUnusedVariables: JSX namespace interface used by TypeScript JSX transformation
   interface IntrinsicElements {
     box: BoxElementProps;
     text: TextElementProps;
@@ -49,18 +48,15 @@ export namespace JSX {
   type Element = TUIElement;
 
   // Props passed to components
-  // biome-ignore lint/correctness/noUnusedVariables: JSX namespace interface used by TypeScript JSX transformation
   interface ElementChildrenAttribute {
     children: unknown;
   }
 
   // Allow any function component that returns TUIElement
-  // biome-ignore lint/correctness/noUnusedVariables: JSX namespace interface used by TypeScript JSX transformation
   interface ElementClass {
     render(): Element;
   }
 
-  // biome-ignore lint/correctness/noUnusedVariables: JSX namespace interface used by TypeScript JSX transformation
   interface IntrinsicAttributes {
     key?: string | number;
   }

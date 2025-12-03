@@ -143,7 +143,6 @@ describe('Table', () => {
   });
 
   it('should handle null values', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: Testing null value handling
     const dataWithNull = [{ name: 'Alice', age: null as any, city: 'New York' }];
     const node = Table({ data: dataWithNull, columns: testColumns });
 
@@ -151,7 +150,6 @@ describe('Table', () => {
   });
 
   it('should handle undefined values', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: Testing undefined value handling
     const dataWithUndefined = [{ name: 'Alice', age: undefined as any, city: 'New York' }];
     const node = Table({ data: dataWithUndefined, columns: testColumns });
 

@@ -57,7 +57,6 @@ export function executeDescriptor(desc: ComponentDescriptor): unknown {
   // Execute with owner scope
   let result = executeComponent(
     () => desc.type(lazyProps),
-    // biome-ignore lint/suspicious/noExplicitAny: Generic node type from platform
     (node: any, owner: any) => {
       // Only attach single nodes to owner tree
       // Arrays/fragments handle attachment themselves

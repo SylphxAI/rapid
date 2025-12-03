@@ -10,8 +10,10 @@ const Demo = () => (
   </Box>
 );
 
+import type { TUINode } from '@rapid/tui';
+
 // Execute descriptor to get TUINode
-let node: any = <Demo />;
+let node: TUINode | ReturnType<typeof Demo> = <Demo />;
 if (isDescriptor(node)) {
   node = executeDescriptor(node);
 }

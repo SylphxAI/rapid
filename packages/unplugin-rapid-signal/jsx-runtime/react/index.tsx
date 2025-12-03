@@ -24,7 +24,6 @@ import * as ReactJSX from 'react/jsx-runtime';
  * Check if value is a Rapid signal
  * Matches Rapid framework's isReactive check
  */
-// biome-ignore lint/suspicious/noExplicitAny: Runtime detection requires dynamic type
 function isZenSignal(value: any): boolean {
   return value !== null && typeof value === 'object' && '_kind' in value;
 }
@@ -37,7 +36,6 @@ function isZenSignal(value: any): boolean {
  * Wrapper component that subscribes to a signal and updates on changes
  * Uses React hooks for integration with React's rendering system
  */
-// biome-ignore lint/suspicious/noExplicitAny: Component must handle any signal type
 function ZenReactive({ signal }: { signal: any }): any {
   const [value, setValue] = useState(() => signal.value);
 
@@ -69,7 +67,6 @@ function ZenReactive({ signal }: { signal: any }): any {
  * 2. Wrap signals in ZenReactive component
  * 3. Pass through to React's JSX runtime
  */
-// biome-ignore lint/suspicious/noExplicitAny: JSX runtime requires dynamic types for type and props
 export function jsx(type: any, props: any, key?: any): ReactElement {
   // Only process DOM elements (strings) that have children
   if (typeof type === 'string' && props?.children !== undefined) {
@@ -98,7 +95,6 @@ export function jsx(type: any, props: any, key?: any): ReactElement {
  * JSX transform for multiple children
  * Same logic as jsx() but for static children arrays
  */
-// biome-ignore lint/suspicious/noExplicitAny: JSX runtime requires dynamic types for type and props
 export function jsxs(type: any, props: any, key?: any): ReactElement {
   // Only process DOM elements (strings) that have children
   if (typeof type === 'string' && props?.children !== undefined) {
@@ -127,7 +123,6 @@ export function jsxs(type: any, props: any, key?: any): ReactElement {
  * Development mode JSX transform
  * Includes additional dev-only features like __source and __self
  */
-// biome-ignore lint/suspicious/noExplicitAny: JSX DEV runtime requires dynamic types
 export function jsxDEV(
   type: any,
   props: any,

@@ -219,8 +219,9 @@ const ThemeContext = createContext('light')
             {/* Renderers */}
             <For each={platforms.filter((p) => p.id !== 'shared')}>
               {(platform) => (
-                <div
-                  class={`bg-bg border rounded-rapid p-6 text-center cursor-pointer transition-all ${
+                <button
+                  type="button"
+                  class={`bg-bg border rounded-rapid p-6 text-center cursor-pointer transition-all w-full ${
                     activeTab.value === platform.id
                       ? 'border-primary shadow-rapid'
                       : 'border-border hover:border-primary/50'
@@ -237,7 +238,7 @@ const ThemeContext = createContext('light')
                     {platform.size}
                   </span>
                   <p class="text-text-muted text-sm mt-2">{platform.description}</p>
-                </div>
+                </button>
               )}
             </For>
 

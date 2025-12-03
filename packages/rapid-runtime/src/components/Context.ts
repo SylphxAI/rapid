@@ -18,7 +18,6 @@ import { resolveChildren } from '../utils/resolve-children.js';
 export interface Context<T> {
   id: symbol;
   defaultValue: T;
-  // biome-ignore lint/suspicious/noExplicitAny: Provider children can be any JSX element type
   Provider: (props: { value: T; children: any | any[] }) => any;
 }
 
@@ -26,7 +25,6 @@ export interface Context<T> {
  * Internal storage for context values
  * Maps context ID to value, stored per owner
  */
-// biome-ignore lint/suspicious/noExplicitAny: Owner type is internal to @rapid/signal, context values can be any type
 const contextMap = new WeakMap<any, Map<symbol, any>>();
 
 /**
@@ -54,7 +52,6 @@ export function createContext<T>(defaultValue: T): Context<T> {
   // Create Provider as a proper component function
   // This allows it to be used with JSX: <Context.Provider value={...}>
   // The descriptor pattern will automatically handle lazy children
-  // biome-ignore lint/suspicious/noExplicitAny: Provider children can be any JSX element type
   const ProviderComponent = (props: { value: T; children?: any | any[] }) => {
     return Provider(context, props);
   };
@@ -141,7 +138,6 @@ export function useContext<T>(context: Context<T>): T {
  * }
  * ```
  */
-// biome-ignore lint/suspicious/noExplicitAny: Provider children can be any JSX element type
 export function Provider<T>(context: Context<T>, props: { value: T; children: any | any[] }): any {
   const owner = getOwner();
 

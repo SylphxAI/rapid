@@ -32,7 +32,6 @@ export interface AsyncStore<T> {
  * user.refetch();
  * ```
  */
-// biome-ignore lint/suspicious/noExplicitAny: Generic dependency tracking requires any type
 export function computedAsync<T>(
   asyncFn: () => Promise<T>,
   deps: Signal<any>[] = [],

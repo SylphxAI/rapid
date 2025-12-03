@@ -118,7 +118,10 @@ function InputTest() {
                 <Text style={{ dim: true }}>No activity yet...</Text>
               ) : (
                 keyLog.value.map((l, i) => (
-                  <Text key={i} style={{ dim: i < keyLog.value.length - 1 }}>
+                  <Text
+                    key={`log-${i}-${l.slice(0, 10)}`}
+                    style={{ dim: i < keyLog.value.length - 1 }}
+                  >
                     {l}
                   </Text>
                 ))

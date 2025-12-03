@@ -9,7 +9,7 @@ const emojis = [
   { emoji: '☢️', desc: 'Radioactive (with VS-16)', codepoints: 'U+2622 U+FE0F' },
 ];
 
-for (const { emoji, desc, codepoints } of emojis) {
+for (const { emoji, desc, codepoints: _codepoints } of emojis) {
   // Create a line with emoji and right border at column 40
   const content = `${emoji} ${desc}`;
   const _padding = ' '.repeat(Math.max(0, 35 - content.length));

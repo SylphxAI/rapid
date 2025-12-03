@@ -34,6 +34,7 @@ function ComponentTest() {
   // Stable getter for content focus state (don't recreate in render)
   const contentFocused = () => focusScope.value === 'content';
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Input handler needs multiple branches for keyboard navigation
   useInput((input, key) => {
     // q to quit
     if (input === 'q') {

@@ -17,7 +17,6 @@ export function transformRapidJSX(
   code: string,
   filename: string,
   options: CompilerOptions = {},
-  // biome-ignore lint/suspicious/noExplicitAny: Babel's source map type
 ): { code: string; map: any } | null {
   const { autoUnwrap = true } = options;
 

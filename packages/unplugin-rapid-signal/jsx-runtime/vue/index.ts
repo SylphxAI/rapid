@@ -28,7 +28,6 @@ import { type VNode, ref, h as vueH, watchEffect } from 'vue';
  * Check if value is a Rapid signal
  * Matches Rapid framework's isReactive check
  */
-// biome-ignore lint/suspicious/noExplicitAny: Runtime detection requires dynamic type
 function isZenSignal(value: any): boolean {
   return value !== null && typeof value === 'object' && '_kind' in value;
 }
@@ -45,7 +44,6 @@ function isZenSignal(value: any): boolean {
  * 2. Use watchEffect to track signal changes
  * 3. Update Vue ref when signal changes
  */
-// biome-ignore lint/suspicious/noExplicitAny: Signal wrapper requires dynamic type
 function wrapSignal(signal: any): any {
   const vueRef = ref(signal.value);
 
@@ -57,10 +55,8 @@ function wrapSignal(signal: any): any {
 }
 
 // Cache wrapped signals to avoid creating multiple refs for the same signal
-// biome-ignore lint/suspicious/noExplicitAny: WeakMap requires dynamic types for signals
 const signalCache = new WeakMap<any, any>();
 
-// biome-ignore lint/suspicious/noExplicitAny: Signal cache getter requires dynamic type
 function getOrWrapSignal(signal: any): any {
   let wrapped = signalCache.get(signal);
   if (!wrapped) {
@@ -77,7 +73,6 @@ function getOrWrapSignal(signal: any): any {
 /**
  * Process children to unwrap signals
  */
-// biome-ignore lint/suspicious/noExplicitAny: Children processing requires dynamic type
 function processChildren(children: any): any {
   if (children === null || children === undefined) {
     return children;
@@ -105,7 +100,6 @@ function processChildren(children: any): any {
  * 2. Wrap signals in Vue refs with watchEffect
  * 3. Pass through to Vue's h() function
  */
-// biome-ignore lint/suspicious/noExplicitAny: Vue h() function requires dynamic types
 export function h(type: any, props?: any, children?: any): VNode {
   // If props is actually children (Vue's h() overload)
   if (

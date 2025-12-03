@@ -13,9 +13,11 @@ import {
   toggleMaximize,
 } from '../window-manager.js';
 
+import type { TUINode } from '@rapid/tui';
+
 interface WindowProps {
   window: WindowState;
-  children?: any;
+  children?: TUINode | TUINode[];
 }
 
 export function Window(props: WindowProps) {

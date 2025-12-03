@@ -24,7 +24,9 @@
         "packages/rapid-router/**",
         "packages/rapid-router-preact/**",
         "packages/rapid-router-react/**",
-        "packages/rapid-signal-extensions/**"
+        "packages/rapid-signal-extensions/**",
+        "packages/unplugin-rapid-signal/**",
+        "packages/babel-plugin-rapid-jsx/**"
       ],
       "linter": {
         "rules": {
@@ -32,7 +34,8 @@
             "noExplicitAny": "off",
             "noAssignInExpressions": "off",
             "noPrototypeBuiltins": "off",
-            "noSelfCompare": "off"
+            "noSelfCompare": "off",
+            "noArrayIndexKey": "off"
           },
           "complexity": {
             "noExcessiveCognitiveComplexity": "off",
@@ -48,7 +51,8 @@
           },
           "style": {
             "useFilenamingConvention": "off",
-            "useConsistentArrayType": "off"
+            "useConsistentArrayType": "off",
+            "noParameterAssign": "off"
           }
         }
       }

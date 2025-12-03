@@ -123,8 +123,9 @@ export function TUIShowcase() {
                   </div>
                   <For each={selectOptions}>
                     {(option, index) => (
-                      <div
-                        class={`cursor-pointer ${
+                      <button
+                        type="button"
+                        class={`cursor-pointer block w-full text-left ${
                           index() === selectedOption.value
                             ? 'text-black bg-cyan-400 px-2 -mx-2'
                             : 'text-gray-300'
@@ -135,7 +136,7 @@ export function TUIShowcase() {
                       >
                         {index() === selectedOption.value ? '❯ ' : '  '}
                         {option}
-                      </div>
+                      </button>
                     )}
                   </For>
 
@@ -143,8 +144,9 @@ export function TUIShowcase() {
                   <div class="mt-2 space-y-1">
                     <For each={checkboxes.value}>
                       {(item, index) => (
-                        <div
-                          class="cursor-pointer text-gray-300 hover:text-white"
+                        <button
+                          type="button"
+                          class="cursor-pointer text-gray-300 hover:text-white block w-full text-left"
                           onClick={() => {
                             const updated = [...checkboxes.value];
                             updated[index()] = { ...item, checked: !item.checked };
@@ -155,7 +157,7 @@ export function TUIShowcase() {
                             {item.checked ? '☑' : '☐'}
                           </span>{' '}
                           {item.label}
-                        </div>
+                        </button>
                       )}
                     </For>
                   </div>

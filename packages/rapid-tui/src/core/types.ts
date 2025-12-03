@@ -94,7 +94,6 @@ export interface TUIStyle {
 export interface TUINode {
   type: TUINodeType;
   tagName?: string;
-  // biome-ignore lint/suspicious/noExplicitAny: props can contain any values
   props: Record<string, any>;
   /**
    * Children can be:

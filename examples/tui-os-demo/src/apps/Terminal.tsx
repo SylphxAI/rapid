@@ -119,7 +119,9 @@ export function Terminal() {
         <Text color="white">$ </Text>
         <TextInput
           value={currentInput.value}
-          onChange={(v) => (currentInput.value = v)}
+          onChange={(v) => {
+            currentInput.value = v;
+          }}
           onSubmit={(v) => processCommand(v)}
           placeholder=""
         />

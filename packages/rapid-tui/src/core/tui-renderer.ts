@@ -198,12 +198,14 @@ export function renderNodeToString(node: TUINode | string, parentStyle: TUIStyle
 
       // Split content into lines
       const lines = content.split('\n');
+      // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape codes require control characters
       const maxLen = Math.max(...lines.map((l) => l.replace(/\x1b\[[0-9;]*m/g, '').length), 0);
 
       // Build bordered output
       const topBorder = `${colorCode}${chars.tl}${chars.h.repeat(maxLen + 2)}${chars.tr}${resetCode}`;
       const bottomBorder = `${colorCode}${chars.bl}${chars.h.repeat(maxLen + 2)}${chars.br}${resetCode}`;
       const borderedLines = lines.map((line) => {
+        // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape codes require control characters
         const visibleLen = line.replace(/\x1b\[[0-9;]*m/g, '').length;
         const padding = ' '.repeat(maxLen - visibleLen);
         return `${colorCode}${chars.v}${resetCode} ${line}${padding} ${colorCode}${chars.v}${resetCode}`;
@@ -731,9 +733,21 @@ export class TUIRenderer {
         .join(' ');
       writeAboveUI(`\x1b[33m${message}\x1b[39m`); // Yellow color
     };
+    // BufferEncoding is a Node.js built-in type
+    type Encoding =
+      | 'ascii'
+      | 'utf8'
+      | 'utf-8'
+      | 'utf16le'
+      | 'ucs2'
+      | 'ucs-2'
+      | 'base64'
+      | 'latin1'
+      | 'binary'
+      | 'hex';
     process.stdout.write = ((
       chunk: string | Uint8Array,
-      encodingOrCallback?: BufferEncoding | ((err?: Error) => void),
+      encodingOrCallback?: Encoding | ((err?: Error) => void),
       callback?: (err?: Error) => void,
     ): boolean => {
       const str = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
@@ -746,19 +760,19 @@ export class TUIRenderer {
         (str.includes('\x1b[') &&
           (str.includes('H') || str.includes('K') || str.includes('A') || str.includes('B'))) // Cursor movement/clear
       ) {
-        return this.originalStdoutWrite?.(chunk, encodingOrCallback as BufferEncoding, callback);
+        return this.originalStdoutWrite?.(chunk, encodingOrCallback as Encoding, callback);
       }
 
       // External stdout write - print above UI
       if (this.isRunning && this.bufferRenderer && str.trim()) {
         this.bufferRenderer.clearCurrentContent();
-        this.originalStdoutWrite?.(chunk, encodingOrCallback as BufferEncoding, callback);
+        this.originalStdoutWrite?.(chunk, encodingOrCallback as Encoding, callback);
         this.bufferRenderer.resetCursorForStaticContent(str.split('\n').length);
         this.scheduleUpdate();
         return true;
       }
 
-      return this.originalStdoutWrite?.(chunk, encodingOrCallback as BufferEncoding, callback);
+      return this.originalStdoutWrite?.(chunk, encodingOrCallback as Encoding, callback);
     }) as typeof process.stdout.write;
   }
 

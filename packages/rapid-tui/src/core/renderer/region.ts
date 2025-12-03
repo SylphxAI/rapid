@@ -128,7 +128,6 @@ export function clampRegion(region: Region, maxWidth: number, maxHeight: number)
  * This is a simple greedy algorithm that merges regions if their
  * union is smaller than the sum of their areas (i.e., they overlap significantly).
  */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Region merging requires nested loops for greedy merge algorithm
 export function mergeRegions(regions: Region[]): Region[] {
   if (regions.length <= 1) {
     return [...regions];

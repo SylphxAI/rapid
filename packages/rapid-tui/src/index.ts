@@ -16,7 +16,6 @@ setPlatformOps(tuiPlatformOps);
 
 // Force chalk color level (Bun workaround)
 import chalk from 'chalk';
-// biome-ignore lint/suspicious/noExplicitAny: Bun workaround to force chalk color level
 (chalk as any).level = 3;
 
 // ============================================================================

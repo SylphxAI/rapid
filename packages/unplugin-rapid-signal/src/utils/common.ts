@@ -60,7 +60,7 @@ export function findSignalVariablesWithPositions(code: string): Map<string, Sign
  * Create a logger function for debug mode
  */
 export function createLogger(enabled: boolean) {
-  return (_message: string, ..._args: any[]) => {
+  return (_message: string, ..._args: unknown[]) => {
     if (enabled) {
     }
   };

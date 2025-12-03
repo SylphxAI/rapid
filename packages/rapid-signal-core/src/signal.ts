@@ -37,7 +37,6 @@ type ComputedCore<T> = SignalCore<T | null> & {
   _staticDepsCount?: number; // Consecutive times deps were static (0 = unknown, 1-2 = verifying, 3+ = trusted static)
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: Union type for any signal or computed value
 export type AnySignal = SignalCore<any> | ComputedCore<any>;
 export type SignalValue<A extends AnySignal> = A extends SignalCore<infer V> ? V : never;
 
@@ -52,7 +51,6 @@ let currentListener: ComputedCore<any> | null = null;
 // ============================================================================
 
 // HMR-compatible: Use globalThis to survive Vite HMR reloads
-// biome-ignore lint/suspicious/noExplicitAny: HMR global storage
 const getGlobalBatchState = () => {
   const g = globalThis as any;
   if (!g.__RAPID_BATCH_STATE__) {
@@ -112,7 +110,6 @@ const signalProto = {
     return this._value;
   },
 
-  // biome-ignore lint/suspicious/noExplicitAny: Generic setter accepts any type
   set value(newValue: any) {
     const oldValue = this._value;
     // OPTIMIZATION: Inline Object.is check (avoid function call)
@@ -120,7 +117,6 @@ const signalProto = {
     // Handle +0/-0: Object.is(+0, -0) === false, but === treats them as equal
     // We need to detect +0 vs -0: (1/+0) === Infinity, (1/-0) === -Infinity
     if (newValue === oldValue && (newValue !== 0 || 1 / newValue === 1 / oldValue)) return;
-    // biome-ignore lint/suspicious/noSelfCompare: Intentional NaN check (IEEE 754)
     if (newValue !== newValue && oldValue !== oldValue) return; // Both NaN
 
     this._value = newValue;
@@ -317,7 +313,6 @@ function updateComputed<T>(c: ComputedCore<T>): void {
     // OPTIMIZATION: Inline Object.is check
     const valueUnchanged =
       c._value !== null &&
-      // biome-ignore lint/suspicious/noSelfCompare: Intentional NaN check (IEEE 754)
       (newValue === c._value || (newValue !== newValue && c._value !== c._value));
 
     if (valueUnchanged) {
@@ -420,7 +415,6 @@ function subscribeToSources(c: ComputedCore<any>): void {
       // Check equality
       const valueUnchanged =
         c._value !== null &&
-        // biome-ignore lint/suspicious/noSelfCompare: Intentional NaN check (IEEE 754)
         (newValue === c._value || (newValue !== newValue && c._value !== c._value));
 
       if (valueUnchanged) {
@@ -510,7 +504,6 @@ export type Computed<T> = ComputedCore<T>;
 
 // Use WeakMap to store execute functions to avoid race conditions
 // HMR-compatible: Store on globalThis to survive Vite HMR reloads
-// biome-ignore lint/suspicious/noExplicitAny: HMR global storage
 const effectExecutors: WeakMap<EffectCore, () => void> =
   (globalThis as any).__RAPID_EFFECT_EXECUTORS__ ||
   ((globalThis as any).__RAPID_EFFECT_EXECUTORS__ = new WeakMap());

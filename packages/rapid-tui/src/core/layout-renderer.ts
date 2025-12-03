@@ -246,7 +246,6 @@ function renderBorder(
  * @param clipMaxX - Viewport clipping max X
  * @param fullRender - If false, skip non-dirty nodes (incremental mode)
  */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: rendering logic requires handling many cases
 function renderNodeToBuffer(
   node: TUINode,
   buffer: TerminalBuffer,
@@ -677,7 +676,6 @@ export function renderToBuffer(
   }> = [];
 
   // Recursive function to find absolute nodes in the tree
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Recursive tree traversal requires complex conditionals
   function findAbsoluteNodes(
     n: TUINode,
     parentLayout: { x: number; y: number } = { x: 0, y: 0 },

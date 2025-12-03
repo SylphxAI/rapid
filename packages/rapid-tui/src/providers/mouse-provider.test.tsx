@@ -210,7 +210,6 @@ describe('MouseContext Registration', () => {
       const provider = MouseProvider({ enabled: false }); // disabled to avoid stdout writes
       // The provider returns a fragment with the box as first child
       // The context is stored in the box's props.__mouseContext
-      // biome-ignore lint/suspicious/noExplicitAny: Test helper accessing internal structure
       const box = provider.children?.[0] as any;
       context = box?.props?.__mouseContext as MouseContextValue;
       return provider;
@@ -311,7 +310,6 @@ describe('MouseContext dispatchMouseEvent', () => {
       const provider = MouseProvider({ enabled: false });
       // The provider returns a fragment with the box as first child
       // The context is stored in the box's props.__mouseContext
-      // biome-ignore lint/suspicious/noExplicitAny: Test helper accessing internal structure
       const box = provider.children?.[0] as any;
       context = box?.props?.__mouseContext as MouseContextValue;
       // Force enable for testing (bypass stdout writes)
@@ -381,7 +379,6 @@ describe('MouseContext dispatchMouseEvent', () => {
 
     it('should pass correct event data to press handlers', () => {
       const context = createTestContext();
-      // biome-ignore lint/suspicious/noExplicitAny: Test variable for event capture
       let receivedEvent: any = null;
 
       context.registerPressable('press-id', {
@@ -702,7 +699,6 @@ describe('MouseContext dispatchMouseEvent', () => {
 
     it('should pass correct event data to hover handlers', () => {
       const context = createTestContext();
-      // biome-ignore lint/suspicious/noExplicitAny: Test variable for event capture
       let receivedEvent: any = null;
 
       context.registerHoverable('hover-id', {

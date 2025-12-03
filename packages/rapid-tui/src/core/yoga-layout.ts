@@ -70,7 +70,6 @@ export type LayoutMap = Map<TUINode, LayoutResult>;
 /**
  * Convert TUIStyle to Yoga node configuration
  */
-// biome-ignore lint/suspicious/noExplicitAny: yoga-wasm-web doesn't provide types
 function applyStylesToYogaNode(yogaNode: any, style: TUIStyle, Yoga: any) {
   // FlexDirection
   if (style.flexDirection === 'row') {
@@ -245,7 +244,6 @@ function applyStylesToYogaNode(yogaNode: any, style: TUIStyle, Yoga: any) {
 /**
  * Build Yoga node tree from TUI node tree
  */
-// biome-ignore lint/suspicious/noExplicitAny: yoga-wasm-web doesn't provide types
 function buildYogaTree(tuiNode: TUINode, yogaNodeMap: Map<TUINode, any>, Yoga: any): any {
   const yogaNode = Yoga.Node.create();
   yogaNodeMap.set(tuiNode, yogaNode);
@@ -439,7 +437,6 @@ function buildYogaTree(tuiNode: TUINode, yogaNodeMap: Map<TUINode, any>, Yoga: a
  */
 function extractLayout(
   tuiNode: TUINode,
-  // biome-ignore lint/suspicious/noExplicitAny: yoga-wasm-web doesn't provide types
   yogaNodeMap: Map<TUINode, any>,
   layoutMap: LayoutMap,
   offsetX = 0,
@@ -515,7 +512,6 @@ export async function computeLayout(
   availableHeight: number,
 ): Promise<LayoutMap> {
   const Yoga = await getYoga();
-  // biome-ignore lint/suspicious/noExplicitAny: yoga-wasm-web doesn't provide types
   const yogaNodeMap = new Map<TUINode, any>();
   const layoutMap: LayoutMap = new Map();
 

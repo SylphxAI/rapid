@@ -66,6 +66,7 @@ function Form() {
   const _focusCtx = useFocusManager();
 
   // Handle keyboard input
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Input handler needs multiple branches for keyboard navigation
   useInput((input, key): boolean | undefined => {
     // Tab navigation
     if (key.tab) {
