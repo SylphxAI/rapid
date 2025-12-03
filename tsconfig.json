@@ -17,5 +17,16 @@
     "composite": false,
     "noEmit": true,
     "jsx": "preserve"
-  }
+  },
+  "exclude": [
+    "apps/**/*",
+    "examples/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.bench.ts",
+    "**/__mocks__/**/*",
+    "**/vitest.config.ts"
+  ]
 }

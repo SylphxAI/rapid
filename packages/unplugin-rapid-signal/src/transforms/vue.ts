@@ -27,6 +27,7 @@ export function transformVue(code: string, s: MagicString, _id: string, debug: b
   }
 
   const scriptContent = scriptMatch[1];
+  if (!scriptContent) return;
   const scriptIndex = scriptMatch.index ?? 0;
   const scriptStart = scriptIndex + scriptMatch[0].indexOf('>') + 1;
 
@@ -52,6 +53,7 @@ export function transformVue(code: string, s: MagicString, _id: string, debug: b
       const fullMatch = match[0];
       const valueExpr = match[1];
       const startPos = match.index;
+      if (startPos === undefined || !valueExpr) continue;
 
       // Find position of signal.value within the braces
       const valueStart = startPos + fullMatch.indexOf(valueExpr);
@@ -101,13 +103,13 @@ function addVueComputedImport(code: string, s: MagicString, scriptStart: number)
   const vueImportRegex = /import\s+{([^}]*)}\s+from\s+['"]vue['"]/;
   const match = code.match(vueImportRegex);
 
-  if (match) {
+  if (match?.[1]) {
     // Add computed to existing import
     const imports = match[1];
     if (!imports.includes('computed')) {
       const newImports = imports.trim() ? `${imports}, computed` : 'computed';
       const matchIndex = match.index ?? 0;
-      s.overwrite(matchIndex + 8, matchIndex + 8 + match[1].length, newImports);
+      s.overwrite(matchIndex + 8, matchIndex + 8 + imports.length, newImports);
     }
   } else {
     // Add new import at the start of script

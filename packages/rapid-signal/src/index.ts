@@ -77,4 +77,4 @@ export {
 export type { Owner } from './lifecycle.js';
 
 // Re-export types
-export type { Signal, Computed, AnySignal } from '@rapid/signal-core';
+export type { Signal, Computed, AnySignal, Unsubscribe, Listener } from '@rapid/signal-core';

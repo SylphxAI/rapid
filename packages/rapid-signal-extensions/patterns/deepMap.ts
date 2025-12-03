@@ -45,7 +45,9 @@ const setDeep = (obj: any, path: Path, value: any): any => {
 
   if (keys.length === 0) return value;
 
-  const [first, ...rest] = keys;
+  // biome-ignore lint/style/noNonNullAssertion: length check above guarantees this
+  const first = keys[0]!;
+  const rest = keys.slice(1);
 
   if (keys.length === 1) {
     // Leaf node
@@ -54,7 +56,7 @@ const setDeep = (obj: any, path: Path, value: any): any => {
       arr[first as number] = value;
       return arr;
     }
-    return { ...obj, [first]: value };
+    return { ...obj, [first as string]: value };
   }
 
   // Recursive
@@ -70,7 +72,7 @@ const setDeep = (obj: any, path: Path, value: any): any => {
     return arr;
   }
 
-  return { ...obj, [first]: updated };
+  return { ...obj, [first as string]: updated };
 };
 
 /**

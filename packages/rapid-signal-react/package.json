@@ -31,7 +31,8 @@
   "files": ["dist"],
   "scripts": {
     "build": "bunup --entry 'src/index.ts' 'src/vite.ts' 'src/webpack.ts' 'src/rollup.ts' 'src/esbuild.ts' --format esm --dts --target node --minify",
-    "clean": "bun rimraf dist .turbo"
+    "clean": "bun rimraf dist .turbo",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": ["rapid", "signal", "reactive", "react", "hooks", "state-management"],
   "author": "Sylphx <hi@sylphx.com>",

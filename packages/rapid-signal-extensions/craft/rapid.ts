@@ -12,36 +12,36 @@ import type { CraftOptions, Patch } from './types';
  * @param options Options to enable patch generation.
  * @returns When options.patches or options.inversePatches is true, returns [Patch[], Patch[]]. Otherwise returns void.
  */
-export function craftSignal<T>(targetRapid: Signal<T>, recipe: (draft: T) => undefined): void;
+export function craftSignal<T>(targetRapid: Signal<T>, recipe: (draft: T) => T | void): void;
 
 export function craftSignal<T>(
   targetRapid: Signal<T>,
-  recipe: (draft: T) => undefined,
+  recipe: (draft: T) => T | void,
   options: CraftOptions,
 ): [Patch[], Patch[]];
 
 export function craftSignal<T>(
   targetRapid: Signal<T>,
-  recipe: (draft: T) => undefined,
+  recipe: (draft: T) => T | void,
   options?: CraftOptions,
-): [Patch[], Patch[]] | undefined {
+): [Patch[], Patch[]] | void {
   const currentState = targetRapid.value;
 
   // Directly use craftWithPatches or craft to avoid intermediate produce layer
   if (options?.patches || options?.inversePatches) {
     const [nextState, patches, inversePatches] = craftWithPatches(
       currentState,
-      recipe as (draft: T) => T | undefined,
+      recipe as any,
     );
     if (nextState !== currentState) {
-      targetRapid.value = nextState;
+      targetRapid.value = nextState as T;
     }
     return [patches, inversePatches];
   }
 
   // Fast path: no patches needed
-  const nextState = craft(currentState, recipe as (draft: T) => T | undefined);
+  const nextState = craft(currentState, recipe as any);
   if (nextState !== currentState) {
-    targetRapid.value = nextState;
+    targetRapid.value = nextState as T;
   }
 }

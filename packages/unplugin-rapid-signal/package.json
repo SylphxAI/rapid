@@ -63,7 +63,8 @@
   "scripts": {
     "build": "bunup --entry 'src/{index,vite,webpack,rollup,esbuild}.ts' --format esm --dts --target node --minify && bun scripts/fix-cjs.mjs",
     "dev": "bunup --entry 'src/{index,vite,webpack,rollup,esbuild}.ts' --format esm --dts --target node --watch",
-    "clean": "bun rimraf dist .turbo"
+    "clean": "bun rimraf dist .turbo",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "unplugin": "^1.16.0",

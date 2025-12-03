@@ -5,7 +5,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-export type Framework = 'react' | 'vue' | 'svelte' | 'rapid';
+export type Framework = 'react' | 'preact' | 'vue' | 'svelte' | 'rapid';
 
 /**
  * Detect framework from package.json dependencies
@@ -26,6 +26,7 @@ export function detectFramework(cwd: string = process.cwd()): Framework | null {
 
     // Check in priority order
     if (deps['@rapid/web']) return 'rapid';
+    if (deps.preact) return 'preact';
     if (deps.react || deps['react-dom']) return 'react';
     if (deps.vue) return 'vue';
     if (deps.svelte) return 'svelte';

@@ -223,12 +223,12 @@ export function persistentMap<Value extends object>(
       }
       if (event.newValue === null) {
         // Key removed or cleared in another tab
-        baseMap.value = initialValue; // Reset to initial value (updates the whole map)
+        baseMap._state.value = initialValue; // Reset to initial value (updates the whole map)
       } else {
         try {
           const decodedValue = serializer.decode(event.newValue);
           // Update the whole map. Consider deep comparison if performance becomes an issue.
-          baseMap.value = decodedValue;
+          baseMap._state.value = decodedValue;
         } catch (_error) {}
       }
     }

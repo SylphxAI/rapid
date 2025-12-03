@@ -14,7 +14,8 @@
   "files": ["dist"],
   "scripts": {
     "build": "bunup src/index.ts --format esm --dts --target node --minify",
-    "clean": "bun rimraf dist .turbo"
+    "clean": "bun rimraf dist .turbo",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": ["rapid", "signal", "reactive", "lifecycle", "framework"],
   "author": "Sylphx <hi@sylphx.com>",

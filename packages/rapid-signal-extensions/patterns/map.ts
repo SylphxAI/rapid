@@ -83,7 +83,7 @@ export function listenKeys<T extends object, K extends keyof T>(
 ): Unsubscribe {
   const unsubscribers = keys.map((key) => {
     const keyZ = mapStore.selectKey(key);
-    return subscribe(keyZ, (value) => listener(value, key, mapStore.value));
+    return subscribe(keyZ, (value) => listener(value as T[K], key, mapStore.value));
   });
 
   return () => {

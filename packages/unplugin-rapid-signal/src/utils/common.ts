@@ -31,7 +31,7 @@ export function findSignalVariables(code: string): Set<string> {
   const matches = code.matchAll(regex);
 
   for (const match of matches) {
-    signals.add(match[1]);
+    if (match[1]) signals.add(match[1]);
   }
 
   return signals;
@@ -48,6 +48,7 @@ export function findSignalVariablesWithPositions(code: string): Map<string, Sign
 
   for (const match of matches) {
     const name = match[1];
+    if (!name) continue;
     const start = match.index ?? 0;
     const end = start + match[0].length;
     signals.set(name, { name, start, end });

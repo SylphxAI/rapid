@@ -1,4 +1,4 @@
-import type { Unsubscribe } from '@rapid/signal';
+import type { Unsubscribe } from '@rapid/signal-core';
 
 /** Router interface with generic state type */
 export type Router<S> = {

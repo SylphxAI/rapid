@@ -8,7 +8,7 @@ const EMPTY_INVERSE_PATCHES: never[] = [];
 
 export function produce<T>(
   baseState: T,
-  recipe: (draft: T) => undefined | undefined,
+  recipe: (draft: T) => T | undefined,
   options?: CraftOptions,
 ): CraftResult<T> {
   // Handle non-draftable state directly (no patches)
@@ -19,14 +19,11 @@ export function produce<T>(
 
   // Use craftWithPatches if patches are requested
   if (options?.patches || options?.inversePatches) {
-    const [finalState, patches, inversePatches] = craftWithPatches(
-      baseState,
-      recipe as (draft: T) => T | undefined,
-    );
+    const [finalState, patches, inversePatches] = craftWithPatches(baseState, recipe as any);
     return [finalState as T, patches, inversePatches];
   }
 
   // Otherwise use craft for basic immutable update (faster)
-  const finalState = craft(baseState, recipe as (draft: T) => T | undefined);
+  const finalState = craft(baseState, recipe as any);
   return [finalState as T, EMPTY_PATCHES, EMPTY_INVERSE_PATCHES];
 }

@@ -15,7 +15,8 @@
   "scripts": {
     "build": "bunup src/index.ts --format esm --dts --target node",
     "dev": "bunup src/index.ts --format esm --watch",
-    "test": "bun test"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": ["rapid", "jsx", "babel", "transform", "reactive"],
   "author": "SylphxAI",

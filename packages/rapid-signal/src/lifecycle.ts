@@ -217,7 +217,7 @@ export function disposeOwner(owner: Owner): void {
   // Run all cleanups in reverse order (LIFO)
   for (let i = owner.cleanups.length - 1; i >= 0; i--) {
     try {
-      owner.cleanups[i]();
+      owner.cleanups[i]?.();
     } catch (error) {}
   }
 

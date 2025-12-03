@@ -32,5 +32,5 @@
     "rootDir": "src" // Restore rootDir for composite project
   },
   "include": ["src/**/*.ts"], // Keep explicit include
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx", "**/*.bench.ts"]
 }

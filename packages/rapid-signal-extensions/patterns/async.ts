@@ -85,6 +85,7 @@ export function computedAsync<T>(
         d.value;
       }
       execute();
+      return undefined;
     });
   } else {
     // Initial execution
@@ -92,7 +93,7 @@ export function computedAsync<T>(
   }
 
   // Attach methods to the signal itself
-  const store = state as AsyncStore<T>;
+  const store = state as unknown as AsyncStore<T>;
   store.refetch = execute;
   store.abort = () => abortController?.abort();
 

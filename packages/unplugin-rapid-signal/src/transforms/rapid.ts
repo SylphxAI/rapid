@@ -49,6 +49,7 @@ export function transformRapid(code: string, s: MagicString, _id: string, debug:
       const fullMatch = match[0];
       const valueExpr = match[1];
       const startPos = match.index;
+      if (startPos === undefined || !valueExpr) continue;
       const _endPos = startPos + fullMatch.length;
 
       // Find the actual position of signal.value within the braces

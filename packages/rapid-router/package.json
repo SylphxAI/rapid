@@ -15,7 +15,8 @@
   "scripts": {
     "build": "bunup --format esm --dts --target node --minify",
     "dev": "bunup --format esm --dts --target node --watch",
-    "clean": "bun rimraf dist .turbo"
+    "clean": "bun rimraf dist .turbo",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": ["rapid", "router", "routing", "framework", "component"],
   "author": "Sylphx <hi@sylphx.com>",

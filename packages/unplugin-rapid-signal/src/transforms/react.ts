@@ -45,6 +45,7 @@ export function transformReact(code: string, s: MagicString, _id: string, debug:
       const fullMatch = match[0];
       const valueExpr = match[1];
       const startPos = match.index;
+      if (startPos === undefined || !valueExpr) continue;
 
       // Find the actual position of signal.value within the braces
       const valueStart = startPos + fullMatch.indexOf(valueExpr);
@@ -78,7 +79,9 @@ export function transformReact(code: string, s: MagicString, _id: string, debug:
   const componentSignals = new Map<string, Map<string, SignalUsage>>();
 
   for (const [signalName, usage] of usages) {
-    const componentBody = findContainingComponent(usage.positions[0], componentBodies);
+    const firstPos = usage.positions[0];
+    if (firstPos === undefined) continue;
+    const componentBody = findContainingComponent(firstPos, componentBodies);
 
     if (componentBody) {
       const key = `${componentBody.start}-${componentBody.end}`;
@@ -94,8 +97,9 @@ export function transformReact(code: string, s: MagicString, _id: string, debug:
     // Find the last signal declaration position
     let lastDeclarationEnd = 0;
     for (const [_signalName, usage] of signals) {
-      if (usage.declarationEnd > lastDeclarationEnd) {
-        lastDeclarationEnd = usage.declarationEnd;
+      const declEnd = usage.declarationEnd ?? 0;
+      if (declEnd > lastDeclarationEnd) {
+        lastDeclarationEnd = declEnd;
       }
     }
 

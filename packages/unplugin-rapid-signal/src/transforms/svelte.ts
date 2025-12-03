@@ -25,6 +25,7 @@ export function transformSvelte(code: string, s: MagicString, _id: string, debug
   }
 
   const scriptContent = scriptMatch[1];
+  if (!scriptContent) return;
   const scriptIndex = scriptMatch.index ?? 0;
   const scriptStart = scriptIndex + scriptMatch[0].indexOf('>') + 1;
 
@@ -56,6 +57,7 @@ export function transformSvelte(code: string, s: MagicString, _id: string, debug
       const fullMatch = match[0];
       const valueExpr = match[1];
       const startPos = match.index;
+      if (startPos === undefined || !valueExpr) continue;
 
       // Adjust position to account for script section
       const valueStart = scriptEnd + startPos + fullMatch.indexOf(valueExpr);

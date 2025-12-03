@@ -22,22 +22,25 @@ export type Unsubscribe = () => void;
 type SignalCore<T> = {
   _kind: 'signal' | 'computed';
   _value: T;
-  _listeners?: Listener<T>[];
+  _listeners?: Listener<T>[] | undefined;
 };
 
 // Signal type: writable signal with value property
 export type Signal<T> = SignalCore<T> & { value: T };
 
+// Forward declaration for AnySignal to avoid circular reference
+type AnySignalBase = SignalCore<any>;
+
 type ComputedCore<T> = SignalCore<T | null> & {
   _kind: 'computed';
   _dirty: boolean;
-  _sources: AnySignal[];
+  _sources: AnySignalBase[];
   _calc: () => T;
-  _unsubs?: Unsubscribe[];
-  _staticDepsCount?: number; // Consecutive times deps were static (0 = unknown, 1-2 = verifying, 3+ = trusted static)
+  _unsubs?: Unsubscribe[] | undefined;
+  _staticDepsCount?: number | undefined; // Consecutive times deps were static (0 = unknown, 1-2 = verifying, 3+ = trusted static)
 };
 
-export type AnySignal = SignalCore<any> | ComputedCore<any>;
+export type AnySignal = SignalCore<any>;
 export type SignalValue<A extends AnySignal> = A extends SignalCore<infer V> ? V : never;
 
 // ============================================================================
@@ -83,7 +86,7 @@ function notifyListeners<T>(sig: SignalCore<T>, newValue: T, oldValue: T): void 
   // Copy to avoid issues when listeners modify array during iteration
   const listenersCopy = listeners.slice();
   for (let i = 0; i < len; i++) {
-    listenersCopy[i](newValue, oldValue);
+    listenersCopy[i]?.(newValue, oldValue);
   }
 }
 
@@ -91,7 +94,7 @@ function notifyListeners<T>(sig: SignalCore<T>, newValue: T, oldValue: T): void 
 // SIGNAL (Core Signal)
 // ============================================================================
 
-const signalProto = {
+const signalProto: ThisType<SignalCore<any>> & { value: any } = {
   get value() {
     // Auto-tracking: register as dependency if inside computed
     if (currentListener) {
@@ -105,13 +108,14 @@ const signalProto = {
           break;
         }
       }
-      if (!found) sources.push(this);
+      if (!found) sources.push(this as AnySignal);
     }
-    return this._value;
+    return (this as SignalCore<any>)._value;
   },
 
   set value(newValue: any) {
-    const oldValue = this._value;
+    const self = this as SignalCore<any>;
+    const oldValue = self._value;
     // OPTIMIZATION: Inline Object.is check (avoid function call)
     // Handle NaN: NaN !== NaN in JS, so if both are NaN, they're equal
     // Handle +0/-0: Object.is(+0, -0) === false, but === treats them as equal
@@ -119,15 +123,15 @@ const signalProto = {
     if (newValue === oldValue && (newValue !== 0 || 1 / newValue === 1 / oldValue)) return;
     if (newValue !== newValue && oldValue !== oldValue) return; // Both NaN
 
-    this._value = newValue;
+    self._value = newValue;
 
     // Batching support
     if (batchState.batchDepth > 0) {
-      if (!batchState.pendingNotifications.has(this)) {
-        batchState.pendingNotifications.set(this, oldValue);
+      if (!batchState.pendingNotifications.has(self)) {
+        batchState.pendingNotifications.set(self, oldValue);
       }
     } else {
-      notifyListeners(this, newValue, oldValue);
+      notifyListeners(self, newValue, oldValue);
     }
   },
 };
@@ -154,7 +158,7 @@ export function subscribe<A extends AnySignal>(
   sigData._listeners.push(listener as any);
 
   // Force initial computation for computed signals (without notification)
-  if (sig._kind === 'computed' && sig._unsubs === undefined) {
+  if (sig._kind === 'computed' && (sig as unknown as ComputedCore<any>)._unsubs === undefined) {
     // Need to compute to discover dependencies (auto-tracking)
     // Skip notification but do compute
     const prevListener = currentListener;
@@ -195,7 +199,7 @@ export function subscribe<A extends AnySignal>(
     // Unsubscribe computed from sources if no more listeners
     if (listeners.length === 0) {
       sigData._listeners = undefined;
-      if (sig._kind === 'computed' && sig._unsubs) {
+      if (sig._kind === 'computed' && (sig as unknown as ComputedCore<any>)._unsubs) {
         unsubscribeFromSources(sig as any);
       }
     }
@@ -338,7 +342,7 @@ function updateComputed<T>(c: ComputedCore<T>): void {
 // Helper to cleanup unsubs
 function cleanUnsubs(unsubs: Unsubscribe[]): void {
   const len = unsubs.length;
-  for (let i = 0; i < len; i++) unsubs[i]();
+  for (let i = 0; i < len; i++) unsubs[i]?.();
 }
 
 // Shared subscription helper for computed & effect
@@ -432,7 +436,7 @@ function subscribeToSources(c: ComputedCore<any>): void {
         // Notify listeners with the new value
         const listenersCopy = listeners.slice();
         for (let i = 0; i < len; i++) {
-          listenersCopy[i](newValue, oldValue);
+          listenersCopy[i]?.(newValue, oldValue);
         }
       }
     } finally {
@@ -451,8 +455,9 @@ function unsubscribeFromSources(c: ComputedCore<any>): void {
   c._dirty = true;
 }
 
-const computedProto = {
-  get value() {
+const computedProto: ThisType<ComputedCore<any>> & { readonly value: any } = {
+  get value(): any {
+    const self = this as ComputedCore<any>;
     // Auto-tracking: register as dependency if inside computed
     if (currentListener) {
       const sources = currentListener._sources;
@@ -460,24 +465,24 @@ const computedProto = {
       let found = false;
       const len = sources.length;
       for (let i = 0; i < len; i++) {
-        if (sources[i] === this) {
+        if (sources[i] === self) {
           found = true;
           break;
         }
       }
       if (!found) {
-        sources.push(this);
+        sources.push(self);
       }
     }
 
-    if (this._dirty) {
-      updateComputed(this);
+    if (self._dirty) {
+      updateComputed(self);
       // Subscribe on first access
-      if (this._unsubs === undefined && this._sources.length > 0) {
-        subscribeToSources(this);
+      if (self._unsubs === undefined && self._sources.length > 0) {
+        subscribeToSources(self);
       }
     }
-    return this._value;
+    return self._value;
   },
 };
 
@@ -510,8 +515,8 @@ const effectExecutors: WeakMap<EffectCore, () => void> =
 
 type EffectCore = {
   _sources: AnySignal[];
-  _unsubs?: Unsubscribe[];
-  _cleanup?: () => void;
+  _unsubs?: Unsubscribe[] | undefined;
+  _cleanup?: (() => void) | undefined;
   _callback: () => undefined | (() => void);
   _cancelled: boolean;
   _autoTrack: boolean;
