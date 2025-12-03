@@ -1,5 +1,5 @@
-/** @jsxImportSource @zen/tui */
-import { Box, FullscreenLayout, Text, render, useInput } from '@zen/tui';
+/** @jsxImportSource @rapid/tui */
+import { Box, FullscreenLayout, Text, render, useInput } from '@rapid/tui';
 
 function App() {
   useInput((input, _key) => {

@@ -1,5 +1,5 @@
-/** @jsxImportSource @zen/tui */
-import { Box, Button, FocusProvider, Text, TextInput, render, signal, useInput } from '@zen/tui';
+/** @jsxImportSource @rapid/tui */
+import { Box, Button, FocusProvider, Text, TextInput, render, signal, useInput } from '@rapid/tui';
 
 const name = signal('');
 const msg = signal('Press Tab to focus input, then type');

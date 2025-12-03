@@ -1,9 +1,9 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Test with flex: 1 on content area
  */
 
-import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@rapid/tui';
 
 function App() {
   const { width, height } = useTerminalSize();

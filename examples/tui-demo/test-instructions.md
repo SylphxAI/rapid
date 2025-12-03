@@ -4,7 +4,7 @@
 
 All TUI files **must** include this pragma at the top:
 ```tsx
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 ```
 
 **Why?** As a multi-platform framework, the root tsconfig is platform-neutral (no jsxImportSource).

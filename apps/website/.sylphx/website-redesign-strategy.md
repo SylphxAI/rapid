@@ -46,8 +46,8 @@ const doubled = computed(() => count.value * 2)
 
 #### 從 React 遷移
 ```tsx
-// Step 1: 先用 @zen/signal-react (無需改代碼)
-import { useZen } from '@zen/signal-react'
+// Step 1: 先用 @rapid/signal-react (無需改代碼)
+import { useZen } from '@rapid/signal-react'
 const count = signal(0)
 
 function Counter() {
@@ -77,7 +77,7 @@ const count = signal(0)
 const doubled = computed(() => count.value * 2)
 
 // 可以在 Vue 中使用 Zen Signal
-import { useZen } from '@zen/signal-vue'
+import { useZen } from '@rapid/signal-vue'
 ```
 
 #### 從 Solid 遷移
@@ -139,22 +139,22 @@ function Header() {
 
 ### 4. 獨立套件展示 (Standalone Packages)
 
-#### @zen/signal - 在任何框架使用
+#### @rapid/signal - 在任何框架使用
 ```tsx
 // React
-import { useZen } from '@zen/signal-react'
+import { useZen } from '@rapid/signal-react'
 const count = signal(0)
 
 // Vue
-import { useZen } from '@zen/signal-vue'
+import { useZen } from '@rapid/signal-vue'
 const count = signal(0)
 
 // Svelte
-import { toStore } from '@zen/signal-svelte'
+import { toStore } from '@rapid/signal-svelte'
 const count = toStore(signal(0))
 
 // Solid
-import { toSolidSignal } from '@zen/signal-solid'
+import { toSolidSignal } from '@rapid/signal-solid'
 const count = toSolidSignal(signal(0))
 
 // Vanilla JS
@@ -162,10 +162,10 @@ const count = signal(0)
 count.subscribe(v => console.log(v))
 ```
 
-#### @zen/router - 輕量路由解決方案
+#### @rapid/router - 輕量路由解決方案
 ```tsx
 // 可用於任何框架，或無框架
-import { createRouter } from '@zen/router'
+import { createRouter } from '@rapid/router'
 
 const router = createRouter({
   '/': () => <Home />,
@@ -208,10 +208,10 @@ const router = createRouter({
    - 工具鏈 (Vite, Webpack, Bun)
 
 4. **Standalone Packages** - 獨立套件文檔
-   - @zen/signal 用於所有框架
-   - @zen/router 用於所有框架
-   - @zen/signal-patterns (狀態管理模式)
-   - @zen/signal-persistent (持久化)
+   - @rapid/signal 用於所有框架
+   - @rapid/router 用於所有框架
+   - @rapid/signal-patterns (狀態管理模式)
+   - @rapid/signal-persistent (持久化)
 
 ## 說服策略
 

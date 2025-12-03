@@ -1,5 +1,5 @@
-import { onCleanup, onMount } from '@zen/web';
-import type { ZenNode } from '@zen/web';
+import { onCleanup, onMount } from '@rapid/web';
+import type { ZenNode } from '@rapid/web';
 
 export interface ModalProps {
   onClose: () => void;

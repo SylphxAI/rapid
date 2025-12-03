@@ -1,0 +1,79 @@
+{
+  "name": "@rapid/signal-extensions",
+  "version": "0.0.0",
+  "description": "All-in-one extensions for Zen Signal: patterns, persistence, and immutable updates",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "module": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.cjs"
+    },
+    "./patterns": {
+      "types": "./dist/patterns/index.d.ts",
+      "import": "./dist/patterns/index.js",
+      "require": "./dist/patterns/index.cjs"
+    },
+    "./persistent": {
+      "types": "./dist/persistent/index.d.ts",
+      "import": "./dist/persistent/index.js",
+      "require": "./dist/persistent/index.cjs"
+    },
+    "./craft": {
+      "types": "./dist/craft/index.d.ts",
+      "import": "./dist/craft/index.js",
+      "require": "./dist/craft/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bunup --entry 'src/index.ts' 'patterns/index.ts' 'persistent/index.ts' 'craft/index.ts' --format esm,cjs --dts --target node --minify",
+    "dev": "bunup --entry 'src/index.ts' 'patterns/index.ts' 'persistent/index.ts' 'craft/index.ts' --format esm,cjs --dts --target node --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "zen",
+    "signal",
+    "extensions",
+    "patterns",
+    "store",
+    "async",
+    "map",
+    "persistent",
+    "localStorage",
+    "immutable",
+    "craft",
+    "patches"
+  ],
+  "author": "Sylphx <hi@sylphx.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SylphxAI/rapid.git",
+    "directory": "packages/zen-signal-extensions"
+  },
+  "homepage": "https://github.com/SylphxAI/rapid/tree/main/packages/zen-signal-extensions#readme",
+  "bugs": {
+    "url": "https://github.com/SylphxAI/rapid/issues"
+  },
+  "peerDependencies": {
+    "@rapid/signal-core": "^0.0.0"
+  },
+  "dependencies": {
+    "@sylphx/craft": "^1.0.0"
+  },
+  "devDependencies": {
+    "@rapid/signal-core": "workspace:*",
+    "@rapid/signal": "workspace:*",
+    "bunup": "^0.16.10",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

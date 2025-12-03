@@ -1,9 +1,9 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Test emoji in content only (not in title)
  */
 
-import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp, FullscreenLayout} from '@rapid/tui';
 
 function App() {
   const { width, height } = useTerminalSize();

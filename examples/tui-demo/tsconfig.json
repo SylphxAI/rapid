@@ -4,7 +4,7 @@
     "module": "ESNext",
     "lib": ["ES2022"],
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/tui",
+    "jsxImportSource": "@rapid/tui",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
@@ -14,8 +14,8 @@
     "types": ["bun-types"],
     "baseUrl": ".",
     "paths": {
-      "@zen/tui": ["../../packages/zen-tui/src/index.ts"],
-      "@zen/tui/*": ["../../packages/zen-tui/src/*"]
+      "@rapid/tui": ["../../packages/zen-tui/src/index.ts"],
+      "@rapid/tui/*": ["../../packages/zen-tui/src/*"]
     }
   },
   "include": ["src/**/*"]

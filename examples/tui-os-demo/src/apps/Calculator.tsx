@@ -2,7 +2,7 @@
  * Calculator App
  */
 
-import { Box, Text, signal, useInput } from '@zen/tui';
+import { Box, Text, signal, useInput } from '@rapid/tui';
 
 export function Calculator() {
   const display = signal('0');

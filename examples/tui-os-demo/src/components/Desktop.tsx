@@ -2,7 +2,7 @@
  * Desktop component - Background with icons
  */
 
-import { Box, For, Text, useMouseClick, useTerminalSize } from '@zen/tui';
+import { Box, For, Text, useMouseClick, useTerminalSize } from '@rapid/tui';
 import { $desktopIcons, openWindow } from '../window-manager.js';
 
 export function Desktop() {

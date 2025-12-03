@@ -1,9 +1,9 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Debug flex layout to understand why text disappears
  */
 
-import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@rapid/tui';
 
 function App() {
   useInput((_input, key) => {

@@ -1,5 +1,5 @@
-import { effect, signal } from '@zen/signal';
-import { onCleanup } from '@zen/signal';
+import { effect, signal } from '@rapid/signal';
+import { onCleanup } from '@rapid/signal';
 
 export type Theme = 'light' | 'dark';
 

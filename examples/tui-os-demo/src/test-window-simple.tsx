@@ -1,10 +1,10 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Test ZenOS-style window with ASCII art
  * This mimics the exact structure from ZenOS
  */
 
-import { Box, Text, useInput, useTerminalSize, renderApp} from '@zen/tui';
+import { Box, Text, useInput, useTerminalSize, renderApp} from '@rapid/tui';
 
 function TerminalContent() {
   return (

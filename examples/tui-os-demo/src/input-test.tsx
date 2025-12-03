@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Input Test - Minimal reproduction of AllTest focus issues
  *
@@ -7,8 +7,8 @@
  * 2. Input routing to correct component
  * 3. Gate (content mode) control
  */
-import { Box, FocusProvider, MouseProvider, Text, renderApp, signal, useInput } from '@zen/tui';
-import { List, TextArea } from '@zen/tui-advanced';
+import { Box, FocusProvider, MouseProvider, Text, renderApp, signal, useInput } from '@rapid/tui';
+import { List, TextArea } from '@rapid/tui-advanced';
 
 function InputTest() {
   const scope = signal<'header' | 'content'>('header');

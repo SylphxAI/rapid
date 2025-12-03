@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * ZenOS - A macOS/Windows-like TUI Demo with Draggable Windows
  *
@@ -9,9 +9,9 @@
  * - Multiple apps
  */
 
-import { batch, signal } from '@zen/signal';
+import { batch, signal } from '@rapid/signal';
 import {
-  Box, Divider, Text, useInput, useMouseDrag, useTerminalSize, renderApp} from '@zen/tui';
+  Box, Divider, Text, useInput, useMouseDrag, useTerminalSize, renderApp} from '@rapid/tui';
 
 // ============================================================================
 // Types
@@ -165,7 +165,7 @@ function AboutContent() {
     <Box style={{ flexDirection: 'column', alignItems: 'center' }}>
       <Text style={{ color: 'cyan', bold: true }}>🌟 ZenOS v1.0</Text>
       <Text> </Text>
-      <Text>Built with @zen/tui</Text>
+      <Text>Built with @rapid/tui</Text>
       <Text style={{ dim: true }}>Reactive Terminal UI</Text>
     </Box>
   );

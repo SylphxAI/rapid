@@ -1,1 +1,1 @@
-import { useInput } from '@zen/tui';
+import { useInput } from '@rapid/tui';

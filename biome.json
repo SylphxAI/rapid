@@ -10,7 +10,7 @@
       "benchmark-*.ts",
       "**/*-backup.ts",
       "**/ultra-*.ts",
-      "packages/zen/src/zen.ts"
+      "packages/rapid-*/src/zen.ts"
     ]
   },
   "linter": {
@@ -19,12 +19,12 @@
   "overrides": [
     {
       "include": [
-        "packages/zen/**",
-        "packages/zen-signal/**",
-        "packages/zen-router/**",
-        "packages/zen-router-preact/**",
-        "packages/zen-router-react/**",
-        "packages/zen-signal-patterns/**"
+        "packages/rapid-*/**",
+        "packages/rapid-signal/**",
+        "packages/rapid-router/**",
+        "packages/rapid-router-preact/**",
+        "packages/rapid-router-react/**",
+        "packages/rapid-signal-extensions/**"
       ],
       "linter": {
         "rules": {

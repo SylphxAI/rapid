@@ -2,7 +2,7 @@
  * Settings App
  */
 
-import { Box, Checkbox, For, Text, signal, useInput } from '@zen/tui';
+import { Box, Checkbox, For, Text, signal, useInput } from '@rapid/tui';
 
 interface Setting {
   id: string;

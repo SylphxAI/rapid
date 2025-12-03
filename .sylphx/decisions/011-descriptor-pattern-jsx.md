@@ -454,7 +454,7 @@ Signal updates are still direct, no component re-renders.
 One object allocation per component, freed immediately.
 
 ### 5. Platform-Agnostic
-Same pattern works for @zen/web, @zen/tui, @zen/native.
+Same pattern works for @rapid/web, @rapid/tui, @rapid/native.
 
 ---
 
@@ -492,17 +492,17 @@ Same pattern works for @zen/web, @zen/tui, @zen/native.
 ## Migration Path
 
 ### Phase 1: Implementation (Current)
-1. Update jsx-runtime in @zen/tui ✅
+1. Update jsx-runtime in @rapid/tui ✅
 2. Add descriptor executor ✅
 3. Update appendChild to handle descriptors ✅
 4. Test with questionnaire.tsx ✅
 
 ### Phase 2: Platform Rollout
-1. Update @zen/web jsx-runtime ✅
+1. Update @rapid/web jsx-runtime ✅
 2. Update Fragment component with descriptor support ✅
 3. Update Router component with descriptor support ✅
 4. Create test page for verification ✅
-5. Update @zen/native jsx-runtime (when ready)
+5. Update @rapid/native jsx-runtime (when ready)
 6. Verify all Context-based features work
 
 ### Phase 3: Optimization (Future)
@@ -559,8 +559,8 @@ Skip descriptor allocation when compiler can guarantee lazy children.
 **Impact**: Low
 **Mitigation**:
 - Same pattern for all platforms
-- Test on @zen/web and @zen/tui
-- Platform-agnostic implementation in @zen/runtime
+- Test on @rapid/web and @rapid/tui
+- Platform-agnostic implementation in @rapid/runtime
 
 ---
 
@@ -577,7 +577,7 @@ Skip descriptor allocation when compiler can guarantee lazy children.
 - ✅ Web Fragment component descriptor support
 - ✅ Web Router component descriptor support
 - 🚧 Web Context propagation verification (test page created, pending user testing)
-- ⏳ Native Context propagation works (pending @zen/native development)
+- ⏳ Native Context propagation works (pending @rapid/native development)
 
 ### Phase 3 (Production Ready)
 - ✅ No regressions in existing apps
@@ -643,7 +643,7 @@ Adopt React-like VDOM + diffing.
 
 - 2024-12-XX: Initial decision and TUI implementation
 - 2025-11-21: Web implementation complete
-  - Implemented descriptor pattern in @zen/web jsx-runtime
+  - Implemented descriptor pattern in @rapid/web jsx-runtime
   - Added descriptor support to Fragment component
   - Added descriptor support to Router component
   - Created test page at `/test-descriptor`

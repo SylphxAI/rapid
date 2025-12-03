@@ -1,6 +1,6 @@
-/** @jsxImportSource @zen/tui */
-import { signal } from '@zen/signal';
-import { render } from '@zen/tui';
+/** @jsxImportSource @rapid/tui */
+import { signal } from '@rapid/signal';
+import { render } from '@rapid/tui';
 import {
   Box,
   Button,
@@ -12,7 +12,7 @@ import {
   TextInput,
   useFocusManager,
   useInput,
-} from '@zen/tui';
+} from '@rapid/tui';
 
 // Form state
 const name = signal('');

@@ -1,10 +1,10 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Minimal test: emoji + flex:1 + border
  * Testing if right border is off by 1 column with emoji
  */
 
-import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@rapid/tui';
 
 function App() {
   useInput((_input, key) => {

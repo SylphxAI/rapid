@@ -1,6 +1,6 @@
-import { Link } from '@zen/router';
-import { signal } from '@zen/signal';
-import { For, Show } from '@zen/web';
+import { Link } from '@rapid/router';
+import { signal } from '@rapid/signal';
+import { For, Show } from '@rapid/web';
 import { Icon } from './Icon.tsx';
 import { SearchModal } from './SearchModal.tsx';
 import { ThemeToggle } from './ThemeToggle.tsx';
@@ -26,7 +26,7 @@ export function Header() {
               <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-shadow">
                 <Icon icon="lucide:zap" width="18" height="18" class="text-white" />
               </div>
-              <span class="text-xl font-bold text-text">Zen</span>
+              <span class="text-xl font-bold text-text">Rapid</span>
             </Link>
 
             {/* Desktop Navigation */}

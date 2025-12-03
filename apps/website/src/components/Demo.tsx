@@ -1,4 +1,4 @@
-import { For, Show, computed, signal } from '@zen/web';
+import { For, Show, computed, signal } from '@rapid/web';
 
 export function Demo() {
   // Counter demo

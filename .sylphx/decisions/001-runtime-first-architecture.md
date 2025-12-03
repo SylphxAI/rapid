@@ -81,7 +81,7 @@ Zen framework 需要決定 signal reactivity 嘅核心架構：
 #### 1. Zen Framework
 ```tsx
 // Already works! ✅
-import { signal } from '@zen/signal';
+import { signal } from '@rapid/signal';
 
 const count = signal(0);
 <p>{count}</p>  // Native auto-unwrap
@@ -97,7 +97,7 @@ const count = signal(0);
 #### 2. React
 ```tsx
 // New custom JSX runtime
-import { signal } from '@zen/signal';
+import { signal } from '@rapid/signal';
 
 const count = signal(0);
 <p>{count}</p>  // Runtime auto-unwrap
@@ -127,7 +127,7 @@ const count = signal(0);
 #### 3. Vue
 ```vue
 <script setup>
-import { signal } from '@zen/signal';
+import { signal } from '@rapid/signal';
 
 const count = signal(0);
 </script>
@@ -160,7 +160,7 @@ const count = signal(0);
 #### 4. Svelte
 ```svelte
 <script>
-import { signal } from '@zen/signal';
+import { signal } from '@rapid/signal';
 
 const count = signal(0);
 </script>
@@ -199,7 +199,7 @@ const count = signal(0);
 <p>{count}</p>
 
 // Compiler output
-import { useStore } from '@zen/signal-react';
+import { useStore } from '@rapid/signal-react';
 
 const count = signal(0);
 const count$ = useStore(count);

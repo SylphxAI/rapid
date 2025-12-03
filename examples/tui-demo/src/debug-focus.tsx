@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 import {
   Box,
   FocusProvider,
@@ -8,7 +8,7 @@ import {
   useFocus,
   useFocusManager,
   useInput,
-} from '@zen/tui';
+} from '@rapid/tui';
 
 const focusedId = signal('none');
 

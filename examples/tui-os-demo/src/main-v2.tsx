@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * ZenOS v2 - Composable TUI Demo
  *
@@ -9,7 +9,7 @@
  * - No coordinate calculations!
  */
 
-import { batch, signal } from '@zen/signal';
+import { batch, signal } from '@rapid/signal';
 import {
   Box,
   Divider,
@@ -21,7 +21,7 @@ import {
   Text,
   renderApp,
   useInput,
-} from '@zen/tui';
+} from '@rapid/tui';
 
 // ============================================================================
 // Types
@@ -177,7 +177,7 @@ function AboutContent() {
     <Box style={{ flexDirection: 'column', alignItems: 'center' }}>
       <Text style={{ color: 'cyan', bold: true }}>🌟 ZenOS v2.0</Text>
       <Text> </Text>
-      <Text>Built with @zen/tui</Text>
+      <Text>Built with @rapid/tui</Text>
       <Text style={{ dim: true }}>Composable Terminal UI</Text>
     </Box>
   );

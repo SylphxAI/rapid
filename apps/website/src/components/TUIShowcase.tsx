@@ -1,12 +1,12 @@
 /**
  * TUI Showcase Component
  *
- * Demonstrates @zen/tui capabilities with a simulated terminal interface.
+ * Demonstrates @rapid/tui capabilities with a simulated terminal interface.
  * Shows real TUI component examples rendered as styled HTML to mimic terminal output.
  */
 
-import { computed, signal } from '@zen/signal';
-import { For, Show } from '@zen/web';
+import { computed, signal } from '@rapid/signal';
+import { For, Show } from '@rapid/web';
 import { Icon } from './Icon.tsx';
 
 export function TUIShowcase() {
@@ -38,7 +38,7 @@ export function TUIShowcase() {
         <div class="text-center mb-12">
           <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-full text-green-400 font-medium mb-6">
             <Icon icon="lucide:terminal" width="20" height="20" />
-            <span>@zen/tui</span>
+            <span>@rapid/tui</span>
           </div>
           <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
             Beautiful{' '}
@@ -89,7 +89,7 @@ export function TUIShowcase() {
               {/* Input Demo */}
               <Show when={computed(() => activeDemo.value === 'input')}>
                 <div class="space-y-4">
-                  <div class="text-cyan-400 font-bold">┌ Welcome to Zen TUI</div>
+                  <div class="text-cyan-400 font-bold">┌ Welcome to Rapid TUI</div>
                   <div class="text-gray-400">│</div>
                   <div class="text-white">│ Enter your name:</div>
                   <div class="flex items-center text-white">
@@ -255,20 +255,20 @@ export function TUIShowcase() {
               <span class="text-gray-400 text-sm font-mono">
                 {() => `${activeDemo.value}-demo.tsx`}
               </span>
-              <span class="text-xs text-gray-500">@zen/tui</span>
+              <span class="text-xs text-gray-500">@rapid/tui</span>
             </div>
 
             <div class="p-6 overflow-x-auto">
               <Show when={computed(() => activeDemo.value === 'input')}>
-                <pre class="text-sm font-mono text-gray-300">{`import { signal } from '@zen/signal'
-import { render, Box, Text, TextInput } from '@zen/tui'
+                <pre class="text-sm font-mono text-gray-300">{`import { signal } from '@rapid/signal'
+import { render, Box, Text, TextInput } from '@rapid/tui'
 
 function App() {
   const name = signal('')
 
   return (
     <Box borderStyle="round" borderColor="cyan" padding={1}>
-      <Text bold color="cyan">Welcome to Zen TUI</Text>
+      <Text bold color="cyan">Welcome to Rapid TUI</Text>
 
       <Box marginY={1}>
         <Text>Enter your name:</Text>
@@ -292,8 +292,8 @@ render(<App />)`}</pre>
               </Show>
 
               <Show when={computed(() => activeDemo.value === 'select')}>
-                <pre class="text-sm font-mono text-gray-300">{`import { signal } from '@zen/signal'
-import { render, Box, Text, SelectInput, Checkbox } from '@zen/tui'
+                <pre class="text-sm font-mono text-gray-300">{`import { signal } from '@rapid/signal'
+import { render, Box, Text, SelectInput, Checkbox } from '@rapid/tui'
 
 function App() {
   const selected = signal(0)
@@ -337,8 +337,8 @@ function App() {
               </Show>
 
               <Show when={computed(() => activeDemo.value === 'progress')}>
-                <pre class="text-sm font-mono text-gray-300">{`import { signal, effect } from '@zen/signal'
-import { render, Box, Text, ProgressBar, Spinner } from '@zen/tui'
+                <pre class="text-sm font-mono text-gray-300">{`import { signal, effect } from '@rapid/signal'
+import { render, Box, Text, ProgressBar, Spinner } from '@rapid/tui'
 
 function App() {
   const progress = signal(0)
@@ -379,7 +379,7 @@ function App() {
               </Show>
 
               <Show when={computed(() => activeDemo.value === 'layout')}>
-                <pre class="text-sm font-mono text-gray-300">{`import { render, Box, Text } from '@zen/tui'
+                <pre class="text-sm font-mono text-gray-300">{`import { render, Box, Text } from '@rapid/tui'
 
 function Dashboard() {
   return (

@@ -14,10 +14,10 @@ import {
   keymap,
   lineNumbers,
 } from '@codemirror/view';
-import * as ZenSignal from '@zen/signal';
-import { For, Show, computed, signal } from '@zen/web';
-import * as Zen from '@zen/web';
-import { Fragment, jsx } from '@zen/web/jsx-runtime';
+import * as ZenSignal from '@rapid/signal';
+import { For, Show, computed, signal } from '@rapid/web';
+import * as Rapid from '@rapid/web';
+import { Fragment, jsx } from '@rapid/web/jsx-runtime';
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { Icon } from '../components/Icon.tsx';
 import { examples } from '../data/examples.ts';
@@ -94,7 +94,7 @@ export function Playground() {
   };
 
   // Debounced code execution
-  Zen.effect(() => {
+  Rapid.effect(() => {
     const _currentCode = code.value;
 
     if (debounceTimer !== null) {
@@ -207,7 +207,7 @@ export function Playground() {
       };
 
       const zenContext = {
-        ...Zen,
+        ...Rapid,
         ...ZenSignal,
         signal: createTrackedSignal,
         jsx: createElement,
@@ -225,13 +225,13 @@ export function Playground() {
 
       // Cleanup previous content
       if (previewEl.firstChild) {
-        Zen.disposeNode(previewEl.firstChild);
+        Rapid.disposeNode(previewEl.firstChild);
       }
       previewEl.innerHTML = '';
 
       // Handle ComponentDescriptor pattern (ADR-011)
       if (result && typeof result === 'object' && '_jsx' in result && result._jsx === true) {
-        result = Zen.executeDescriptor(result);
+        result = Rapid.executeDescriptor(result);
       }
 
       if (result && result instanceof Node) {
@@ -281,7 +281,7 @@ export function Playground() {
             class="text-lg font-bold text-text flex items-center gap-2 hover:text-primary transition-colors"
           >
             <Icon icon="lucide:play-circle" width="20" height="20" class="text-primary" />
-            Zen Playground
+            Rapid Playground
           </a>
 
           {/* Examples Dropdown */}
@@ -405,7 +405,7 @@ export function Playground() {
             <div class="w-2 h-2 rounded-full bg-green-400" />
             <span class="text-text-muted">Re-renders:</span>
             <span class="font-mono font-bold text-green-400">0</span>
-            <span class="text-text-subtle">(Zen never re-renders!)</span>
+            <span class="text-text-subtle">(Rapid never re-renders!)</span>
           </div>
         </div>
 

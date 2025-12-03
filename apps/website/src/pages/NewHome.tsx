@@ -1,5 +1,5 @@
-import { computed, signal } from '@zen/signal';
-import { For, Show } from '@zen/web';
+import { computed, signal } from '@rapid/signal';
+import { For, Show } from '@rapid/web';
 import { Icon } from '../components/Icon.tsx';
 
 export function NewHome() {
@@ -64,11 +64,11 @@ function HeroSection() {
           <div class="mt-12 animate-in-delay-3">
             <div class="inline-flex items-center gap-3 px-5 py-3 bg-bg-lighter border border-border rounded-xl font-mono text-sm">
               <span class="text-text-muted">$</span>
-              <span class="text-text">npm install @zen/signal @zen/web</span>
+              <span class="text-text">npm install @rapid/signal @rapid/web</span>
               <button
                 type="button"
                 class="p-1.5 hover:bg-bg-dark rounded-lg text-text-muted hover:text-text transition-colors"
-                onClick={() => navigator.clipboard.writeText('npm install @zen/signal @zen/web')}
+                onClick={() => navigator.clipboard.writeText('npm install @rapid/signal @rapid/web')}
               >
                 <Icon icon="lucide:code" width="16" height="16" />
               </button>
@@ -118,7 +118,7 @@ function FeaturesSection() {
     <section class="section section-alt">
       <div class="max-w-6xl mx-auto">
         <div class="text-center mb-16">
-          <h2 class="heading-2 mb-4">Why Choose Zen?</h2>
+          <h2 class="heading-2 mb-4">Why Choose Rapid?</h2>
           <p class="text-lg text-text-muted max-w-2xl mx-auto">
             Built for performance, designed for developer experience.
           </p>
@@ -154,7 +154,7 @@ function CodeComparisonSection() {
         <div class="text-center mb-16">
           <h2 class="heading-2 mb-4">Simple, Familiar API</h2>
           <p class="text-lg text-text-muted max-w-2xl mx-auto">
-            If you know React, you already know Zen. Same concepts, better performance.
+            If you know React, you already know Rapid. Same concepts, better performance.
           </p>
         </div>
 
@@ -180,12 +180,12 @@ setCount(count + 1);`}
             </pre>
           </div>
 
-          {/* Zen */}
+          {/* Rapid */}
           <div class="card border-primary/50 shadow-glow">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-2">
                 <Icon icon="lucide:zap" width="20" height="20" class="text-primary" />
-                <span class="font-semibold text-text">Zen</span>
+                <span class="font-semibold text-text">Rapid</span>
               </div>
               <span class="badge badge-success text-xs">&lt;5 KB</span>
             </div>
@@ -279,7 +279,7 @@ function GetStartedSection() {
     {
       step: '1',
       title: 'Install',
-      code: 'npm install @zen/signal @zen/web',
+      code: 'npm install @rapid/signal @rapid/web',
     },
     {
       step: '2',
@@ -288,15 +288,15 @@ function GetStartedSection() {
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/web"
+    "jsxImportSource": "@rapid/web"
   }
 }`,
     },
     {
       step: '3',
       title: 'Build',
-      code: `import { signal } from '@zen/signal';
-import { render } from '@zen/web';
+      code: `import { signal } from '@rapid/signal';
+import { render } from '@rapid/web';
 
 const count = signal(0);
 
@@ -314,7 +314,7 @@ render(() => (
         <div class="text-center mb-16">
           <h2 class="heading-2 mb-4">Get Started in Minutes</h2>
           <p class="text-lg text-text-muted max-w-2xl mx-auto">
-            Three simple steps to start building with Zen.
+            Three simple steps to start building with Rapid.
           </p>
         </div>
 

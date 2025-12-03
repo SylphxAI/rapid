@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Interactive Demo - Phase 3 Components
  *
@@ -15,7 +15,7 @@ import {
   incrementProgress,
   render,
   signal,
-} from '@zen/tui';
+} from '@rapid/tui';
 
 // State
 const progress = signal(0);

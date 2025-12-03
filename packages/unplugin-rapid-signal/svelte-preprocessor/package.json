@@ -1,0 +1,14 @@
+{
+  "name": "@rapid/signal-svelte-preprocessor",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "peerDependencies": {
+    "svelte": ">=3.0.0",
+    "@rapid/signal": "workspace:*"
+  },
+  "dependencies": {
+    "magic-string": "^0.30.18"
+  }
+}

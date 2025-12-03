@@ -1,10 +1,10 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Full Demo: Static Component with console.log, stdio, various styles
  */
 
-import { signal } from '@zen/signal';
-import { Box, Static, Text, render } from '@zen/tui';
+import { signal } from '@rapid/signal';
+import { Box, Static, Text, render } from '@rapid/tui';
 
 interface LogEntry {
   id: number;

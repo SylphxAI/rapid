@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Notepad App - Simple text editor using TextArea
  *
@@ -6,8 +6,8 @@
  * For code editing with line numbers, see TextEditor which uses CodeEditor.
  */
 
-import { Box, Text, signal } from '@zen/tui';
-import { TextArea } from '@zen/tui-advanced';
+import { Box, Text, signal } from '@rapid/tui';
+import { TextArea } from '@rapid/tui-advanced';
 
 export function Notepad() {
   const content = signal(`Welcome to ZenOS Notepad!

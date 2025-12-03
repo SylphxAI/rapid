@@ -2,7 +2,7 @@
  * Terminal App - Fake terminal with some commands
  */
 
-import { Box, For, Text, TextInput, signal } from '@zen/tui';
+import { Box, For, Text, TextInput, signal } from '@rapid/tui';
 
 export function Terminal() {
   const history = signal<Array<{ cmd: string; output: string }>>([
@@ -67,7 +67,7 @@ export function Terminal() {
   OS: ZenOS 1.0
   Kernel: zen-tui
   Shell: zsh
-  Terminal: @zen/tui
+  Terminal: @rapid/tui
   CPU: Signal Core @ 3.6GHz
   Memory: 16GB / 32GB`;
         break;

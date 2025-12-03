@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Demo: Interactive Input Components
  *
@@ -26,7 +26,7 @@ import {
   signal,
   useFocusManager,
   useInput,
-} from '@zen/tui';
+} from '@rapid/tui';
 
 // Form state
 const name = signal('');

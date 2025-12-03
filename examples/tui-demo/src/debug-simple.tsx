@@ -1,5 +1,5 @@
-/** @jsxImportSource @zen/tui */
-import { Box, Button, FocusProvider, Text, render } from '@zen/tui';
+/** @jsxImportSource @rapid/tui */
+import { Box, Button, FocusProvider, Text, render } from '@rapid/tui';
 
 function AppContent() {
   return (

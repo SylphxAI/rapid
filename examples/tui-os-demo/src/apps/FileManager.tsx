@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * File Manager App
  *
@@ -8,8 +8,8 @@
  * Focus navigation: Tab/Shift+Tab to switch between panes
  */
 
-import { Box, FocusProvider, Text, signal } from '@zen/tui';
-import { List, Pane, Splitter } from '@zen/tui-advanced';
+import { Box, FocusProvider, Text, signal } from '@rapid/tui';
+import { List, Pane, Splitter } from '@rapid/tui-advanced';
 
 interface FileItem {
   name: string;

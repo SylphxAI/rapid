@@ -1,4 +1,4 @@
-import { For, Show, signal } from '@zen/web';
+import { For, Show, signal } from '@rapid/web';
 import { Icon } from '../components/Icon.tsx';
 
 export function Migration() {
@@ -66,7 +66,7 @@ count.value++;`,
           before: `import { ref } from 'vue';
 const count = ref(0);
 count.value++;`,
-          after: `import { signal } from '@zen/signal';
+          after: `import { signal } from '@rapid/signal';
 const count = signal(0);
 count.value++;  // ✨ identical!`,
         },
@@ -76,7 +76,7 @@ count.value++;  // ✨ identical!`,
 const doubled = computed(
   () => count.value * 2
 );`,
-          after: `import { computed } from '@zen/signal';
+          after: `import { computed } from '@rapid/signal';
 const doubled = computed(
   () => count.value * 2
 );  // ✨ same API!`,
@@ -140,7 +140,7 @@ doubled.value;  // ✨ consistent`,
   let count = 0;
   $: doubled = count * 2;
 </script>`,
-          after: `// Zen (standard JS)
+          after: `// Rapid (standard JS)
 const count = signal(0);
 const doubled = computed(
   () => count.value * 2
@@ -152,8 +152,8 @@ const doubled = computed(
 import { writable } from 'svelte/store';
 const count = writable(0);
 $count;  // auto-subscribe`,
-          after: `// Zen signal
-import { signal } from '@zen/signal';
+          after: `// Rapid signal
+import { signal } from '@rapid/signal';
 const count = signal(0);
 count.value;  // ✨ simpler`,
         },
@@ -197,8 +197,8 @@ btn.onclick = () => count.value++;`,
     {
       title: 'Install',
       icon: 'lucide:download',
-      code: 'npm install @zen/signal @zen/web',
-      description: 'Add Zen packages to your project',
+      code: 'npm install @rapid/signal @rapid/web',
+      description: 'Add Rapid packages to your project',
     },
     {
       title: 'Configure',
@@ -207,7 +207,7 @@ btn.onclick = () => count.value++;`,
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/web"
+    "jsxImportSource": "@rapid/web"
   }
 }`,
       description: 'Update your TypeScript config',
@@ -216,7 +216,7 @@ btn.onclick = () => count.value++;`,
       title: 'Migrate',
       icon: 'lucide:git-branch',
       code: `// Start with one component
-import { signal } from '@zen/signal';
+import { signal } from '@rapid/signal';
 
 function Counter() {
   const count = signal(0);
@@ -249,7 +249,7 @@ function Counter() {
           <h1 class="text-4xl md:text-6xl font-bold text-text mb-6">
             Switch to{' '}
             <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Zen
+              Rapid
             </span>
           </h1>
 
@@ -311,7 +311,7 @@ function Counter() {
             </div>
             <div class="text-center">
               <div class="text-3xl font-bold text-primary">{current().stats.after}</div>
-              <div class="text-sm text-text-subtle">After (Zen)</div>
+              <div class="text-sm text-text-subtle">After (Rapid)</div>
             </div>
           </div>
         </div>
@@ -365,7 +365,7 @@ function Counter() {
                     <div class="p-6 bg-success/[0.03]">
                       <div class="flex items-center gap-2 text-sm text-success font-medium mb-4">
                         <div class="w-2 h-2 rounded-full bg-success" />
-                        After (Zen)
+                        After (Rapid)
                       </div>
                       <pre class="text-sm font-mono text-text whitespace-pre-wrap leading-relaxed">
                         {comp.after}

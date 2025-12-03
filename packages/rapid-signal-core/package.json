@@ -1,0 +1,62 @@
+{
+  "name": "@rapid/signal-core",
+  "version": "0.0.0",
+  "description": "Pure reactive core - ultra-fast signals with auto-tracking (framework-agnostic)",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bunup src/index.ts --format esm,cjs --dts --target node --minify",
+    "size": "bun size-limit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo 'Lint script not implemented yet'"
+  },
+  "size-limit": [
+    {
+      "name": "zen-signal (full)",
+      "path": "dist/index.js",
+      "import": "{ signal, computed, effect, subscribe, batch }",
+      "limit": "1.75 kB"
+    }
+  ],
+  "keywords": [
+    "signal",
+    "reactive",
+    "state",
+    "computed",
+    "effect",
+    "fine-grained",
+    "auto-tracking",
+    "minimal",
+    "tiny"
+  ],
+  "author": "Sylphx <hi@sylphx.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SylphxAI/rapid.git"
+  },
+  "homepage": "https://github.com/SylphxAI/rapid/tree/main/packages/zen-signal-core#readme",
+  "bugs": {
+    "url": "https://github.com/SylphxAI/rapid/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "bunup": "^0.16.10",
+    "solid-js": "^1.9.10",
+    "typescript": "^5.8.3"
+  }
+}

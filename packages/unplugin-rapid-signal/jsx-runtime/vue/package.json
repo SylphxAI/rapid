@@ -1,0 +1,11 @@
+{
+  "name": "@rapid/signal-vue-jsx-runtime",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "peerDependencies": {
+    "vue": ">=3.0.0",
+    "@rapid/signal": "workspace:*"
+  }
+}

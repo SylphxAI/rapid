@@ -6,12 +6,12 @@ Zen is a **runtime-first reactive framework** supporting multiple platforms (web
 
 ## Key Components
 
-- **@zen/signal** (`packages/zen-signal/`): Core reactivity system (signals, computed, effects)
-- **@zen/runtime** (`packages/zen-runtime/`): Platform-agnostic runtime (Context, children() helper, lifecycle)
-- **@zen/compiler** (`packages/zen-compiler/`): **OPTIONAL** JSX transformer for DX (auto-lazy children, signal unwrap)
-- **@zen/web** (`packages/zen-web/`): Web DOM renderer
-- **@zen/tui** (`packages/zen-tui/`): Terminal UI renderer
-- **@zen/native** (`packages/zen-native/`): React Native renderer
+- **@rapid/signal** (`packages/zen-signal/`): Core reactivity system (signals, computed, effects)
+- **@rapid/runtime** (`packages/zen-runtime/`): Platform-agnostic runtime (Context, children() helper, lifecycle)
+- **@rapid/compiler** (`packages/zen-compiler/`): **OPTIONAL** JSX transformer for DX (auto-lazy children, signal unwrap)
+- **@rapid/web** (`packages/zen-web/`): Web DOM renderer
+- **@rapid/tui** (`packages/zen-tui/`): Terminal UI renderer
+- **@rapid/native** (`packages/zen-native/`): React Native renderer
 
 ## Design Patterns
 
@@ -44,7 +44,7 @@ function Provider(props) {
 
 **Why:** Context providers need children to evaluate AFTER setup, not before.
 
-**Where:** `@zen/runtime/src/components/Context.ts`
+**Where:** `@rapid/runtime/src/components/Context.ts`
 
 **Implementation:** 
 - `Provider` uses `children(() => props.children)` internally
@@ -57,7 +57,7 @@ function Provider(props) {
 
 **Why:** JSX eager evaluation breaks Context propagation in fine-grained reactive systems. Need to delay component execution until after parent setup.
 
-**Where:** `@zen/runtime/src/descriptor.ts`, all platform jsx-runtimes
+**Where:** `@rapid/runtime/src/descriptor.ts`, all platform jsx-runtimes
 
 **Problem:**
 ```tsx
@@ -110,7 +110,7 @@ See: ADR-011
 
 **Why:** TUI has no persistent "DOM" like browsers. Need virtual persistent layer + fine-grained updates.
 
-**Where:** `@zen/tui/src/element.ts`, `@zen/tui/src/render.ts`
+**Where:** `@rapid/tui/src/element.ts`, `@rapid/tui/src/render.ts`
 
 **Problem:** Terminal rendering differs from web:
 - Web: Persistent real DOM, signals → direct updates
@@ -159,7 +159,7 @@ See: ADR-014
 
 1. **Runtime-first:** Must work without build tools
 2. **Compiler-optional:** DX optimization only, never required
-3. **Platform-agnostic:** Core in @zen/runtime, renderers separate
+3. **Platform-agnostic:** Core in @rapid/runtime, renderers separate
 4. **Explicit over magic:** `children()` helper over hidden compiler dependency
 
 ## Boundaries

@@ -7,7 +7,7 @@ Is this package published to npm?
 ├─ NO → use `workspace:*` in dependencies
 └─ YES → Continue ↓
 
-Does user need to install this separately? (React, Vue, @zen/signal)
+Does user need to install this separately? (React, Vue, @rapid/signal)
 ├─ YES → peerDependencies
 └─ NO → Continue ↓
 
@@ -21,15 +21,15 @@ Only needed during development/testing?
 ## Rules by Package Type
 
 ### 1. Framework Integration Packages
-**Examples:** @zen/signal-zen (adapter for Zen framework)
+**Examples:** @rapid/signal-zen (adapter for Zen framework)
 
 ```json
 {
   "peerDependencies": {
-    "@zen/signal": "^0.0.0"
+    "@rapid/signal": "^0.0.0"
   },
   "devDependencies": {
-    "@zen/signal": "workspace:*",
+    "@rapid/signal": "workspace:*",
     "typescript": "^5.8.3",
     "bunup": "^0.15.13"
   }
@@ -37,12 +37,12 @@ Only needed during development/testing?
 ```
 
 **WHY:**
-- @zen/signal MUST be peerDependency (prevents duplicate state managers)
+- @rapid/signal MUST be peerDependency (prevents duplicate state managers)
 - Use `workspace:*` in devDependencies for local development
 - Use specific version in devDependencies for testing
 
 **TRADE-OFF:**
-- ✅ No duplicate @zen/signal instances
+- ✅ No duplicate @rapid/signal instances
 - ✅ Smaller bundle sizes
 - ✅ No version conflicts
 - ❌ Users must install both packages
@@ -50,15 +50,15 @@ Only needed during development/testing?
 ---
 
 ### 2. Pattern/Helper Libraries
-**Examples:** @zen/signal-patterns, @zen/router
+**Examples:** @rapid/signal-patterns, @rapid/router
 
 ```json
 {
   "peerDependencies": {
-    "@zen/signal": "^0.0.0"
+    "@rapid/signal": "^0.0.0"
   },
   "devDependencies": {
-    "@zen/signal": "workspace:*",
+    "@rapid/signal": "workspace:*",
     "typescript": "^5.8.3",
     "bunup": "^0.15.13"
   }
@@ -66,23 +66,23 @@ Only needed during development/testing?
 ```
 
 **WHY:**
-- @zen/signal is peerDependency (avoid bundling, let user control version)
+- @rapid/signal is peerDependency (avoid bundling, let user control version)
 - `workspace:*` for local development
 
 ---
 
 ### 3. Packages Depending on Other Internal Packages
-**Examples:** @zen/signal-persistent, @zen/router-react
+**Examples:** @rapid/signal-persistent, @rapid/router-react
 
 ```json
 {
   "peerDependencies": {
-    "@zen/signal": "^0.0.0",
-    "@zen/signal-patterns": "^0.0.0"
+    "@rapid/signal": "^0.0.0",
+    "@rapid/signal-patterns": "^0.0.0"
   },
   "devDependencies": {
-    "@zen/signal": "workspace:*",
-    "@zen/signal-patterns": "workspace:*",
+    "@rapid/signal": "workspace:*",
+    "@rapid/signal-patterns": "workspace:*",
     "typescript": "^5.8.3",
     "bunup": "^0.15.13"
   }
@@ -96,7 +96,7 @@ Only needed during development/testing?
 ---
 
 ### 4. Standalone Utility Packages
-**Example:** @zen/signal-craft (immutable updates)
+**Example:** @rapid/signal-craft (immutable updates)
 
 ```json
 {
@@ -104,10 +104,10 @@ Only needed during development/testing?
     "immer": "^10.0.0"
   },
   "peerDependencies": {
-    "@zen/signal": "^0.0.0"
+    "@rapid/signal": "^0.0.0"
   },
   "devDependencies": {
-    "@zen/signal": "workspace:*",
+    "@rapid/signal": "workspace:*",
     "typescript": "^5.8.3",
     "bunup": "^0.15.13"
   }
@@ -116,12 +116,12 @@ Only needed during development/testing?
 
 **WHY:**
 - Implementation details bundled (user doesn't need to know)
-- @zen/signal is peer (avoid duplicate state manager)
+- @rapid/signal is peer (avoid duplicate state manager)
 
 ---
 
 ### 5. Core Package
-**Example:** @zen/signal (no runtime dependencies)
+**Example:** @rapid/signal (no runtime dependencies)
 
 ```json
 {
@@ -147,7 +147,7 @@ Only needed during development/testing?
 ```json
 {
   "peerDependencies": {
-    "@zen/signal": "^0.0.0",           // ✅ Accept any 0.x (pre-release)
+    "@rapid/signal": "^0.0.0",           // ✅ Accept any 0.x (pre-release)
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"  // ✅ Support multiple majors
   }
 }
@@ -165,7 +165,7 @@ Only needed during development/testing?
 ```json
 {
   "devDependencies": {
-    "@zen/signal": "workspace:*",     // ✅ Use local version
+    "@rapid/signal": "workspace:*",     // ✅ Use local version
     "react": "^19.2.0",               // ✅ Specific version for testing
     "typescript": "^5.8.3"            // ✅ Specific version for consistency
   }
@@ -190,44 +190,44 @@ Only needed during development/testing?
 ```json
 {
   "peerDependencies": {
-    "@zen/signal": "^0.0.0",
-    "@zen/zen": "^0.0.0"
+    "@rapid/signal": "^0.0.0",
+    "@rapid/zen": "^0.0.0"
   },
   "devDependencies": {
-    "@zen/signal": "workspace:*",
-    "@zen/zen": "workspace:*"
+    "@rapid/signal": "workspace:*",
+    "@rapid/zen": "workspace:*"
   }
 }
 ```
-**Used by:** @zen/signal-zen
+**Used by:** @rapid/signal-zen
 
 ### Pattern 2: Utility Extension
 ```json
 {
   "peerDependencies": {
-    "@zen/signal": "^0.0.0"
+    "@rapid/signal": "^0.0.0"
   },
   "devDependencies": {
-    "@zen/signal": "workspace:*"
+    "@rapid/signal": "workspace:*"
   }
 }
 ```
-**Used by:** @zen/signal-patterns, @zen/router
+**Used by:** @rapid/signal-patterns, @rapid/router
 
 ### Pattern 3: Router Framework Bindings
 ```json
 {
   "peerDependencies": {
-    "@zen/router": "^0.0.0",
+    "@rapid/router": "^0.0.0",
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@zen/router": "workspace:*",
+    "@rapid/router": "workspace:*",
     "react": "^19.2.0"
   }
 }
 ```
-**Used by:** @zen/router-react, @zen/router-preact
+**Used by:** @rapid/router-react, @rapid/router-preact
 
 ---
 
@@ -238,7 +238,7 @@ Only needed during development/testing?
 ```json
 {
   "dependencies": {
-    "@zen/signal": "workspace:*"  // ❌ Will bundle signal into package
+    "@rapid/signal": "workspace:*"  // ❌ Will bundle signal into package
   }
 }
 ```
@@ -256,14 +256,14 @@ Only needed during development/testing?
 ```json
 {
   "dependencies": {
-    "@zen/signal": "^0.0.0"  // ❌ For integration packages
+    "@rapid/signal": "^0.0.0"  // ❌ For integration packages
   },
   "peerDependencies": {
-    "@zen/signal": "^0.0.0"
+    "@rapid/signal": "^0.0.0"
   }
 }
 ```
-**Result:** Duplicate @zen/signal in node_modules
+**Result:** Duplicate @rapid/signal in node_modules
 
 ---
 
@@ -271,7 +271,7 @@ Only needed during development/testing?
 
 | Dependency Type | When to Use | Version Format | Published? |
 |----------------|-------------|----------------|------------|
-| **peerDependencies** | User must install (React, @zen/signal) | `^X.0.0` (wide) | ✅ Yes |
+| **peerDependencies** | User must install (React, @rapid/signal) | `^X.0.0` (wide) | ✅ Yes |
 | **dependencies** | Bundle with package (immer, utilities) | `^X.Y.0` (conservative) | ✅ Yes |
 | **devDependencies** | Build/test/development only | `^X.Y.Z` or `workspace:*` | ❌ No |
 | **workspace:*** | Monorepo local development | N/A | ❌ No |

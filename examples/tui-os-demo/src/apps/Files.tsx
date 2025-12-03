@@ -2,7 +2,7 @@
  * File Manager App
  */
 
-import { Box, For, Text, signal, useInput } from '@zen/tui';
+import { Box, For, Text, signal, useInput } from '@rapid/tui';
 
 interface FileItem {
   name: string;

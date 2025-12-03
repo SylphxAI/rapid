@@ -1,4 +1,5 @@
-import { $router, Router } from '@zen/router';
+import { $router, Router } from '@rapid/router';
+import { Show } from '@rapid/web';
 import { Footer } from './components/Footer.tsx';
 import { Header } from './components/Header.tsx';
 import { Examples } from './pages/Examples.tsx';
@@ -14,9 +15,9 @@ const path = $router.selectKey('path');
 export function App() {
   return (
     <div class="app">
-      <div style={() => ({ display: path.value === '/playground' ? 'none' : 'block' })}>
+      <Show when={() => path.value !== '/playground'}>
         <Header />
-      </div>
+      </Show>
       <main>
         <Router
           routes={[
@@ -38,9 +39,9 @@ export function App() {
           )}
         />
       </main>
-      <div style={() => ({ display: path.value === '/playground' ? 'none' : 'block' })}>
+      <Show when={() => path.value !== '/playground'}>
         <Footer />
-      </div>
+      </Show>
     </div>
   );
 }

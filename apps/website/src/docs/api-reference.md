@@ -1,6 +1,6 @@
 # API Reference
 
-Complete reference for Zen's core APIs.
+Complete reference for Rapid's core APIs.
 
 ## signal()
 
@@ -91,7 +91,7 @@ function render(
 
 **Example:**
 ```typescript
-import { render } from '@zen/zen';
+import { render } from '@rapid/zen';
 
 render(
   () => <App />,

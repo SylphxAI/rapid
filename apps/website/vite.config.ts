@@ -1,10 +1,10 @@
-import zenCompiler from '@zen/compiler';
+import zenCompiler from '@rapid/compiler';
 import Icons from 'unplugin-icons/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [
-    zenCompiler({ importSource: '@zen/web' }),
+    zenCompiler({ importSource: '@rapid/web' }),
     Icons({
       compiler: 'raw',
       autoInstall: true,

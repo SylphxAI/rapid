@@ -1,4 +1,4 @@
-import { For, signal } from '@zen/web';
+import { For, signal } from '@rapid/web';
 
 export function MigrationPaths() {
   const activeTab = signal('react');
@@ -18,9 +18,9 @@ export function MigrationPaths() {
         {
           step: 1,
           title: 'Start with Signal (No Code Changes)',
-          code: `// Add @zen/signal to existing React project
-import { useZen } from '@zen/signal-react'
-import { signal } from '@zen/signal'
+          code: `// Add @rapid/signal to existing React project
+import { useZen } from '@rapid/signal-react'
+import { signal } from '@rapid/signal'
 
 // Create global signal
 const count = signal(0)
@@ -39,22 +39,22 @@ function Counter() {
         {
           step: 2,
           title: 'Gradually Replace Components',
-          code: `// React and Zen components coexist
+          code: `// React and Rapid components coexist
 <ReactApp>
   <ReactHeader />
-  <ZenCounter />  {/* New components use Zen */}
+  <ZenCounter />  {/* New components use Rapid */}
   <ReactFooter />
 </ReactApp>
 
-// Slowly migrate complex components to Zen
+// Slowly migrate complex components to Rapid
 // Enjoy smaller bundles and faster performance`,
           benefit: '✅ Incremental migration, zero risk',
         },
         {
           step: 3,
           title: 'Full Migration (Optional)',
-          code: `// When ready, go all-in with Zen
-import { render, signal } from '@zen/web'
+          code: `// When ready, go all-in with Rapid
+import { render, signal } from '@rapid/web'
 
 function App() {
   const count = signal(0)
@@ -86,18 +86,18 @@ import { ref, computed } from 'vue'
 const count = ref(0)
 const doubled = computed(() => count.value * 2)
 
-// Zen Signal - Exactly the same!
-import { signal, computed } from '@zen/signal'
+// Rapid Signal - Exactly the same!
+import { signal, computed } from '@rapid/signal'
 const count = signal(0)
 const doubled = computed(() => count.value * 2)`,
           benefit: '✅ Zero learning curve',
         },
         {
           step: 2,
-          title: 'Use Zen Signal in Vue',
-          code: `// Use Zen Signal in Vue components
-import { useZen } from '@zen/signal-vue'
-import { signal } from '@zen/signal'
+          title: 'Use Rapid Signal in Vue',
+          code: `// Use Rapid Signal in Vue components
+import { useZen } from '@rapid/signal-vue'
+import { signal } from '@rapid/signal'
 
 const globalState = signal({ user: null })
 
@@ -111,9 +111,9 @@ export default {
         },
         {
           step: 3,
-          title: 'Migrate to Zen Framework',
-          code: `// Zen syntax similar to Vue 3
-import { signal, computed } from '@zen/web'
+          title: 'Migrate to Rapid Framework',
+          code: `// Rapid syntax similar to Vue 3
+import { signal, computed } from '@rapid/web'
 
 function Counter() {
   const count = signal(0)
@@ -133,7 +133,7 @@ function Counter() {
     },
     solid: {
       title: 'Migration from Solid',
-      subtitle: 'Solid users will find Zen even simpler',
+      subtitle: 'Solid users will find Rapid even simpler',
       steps: [
         {
           step: 1,
@@ -144,7 +144,7 @@ const doubled = createMemo(() => count() * 2)
 console.log(count())  // Read with ()
 setCount(1)           // Write with setter
 
-// Zen - Unified .value
+// Rapid - Unified .value
 const count = signal(0)
 const doubled = computed(() => count.value * 2)
 console.log(count.value)  // Read with .value
@@ -154,8 +154,8 @@ count.value = 1           // Write with .value`,
         {
           step: 2,
           title: 'Smaller Bundle',
-          code: `// Solid: 7KB (good, but Zen is smaller)
-// Zen: <5KB Signal + Framework
+          code: `// Solid: 7KB (good, but Rapid is smaller)
+// Rapid: <5KB Signal + Framework
 
 // Similar performance, but lighter weight
 // And no compiler setup needed`,
@@ -174,17 +174,17 @@ count.value = 1           // Write with .value`,
 let count = 0
 $: doubled = count * 2  // Special syntax
 
-// Zen - Pure JavaScript/TypeScript
+// Rapid - Pure JavaScript/TypeScript
 const count = signal(0)
 const doubled = computed(() => count.value * 2)`,
           benefit: '✅ Standard JS, works with any tool',
         },
         {
           step: 2,
-          title: 'Use Zen Signal in Svelte',
-          code: `// Use Zen Signal for global state management
-import { toStore } from '@zen/signal-svelte'
-import { signal } from '@zen/signal'
+          title: 'Use Rapid Signal in Svelte',
+          code: `// Use Rapid Signal for global state management
+import { toStore } from '@rapid/signal-svelte'
+import { signal } from '@rapid/signal'
 
 const count = signal(0)
 const countStore = toStore(count)
@@ -203,7 +203,7 @@ $: value = $countStore`,
         <div class="text-center mb-12">
           <h2 class="text-4xl md:text-5xl font-bold text-text mb-4">Seamless Migration</h2>
           <p class="text-xl text-text-muted max-w-2xl mx-auto">
-            Migrate to Zen from any framework, or use Zen Signal standalone
+            Migrate to Rapid from any framework, or use Rapid Signal standalone
           </p>
         </div>
 

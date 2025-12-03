@@ -1,4 +1,4 @@
-import { For, Show, computed, signal } from '@zen/web';
+import { For, Show, computed, signal } from '@rapid/web';
 import { Icon } from '../components/Icon.tsx';
 
 export function Docs() {
@@ -13,8 +13,8 @@ export function Docs() {
 
   const sections = [
     { id: 'intro', title: 'Introduction', icon: 'lucide:book-open' },
-    { id: 'signal', title: '@zen/signal', icon: 'lucide:zap' },
-    { id: 'framework', title: '@zen/web', icon: 'lucide:globe' },
+    { id: 'signal', title: '@rapid/signal', icon: 'lucide:zap' },
+    { id: 'framework', title: '@rapid/web', icon: 'lucide:globe' },
     { id: 'components', title: 'Components', icon: 'lucide:layout' },
     { id: 'patterns', title: 'Patterns', icon: 'lucide:lightbulb' },
     { id: 'integrations', title: 'Integrations', icon: 'lucide:plug' },
@@ -104,11 +104,11 @@ export function Docs() {
             <article class="card">
               <div class="mb-8">
                 <span class="badge badge-primary mb-4">Getting Started</span>
-                <h1 class="heading-2 text-text mb-4">Introduction to Zen</h1>
+                <h1 class="heading-2 text-text mb-4">Introduction to Rapid</h1>
                 <p class="text-lg text-text-muted leading-relaxed">
-                  Zen is a modern reactive ecosystem with two core packages:{' '}
-                  <strong class="text-text">@zen/signal</strong> for reactive primitives and{' '}
-                  <strong class="text-text">@zen/web</strong> for fine-grained rendering.
+                  Rapid is a modern reactive ecosystem with two core packages:{' '}
+                  <strong class="text-text">@rapid/signal</strong> for reactive primitives and{' '}
+                  <strong class="text-text">@rapid/web</strong> for fine-grained rendering.
                 </p>
               </div>
 
@@ -123,7 +123,7 @@ export function Docs() {
                 </div>
               </div>
 
-              <h2 class="heading-3 text-text mb-4">Why Zen?</h2>
+              <h2 class="heading-3 text-text mb-4">Why Rapid?</h2>
               <ul class="space-y-3 mb-8">
                 <For
                   each={[
@@ -160,14 +160,14 @@ export function Docs() {
               </ul>
 
               <h2 class="heading-3 text-text mb-4">Architecture</h2>
-              <pre class="code-block mb-8">{`@zen/signal (1.75 KB)
+              <pre class="code-block mb-8">{`@rapid/signal (1.75 KB)
   |
   |-- signal()     - Reactive state
   |-- computed()   - Derived values
   |-- effect()     - Side effects
   |-- batch()      - Batched updates
 
-@zen/web (<5 KB)
+@rapid/web (<5 KB)
   |
   |-- JSX Runtime  - Fine-grained rendering
   |-- Components   - For, Show, Switch, Portal
@@ -177,7 +177,7 @@ export function Docs() {
               <div class="space-y-4">
                 <div>
                   <div class="text-sm text-text-muted mb-2">1. Install packages</div>
-                  <pre class="code-block">npm install @zen/signal @zen/web</pre>
+                  <pre class="code-block">npm install @rapid/signal @rapid/web</pre>
                 </div>
                 <div>
                   <div class="text-sm text-text-muted mb-2">2. Configure TypeScript</div>
@@ -185,14 +185,14 @@ export function Docs() {
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/web"
+    "jsxImportSource": "@rapid/web"
   }
 }`}</pre>
                 </div>
                 <div>
                   <div class="text-sm text-text-muted mb-2">3. Create your first component</div>
-                  <pre class="code-block">{`import { signal } from '@zen/signal';
-import { render } from '@zen/web';
+                  <pre class="code-block">{`import { signal } from '@rapid/signal';
+import { render } from '@rapid/web';
 
 const count = signal(0);
 
@@ -210,7 +210,7 @@ render(() => (
             <article class="card">
               <div class="mb-8">
                 <span class="badge badge-primary mb-4">Core Package</span>
-                <h1 class="heading-2 text-text mb-4">@zen/signal</h1>
+                <h1 class="heading-2 text-text mb-4">@rapid/signal</h1>
                 <p class="text-lg text-text-muted leading-relaxed">
                   Ultra-fast reactive primitives with automatic dependency tracking.
                 </p>
@@ -220,7 +220,7 @@ render(() => (
               <p class="text-text-muted mb-4">
                 Create reactive state that automatically notifies subscribers.
               </p>
-              <pre class="code-block mb-8">{`import { signal } from '@zen/signal';
+              <pre class="code-block mb-8">{`import { signal } from '@rapid/signal';
 
 const count = signal(0);
 
@@ -235,7 +235,7 @@ count.value++;`}</pre>
               <p class="text-text-muted mb-4">
                 Create derived values with automatic dependency tracking.
               </p>
-              <pre class="code-block mb-8">{`import { signal, computed } from '@zen/signal';
+              <pre class="code-block mb-8">{`import { signal, computed } from '@rapid/signal';
 
 const count = signal(0);
 const doubled = computed(() => count.value * 2);
@@ -246,7 +246,7 @@ console.log(doubled.value); // 10`}</pre>
 
               <h2 class="heading-3 text-text mb-4">effect()</h2>
               <p class="text-text-muted mb-4">Run side effects when dependencies change.</p>
-              <pre class="code-block mb-8">{`import { signal, effect } from '@zen/signal';
+              <pre class="code-block mb-8">{`import { signal, effect } from '@rapid/signal';
 
 const count = signal(0);
 
@@ -258,7 +258,7 @@ count.value++; // Logs: "Count: 1"`}</pre>
 
               <h2 class="heading-3 text-text mb-4">batch()</h2>
               <p class="text-text-muted mb-4">Batch multiple updates into one notification.</p>
-              <pre class="code-block">{`import { signal, batch } from '@zen/signal';
+              <pre class="code-block">{`import { signal, batch } from '@rapid/signal';
 
 const a = signal(1);
 const b = signal(2);
@@ -275,7 +275,7 @@ batch(() => {
             <article class="card">
               <div class="mb-8">
                 <span class="badge badge-primary mb-4">Framework</span>
-                <h1 class="heading-2 text-text mb-4">@zen/web</h1>
+                <h1 class="heading-2 text-text mb-4">@rapid/web</h1>
                 <p class="text-lg text-text-muted leading-relaxed">
                   Fine-grained reactive framework with no virtual DOM.
                 </p>
@@ -285,7 +285,7 @@ batch(() => {
               <p class="text-text-muted mb-4">
                 Components render once, signals handle all updates.
               </p>
-              <pre class="code-block mb-8">{`import { signal } from '@zen/signal';
+              <pre class="code-block mb-8">{`import { signal } from '@rapid/signal';
 
 function Counter() {
   const count = signal(0);
@@ -301,7 +301,7 @@ function Counter() {
 
               <h2 class="heading-3 text-text mb-4">render()</h2>
               <p class="text-text-muted mb-4">Mount your application to the DOM.</p>
-              <pre class="code-block">{`import { render } from '@zen/web';
+              <pre class="code-block">{`import { render } from '@rapid/web';
 
 render(() => <App />, document.getElementById('root'));`}</pre>
             </article>
@@ -319,7 +319,7 @@ render(() => <App />, document.getElementById('root'));`}</pre>
 
               <h2 class="heading-3 text-text mb-4">Show</h2>
               <p class="text-text-muted mb-4">Conditionally render content.</p>
-              <pre class="code-block mb-8">{`import { Show } from '@zen/web';
+              <pre class="code-block mb-8">{`import { Show } from '@rapid/web';
 
 <Show when={() => isLoggedIn.value} fallback={<Login />}>
   <Dashboard />
@@ -327,7 +327,7 @@ render(() => <App />, document.getElementById('root'));`}</pre>
 
               <h2 class="heading-3 text-text mb-4">For</h2>
               <p class="text-text-muted mb-4">Efficiently render lists.</p>
-              <pre class="code-block mb-8">{`import { For } from '@zen/web';
+              <pre class="code-block mb-8">{`import { For } from '@rapid/web';
 
 <For each={items}>
   {(item) => <Item data={item} />}
@@ -335,7 +335,7 @@ render(() => <App />, document.getElementById('root'));`}</pre>
 
               <h2 class="heading-3 text-text mb-4">Switch / Match</h2>
               <p class="text-text-muted mb-4">Render based on multiple conditions.</p>
-              <pre class="code-block">{`import { Switch, Match } from '@zen/web';
+              <pre class="code-block">{`import { Switch, Match } from '@rapid/web';
 
 <Switch>
   <Match when={() => status.value === 'loading'}>
@@ -357,7 +357,7 @@ render(() => <App />, document.getElementById('root'));`}</pre>
                 <span class="badge badge-primary mb-4">Best Practices</span>
                 <h1 class="heading-2 text-text mb-4">Common Patterns</h1>
                 <p class="text-lg text-text-muted leading-relaxed">
-                  Best practices for building with Zen.
+                  Best practices for building with Rapid.
                 </p>
               </div>
 
@@ -403,7 +403,7 @@ effect(() => {
                 <span class="badge badge-primary mb-4">Ecosystem</span>
                 <h1 class="heading-2 text-text mb-4">Integrations</h1>
                 <p class="text-lg text-text-muted leading-relaxed">
-                  Use Zen Signal with your favorite tools.
+                  Use Rapid Signal with your favorite tools.
                 </p>
               </div>
 
@@ -414,7 +414,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
-    jsxImportSource: '@zen/web'
+    jsxImportSource: '@rapid/web'
   }
 });`}</pre>
 
@@ -423,7 +423,7 @@ export default defineConfig({
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/web",
+    "jsxImportSource": "@rapid/web",
     "strict": true
   }
 }`}</pre>

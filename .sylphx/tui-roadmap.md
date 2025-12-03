@@ -1,4 +1,4 @@
-# @zen/tui Roadmap - Ink Feature Parity
+# @rapid/tui Roadmap - Ink Feature Parity
 
 ## Overview
 
@@ -7,43 +7,43 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 ## Architecture
 
 ```
-@zen/tui (core)
+@rapid/tui (core)
 ├── Rendering engine
 ├── Basic components (Box, Text, Static)
 ├── Platform ops (stdin/stdout, ANSI)
 └── Layout system (Flexbox)
 
-@zen/tui-inputs (separate)
+@rapid/tui-inputs (separate)
 ├── TextInput
 ├── SelectInput
 ├── MultiSelect
 ├── Checkbox, Radio
 └── Focus management
 
-@zen/tui-components (separate)
+@rapid/tui-components (separate)
 ├── Spinner, ProgressBar
 ├── Table, Divider, Tabs
 ├── Badge, StatusMessage
 └── UI utilities
 
-@zen/tui-markdown (separate)
+@rapid/tui-markdown (separate)
 ├── Markdown rendering
 └── Syntax highlighting
 
-@zen/tui-visual (separate)
+@rapid/tui-visual (separate)
 ├── Gradient
 ├── BigText
 └── Charts/Sparkline
 ```
 
 **Rationale:**
-- **@zen/tui**: Minimal core for text-only apps (display/logging)
-- **@zen/tui-inputs**: Optional, only for interactive apps
-- **@zen/tui-components**: Optional, for rich UI elements
-- **@zen/tui-markdown**: Optional, for documentation/help screens
-- **@zen/tui-visual**: Optional, for fancy effects
+- **@rapid/tui**: Minimal core for text-only apps (display/logging)
+- **@rapid/tui-inputs**: Optional, only for interactive apps
+- **@rapid/tui-components**: Optional, for rich UI elements
+- **@rapid/tui-markdown**: Optional, for documentation/help screens
+- **@rapid/tui-visual**: Optional, for fancy effects
 
-## Phase 1: Core Package (@zen/tui) (Priority P0)
+## Phase 1: Core Package (@rapid/tui) (Priority P0)
 
 ### Current Status
 - ✅ Box component (borders, padding, auto-sizing)
@@ -88,7 +88,7 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 2: Input Package (@zen/tui-inputs) (Priority P0)
+## Phase 2: Input Package (@rapid/tui-inputs) (Priority P0)
 
 ### Infrastructure
 
@@ -189,7 +189,7 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 3: Components Package (@zen/tui-components) (Priority P1)
+## Phase 3: Components Package (@rapid/tui-components) (Priority P1)
 
 ### Spinner
 ```tsx
@@ -277,7 +277,7 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 4: Markdown Package (@zen/tui-markdown) (Priority P2)
+## Phase 4: Markdown Package (@rapid/tui-markdown) (Priority P2)
 
 ### Markdown
 ```tsx
@@ -318,7 +318,7 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 
 ---
 
-## Phase 5: Visual Package (@zen/tui-visual) (Priority P2)
+## Phase 5: Visual Package (@rapid/tui-visual) (Priority P2)
 
 ### Gradient
 ```tsx
@@ -472,61 +472,61 @@ Build comprehensive TUI component library matching Ink ecosystem capabilities, u
 ## Package Dependency Tree
 
 ```
-@zen/tui (core)
-  ├── @zen/signal
-  └── @zen/runtime
+@rapid/tui (core)
+  ├── @rapid/signal
+  └── @rapid/runtime
 
-@zen/tui-inputs
-  └── @zen/tui (peer)
+@rapid/tui-inputs
+  └── @rapid/tui (peer)
 
-@zen/tui-components
-  └── @zen/tui (peer)
+@rapid/tui-components
+  └── @rapid/tui (peer)
 
-@zen/tui-markdown
-  └── @zen/tui (peer)
+@rapid/tui-markdown
+  └── @rapid/tui (peer)
 
-@zen/tui-visual
-  └── @zen/tui (peer)
+@rapid/tui-visual
+  └── @rapid/tui (peer)
 ```
 
 ## Use Cases
 
 ### Text-only app (logging, output)
 ```bash
-npm install @zen/tui
+npm install @rapid/tui
 ```
 ```tsx
-import { Box, Text } from '@zen/tui';
+import { Box, Text } from '@rapid/tui';
 // Display only, no interaction needed
 ```
 
 ### Interactive CLI app
 ```bash
-npm install @zen/tui @zen/tui-inputs @zen/tui-components
+npm install @rapid/tui @rapid/tui-inputs @rapid/tui-components
 ```
 ```tsx
-import { Box, Text } from '@zen/tui';
-import { TextInput, SelectInput } from '@zen/tui-inputs';
-import { Spinner, ProgressBar } from '@zen/tui-components';
+import { Box, Text } from '@rapid/tui';
+import { TextInput, SelectInput } from '@rapid/tui-inputs';
+import { Spinner, ProgressBar } from '@rapid/tui-components';
 ```
 
 ### Documentation/help viewer
 ```bash
-npm install @zen/tui @zen/tui-markdown
+npm install @rapid/tui @rapid/tui-markdown
 ```
 ```tsx
-import { Box } from '@zen/tui';
-import { Markdown } from '@zen/tui-markdown';
+import { Box } from '@rapid/tui';
+import { Markdown } from '@rapid/tui-markdown';
 ```
 
 ### Fancy dashboard
 ```bash
-npm install @zen/tui @zen/tui-components @zen/tui-visual
+npm install @rapid/tui @rapid/tui-components @rapid/tui-visual
 ```
 ```tsx
-import { Box } from '@zen/tui';
-import { Table } from '@zen/tui-components';
-import { Gradient, BigText, BarChart } from '@zen/tui-visual';
+import { Box } from '@rapid/tui';
+import { Table } from '@rapid/tui-components';
+import { Gradient, BigText, BarChart } from '@rapid/tui-visual';
 ```
 
 ## Comparison with Ink
@@ -534,25 +534,25 @@ import { Gradient, BigText, BarChart } from '@zen/tui-visual';
 | Feature | Ink | Zen Packages |
 |---------|-----|--------------|
 | **Core** |
-| JSX/TSX | ✅ | ✅ @zen/tui |
+| JSX/TSX | ✅ | ✅ @rapid/tui |
 | Reactive updates | ✅ React hooks | ✅ Zen signals |
-| Box, Text | ✅ ink | ✅ @zen/tui |
-| Static | ✅ ink | ⚠️ @zen/tui (planned) |
-| Layout (Flexbox) | ✅ ink | ⚠️ @zen/tui (planned) |
+| Box, Text | ✅ ink | ✅ @rapid/tui |
+| Static | ✅ ink | ⚠️ @rapid/tui (planned) |
+| Layout (Flexbox) | ✅ ink | ⚠️ @rapid/tui (planned) |
 | **Inputs** |
-| TextInput | ✅ ink-text-input | ❌ @zen/tui-inputs (planned) |
-| SelectInput | ✅ ink-select-input | ❌ @zen/tui-inputs (planned) |
-| Focus management | ✅ ink (useFocus) | ❌ @zen/tui-inputs (planned) |
+| TextInput | ✅ ink-text-input | ❌ @rapid/tui-inputs (planned) |
+| SelectInput | ✅ ink-select-input | ❌ @rapid/tui-inputs (planned) |
+| Focus management | ✅ ink (useFocus) | ❌ @rapid/tui-inputs (planned) |
 | **Components** |
-| Spinner | ✅ ink-spinner | ❌ @zen/tui-components (planned) |
-| ProgressBar | ✅ ink-progress-bar | ❌ @zen/tui-components (planned) |
-| Table | ✅ ink-table | ❌ @zen/tui-components (planned) |
+| Spinner | ✅ ink-spinner | ❌ @rapid/tui-components (planned) |
+| ProgressBar | ✅ ink-progress-bar | ❌ @rapid/tui-components (planned) |
+| Table | ✅ ink-table | ❌ @rapid/tui-components (planned) |
 | **Markdown** |
-| Markdown | ✅ ink-markdown | ❌ @zen/tui-markdown (planned) |
-| Syntax Highlight | ✅ ink-syntax-highlight | ❌ @zen/tui-markdown (planned) |
+| Markdown | ✅ ink-markdown | ❌ @rapid/tui-markdown (planned) |
+| Syntax Highlight | ✅ ink-syntax-highlight | ❌ @rapid/tui-markdown (planned) |
 | **Visual** |
-| Gradient | ✅ ink-gradient | ❌ @zen/tui-visual (planned) |
-| BigText | ✅ ink-big-text | ❌ @zen/tui-visual (planned) |
+| Gradient | ✅ ink-gradient | ❌ @rapid/tui-visual (planned) |
+| BigText | ✅ ink-big-text | ❌ @rapid/tui-visual (planned) |
 
 ---
 

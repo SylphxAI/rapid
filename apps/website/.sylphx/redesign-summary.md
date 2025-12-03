@@ -33,10 +33,10 @@
    - 強調：先用 Signal → 漸進替換 → 完全遷移
 
 4. Standalone Packages 獨立套件
-   - @zen/signal - 可用於任何框架
-   - @zen/router - 輕量路由
-   - @zen/signal-patterns - 狀態管理模式
-   - @zen/signal-persistent - 持久化
+   - @rapid/signal - 可用於任何框架
+   - @rapid/router - 輕量路由
+   - @rapid/signal-patterns - 狀態管理模式
+   - @rapid/signal-persistent - 持久化
    - 每個都展示跨框架使用示例
 
 5. Ecosystem Integrations 生態整合

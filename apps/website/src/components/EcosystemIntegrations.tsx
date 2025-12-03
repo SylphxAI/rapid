@@ -1,4 +1,4 @@
-import { For, signal } from '@zen/web';
+import { For, signal } from '@rapid/web';
 import { Icon } from './Icon.tsx';
 
 export function EcosystemIntegrations() {
@@ -156,9 +156,9 @@ function Icons() {
       {
         name: 'Build Your Own',
         logo: 'lucide:palette',
-        description: 'Build your own UI components with Zen',
+        description: 'Build your own UI components with Rapid',
         setup: `// Button.tsx
-import { signal } from '@zen/web'
+import { signal } from '@rapid/web'
 
 export function Button({ variant = 'primary', children, onClick }) {
   const variants = {
@@ -183,7 +183,7 @@ export function Button({ variant = 'primary', children, onClick }) {
         logo: 'lucide:component',
         description: 'Unstyled accessible UI components',
         setup: `// Integrate Headless UI concepts
-import { signal, Show } from '@zen/web'
+import { signal, Show } from '@rapid/web'
 
 export function Dropdown({ items }) {
   const isOpen = signal(false)
@@ -217,7 +217,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
-    jsxImportSource: '@zen/web'
+    jsxImportSource: '@rapid/web'
   }
 })`,
         features: ['Instant HMR', 'Lightning fast builds', 'Native ESM', 'Rich plugin ecosystem'],
@@ -248,9 +248,9 @@ biome check --apply .`,
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/web",
+    "jsxImportSource": "@rapid/web",
     "strict": true,
-    "types": ["@zen/web"]
+    "types": ["@rapid/web"]
   }
 }
 

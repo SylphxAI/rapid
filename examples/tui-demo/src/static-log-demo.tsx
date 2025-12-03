@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Demo: Static Component with Accumulating Logs (React Ink style)
  *
@@ -9,8 +9,8 @@
  * - Similar to React Ink's <Static> behavior
  */
 
-import { signal } from '@zen/signal';
-import { Box, Static, Text, render, useInput } from '@zen/tui';
+import { signal } from '@rapid/signal';
+import { Box, Static, Text, render, useInput } from '@rapid/tui';
 
 interface LogEntry {
   id: number;

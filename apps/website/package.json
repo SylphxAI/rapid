@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@zen/router": "workspace:*",
-    "@zen/signal": "workspace:*",
-    "@zen/web": "workspace:*",
+    "@rapid/router": "workspace:*",
+    "@rapid/signal": "workspace:*",
+    "@rapid/web": "workspace:*",
     "lz-string": "^1.5.0"
   },
   "devDependencies": {

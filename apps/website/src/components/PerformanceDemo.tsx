@@ -1,5 +1,5 @@
-import { computed, effect, onCleanup, signal } from '@zen/signal';
-import { For, Show } from '@zen/web';
+import { computed, effect, onCleanup, signal } from '@rapid/signal';
+import { For, Show } from '@rapid/web';
 import { Icon } from './Icon';
 
 export function PerformanceDemo() {
@@ -136,7 +136,7 @@ export function PerformanceDemo() {
             Performance Demo
           </h2>
           <p class="text-xl text-text-muted dark:text-text-dark-muted max-w-3xl mx-auto">
-            Watch Zen handle thousands of reactive updates at maximum performance
+            Watch Rapid handle thousands of reactive updates at maximum performance
           </p>
         </div>
 
@@ -278,12 +278,12 @@ export function PerformanceDemo() {
               re-render.
             </p>
             <p>
-              <strong class="text-text dark:text-text-dark">No Virtual DOM:</strong> Zen directly
+              <strong class="text-text dark:text-text-dark">No Virtual DOM:</strong> Rapid directly
               updates the DOM elements that changed. No diffing, no reconciliation overhead.
             </p>
             <p>
               <strong class="text-text dark:text-text-dark">Smooth performance:</strong> Even with
-              thousands of items and hundreds of updates per second, Zen maintains peak performance
+              thousands of items and hundreds of updates per second, Rapid maintains peak performance
               at your display's maximum refresh rate.
             </p>
             <p class="text-sm pt-2 border-t border-border dark:border-border-dark">

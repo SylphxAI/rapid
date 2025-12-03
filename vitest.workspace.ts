@@ -4,77 +4,77 @@ import { defineWorkspace } from 'vitest/config';
 export default defineWorkspace([
   {
     test: {
-      name: 'zen-craft',
-      root: './packages/zen-craft',
+      name: 'rapid-craft',
+      root: './packages/rapid-craft',
       environment: 'jsdom',
     },
     resolve: {
       alias: {
-        '@sylphx/zen': path.resolve(__dirname, './packages/zen/src/index.ts'),
+        '@sylphx/signal': path.resolve(__dirname, './packages/signal/src/index.ts'),
       },
     },
   },
   {
     test: {
-      name: 'zen-patterns',
-      root: './packages/zen-patterns',
+      name: 'rapid-patterns',
+      root: './packages/rapid-patterns',
       environment: 'jsdom',
     },
     resolve: {
       alias: {
-        '@sylphx/zen': path.resolve(__dirname, './packages/zen/src/index.ts'),
+        '@sylphx/signal': path.resolve(__dirname, './packages/signal/src/index.ts'),
       },
     },
   },
   {
     test: {
-      name: 'zen-router',
-      root: './packages/zen-router',
+      name: 'rapid-router',
+      root: './packages/rapid-router',
       environment: 'jsdom',
     },
     resolve: {
       alias: {
-        '@sylphx/zen': path.resolve(__dirname, './packages/zen/src/index.ts'),
-        '@sylphx/zen-patterns': path.resolve(__dirname, './packages/zen-patterns/src/index.ts'),
+        '@sylphx/signal': path.resolve(__dirname, './packages/signal/src/index.ts'),
+        '@sylphx/rapid-patterns': path.resolve(__dirname, './packages/rapid-patterns/src/index.ts'),
       },
     },
   },
   {
     test: {
-      name: 'zen-persistent',
-      root: './packages/zen-persistent',
+      name: 'rapid-persistent',
+      root: './packages/rapid-persistent',
       environment: 'jsdom',
     },
     resolve: {
       alias: {
-        '@sylphx/zen': path.resolve(__dirname, './packages/zen/src/index.ts'),
-        '@sylphx/zen-patterns': path.resolve(__dirname, './packages/zen-patterns/src/index.ts'),
+        '@sylphx/signal': path.resolve(__dirname, './packages/signal/src/index.ts'),
+        '@sylphx/rapid-patterns': path.resolve(__dirname, './packages/rapid-patterns/src/index.ts'),
       },
     },
   },
   {
     test: {
-      name: 'zen-vue',
-      root: './packages/zen-vue',
+      name: 'rapid-vue',
+      root: './packages/rapid-vue',
       environment: 'jsdom',
     },
     resolve: {
       alias: {
-        '@sylphx/zen': path.resolve(__dirname, './packages/zen/src/index.ts'),
+        '@sylphx/signal': path.resolve(__dirname, './packages/signal/src/index.ts'),
       },
     },
   },
   {
     test: {
-      name: 'zen-router-react',
-      root: './packages/zen-router-react',
+      name: 'rapid-router-react',
+      root: './packages/rapid-router-react',
       environment: 'jsdom',
     },
     resolve: {
       alias: {
-        '@sylphx/zen': path.resolve(__dirname, './packages/zen/src/index.ts'),
-        '@sylphx/zen-patterns': path.resolve(__dirname, './packages/zen-patterns/src/index.ts'),
-        '@sylphx/zen-router': path.resolve(__dirname, './packages/zen-router/src/index.ts'),
+        '@sylphx/signal': path.resolve(__dirname, './packages/signal/src/index.ts'),
+        '@sylphx/rapid-patterns': path.resolve(__dirname, './packages/rapid-patterns/src/index.ts'),
+        '@sylphx/rapid-router': path.resolve(__dirname, './packages/rapid-router/src/index.ts'),
       },
     },
   },

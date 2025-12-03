@@ -1,9 +1,9 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Simple Calculator - Text-based display only
  */
 
-import { Box, Text, signal, useInput } from '@zen/tui';
+import { Box, Text, signal, useInput } from '@rapid/tui';
 
 export function SimpleCalculator() {
   const display = signal('0');

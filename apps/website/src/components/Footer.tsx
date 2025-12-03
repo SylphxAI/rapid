@@ -1,14 +1,14 @@
-import { For } from '@zen/web';
+import { For } from '@rapid/web';
 import { Icon } from './Icon.tsx';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   const packages = [
-    { label: '@zen/signal', href: '/docs' },
-    { label: '@zen/web', href: '/docs' },
-    { label: '@zen/tui', href: '/docs' },
-    { label: '@zen/router', href: '/docs' },
+    { label: '@rapid/signal', href: '/docs' },
+    { label: '@rapid/web', href: '/docs' },
+    { label: '@rapid/tui', href: '/docs' },
+    { label: '@rapid/router', href: '/docs' },
   ];
 
   const resources = [
@@ -38,7 +38,7 @@ export function Footer() {
               <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                 <Icon icon="lucide:zap" width="18" height="18" class="text-white" />
               </div>
-              <span class="text-xl font-bold text-text">Zen</span>
+              <span class="text-xl font-bold text-text">Rapid</span>
             </div>
             <p class="text-text-muted text-sm mb-4 max-w-xs">
               Ultra-fast reactive primitives and fine-grained framework for building modern web
@@ -115,9 +115,9 @@ export function Footer() {
 
         {/* Bottom */}
         <div class="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p class="text-sm text-text-muted">© {currentYear} Zen. MIT License.</p>
+          <p class="text-sm text-text-muted">© {currentYear} Rapid. MIT License.</p>
           <p class="text-sm text-text-subtle">
-            Built with <span class="text-primary font-medium">@zen/web</span>
+            Built with <span class="text-primary font-medium">@rapid/web</span>
           </p>
         </div>
       </div>

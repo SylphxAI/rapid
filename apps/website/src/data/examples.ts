@@ -175,7 +175,7 @@ const app = (
     category: 'components',
     code: `// State
 const todos = signal([
-  { id: 1, text: 'Learn Zen signals', done: true },
+  { id: 1, text: 'Learn Rapid signals', done: true },
   { id: 2, text: 'Build something awesome', done: false },
   { id: 3, text: 'Ship to production', done: false }
 ]);

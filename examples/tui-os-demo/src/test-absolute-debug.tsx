@@ -1,9 +1,9 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Debug absolute positioning with ASCII art
  */
 
-import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@rapid/tui';
 
 function App() {
   useInput((_input, key) => {

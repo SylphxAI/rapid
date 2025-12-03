@@ -2,7 +2,7 @@
  * Window component - Draggable, resizable window with title bar
  */
 
-import { Box, Text, computed, useMouseClick } from '@zen/tui';
+import { Box, Text, computed, useMouseClick } from '@rapid/tui';
 import type { WindowState } from '../window-manager.js';
 import {
   $focusedWindowId,

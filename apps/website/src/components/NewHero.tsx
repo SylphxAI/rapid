@@ -94,14 +94,14 @@ function Counter() {
               </pre>
             </div>
 
-            {/* Zen example */}
+            {/* Rapid example */}
             <div class="bg-bg-light border-2 border-primary/50 rounded-zen overflow-hidden relative">
               <div class="absolute top-2 right-2 px-2 py-1 bg-primary text-white text-xs font-bold rounded">
                 Recommended
               </div>
               <div class="bg-bg-lighter border-b border-primary/30 px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="text-text font-medium">Zen</span>
+                  <span class="text-text font-medium">Rapid</span>
                   <span class="px-2 py-0.5 bg-success/20 text-success text-xs rounded">
                     &lt;5 KB
                   </span>

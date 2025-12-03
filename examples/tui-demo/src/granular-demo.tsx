@@ -1,12 +1,12 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Granular Update Demo
  *
  * 展示細粒度更新 - 只重繪變化的行，不是整個畫面
  */
 
-import { render, signal } from '@zen/tui';
-import { Box, Text } from '@zen/tui';
+import { render, signal } from '@rapid/tui';
+import { Box, Text } from '@rapid/tui';
 
 // 多個獨立的 counter
 const counter1 = signal(0);

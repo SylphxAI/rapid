@@ -1,15 +1,15 @@
 /**
  * CrossPlatform Section
  *
- * Showcases Zen's unique cross-platform capabilities:
+ * Showcases Rapid's unique cross-platform capabilities:
  * - Same reactive primitives across web and terminal
- * - @zen/web for browser DOM
- * - @zen/tui for terminal UI
- * - Shared @zen/runtime components (Show, For, Switch, Context)
+ * - @rapid/web for browser DOM
+ * - @rapid/tui for terminal UI
+ * - Shared @rapid/runtime components (Show, For, Switch, Context)
  */
 
-import { computed, signal } from '@zen/signal';
-import { For, Show } from '@zen/web';
+import { computed, signal } from '@rapid/signal';
+import { For, Show } from '@rapid/web';
 import { Icon } from './Icon.tsx';
 
 export function CrossPlatform() {
@@ -20,7 +20,7 @@ export function CrossPlatform() {
       id: 'web' as const,
       name: 'Web',
       icon: 'lucide:globe',
-      package: '@zen/web',
+      package: '@rapid/web',
       size: '<5 KB',
       description: 'Fine-grained DOM rendering',
     },
@@ -28,7 +28,7 @@ export function CrossPlatform() {
       id: 'tui' as const,
       name: 'Terminal',
       icon: 'lucide:terminal',
-      package: '@zen/tui',
+      package: '@rapid/tui',
       size: '<8 KB',
       description: 'Ink-like TUI with signals',
     },
@@ -36,7 +36,7 @@ export function CrossPlatform() {
       id: 'shared' as const,
       name: 'Shared',
       icon: 'lucide:share-2',
-      package: '@zen/runtime',
+      package: '@rapid/runtime',
       size: '<2 KB',
       description: 'Platform-agnostic components',
     },
@@ -46,12 +46,12 @@ export function CrossPlatform() {
     web: {
       title: 'Browser DOM Rendering',
       description: 'Fine-grained updates directly to the DOM. No Virtual DOM overhead.',
-      code: `import { signal, computed } from '@zen/signal'
-import { render, Show, For } from '@zen/web'
+      code: `import { signal, computed } from '@rapid/signal'
+import { render, Show, For } from '@rapid/web'
 
 function App() {
   const todos = signal([
-    { id: 1, text: 'Learn Zen', done: true },
+    { id: 1, text: 'Learn Rapid', done: true },
     { id: 2, text: 'Build app', done: false },
   ])
 
@@ -84,8 +84,8 @@ render(() => <App />, document.body)`,
     tui: {
       title: 'Terminal UI Rendering',
       description: 'Build beautiful CLI apps with the same reactive model. Like Ink, but faster.',
-      code: `import { signal, computed } from '@zen/signal'
-import { render, Box, Text, TextInput } from '@zen/tui'
+      code: `import { signal, computed } from '@rapid/signal'
+import { render, Box, Text, TextInput } from '@rapid/tui'
 
 function App() {
   const name = signal('')
@@ -95,7 +95,7 @@ function App() {
 
   return (
     <Box flexDirection="column" padding={1}>
-      <Text bold color="cyan">Welcome to Zen TUI</Text>
+      <Text bold color="cyan">Welcome to Rapid TUI</Text>
 
       <Box marginY={1}>
         <Text>Name: </Text>
@@ -122,8 +122,8 @@ render(<App />)`,
       title: 'Shared Components',
       description: 'Write once, run on both platforms. Same API, different renderers.',
       code: `// These components work on BOTH web and terminal!
-import { Show, For, Switch, Match } from '@zen/runtime'
-import { createContext, useContext } from '@zen/runtime'
+import { Show, For, Switch, Match } from '@rapid/runtime'
+import { createContext, useContext } from '@rapid/runtime'
 
 // Conditional rendering
 <Show when={isLoggedIn} fallback={<Login />}>
@@ -194,7 +194,7 @@ const ThemeContext = createContext('light')
             <div class="md:col-span-3 bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30 rounded-zen p-6 text-center">
               <div class="flex items-center justify-center gap-3 mb-2">
                 <Icon icon="lucide:atom" width="28" height="28" class="text-primary" />
-                <span class="text-xl font-bold text-text">@zen/signal-core</span>
+                <span class="text-xl font-bold text-text">@rapid/signal-core</span>
                 <span class="px-2 py-0.5 bg-success/20 text-success text-sm rounded font-medium">
                   1.75 KB
                 </span>
@@ -208,7 +208,7 @@ const ThemeContext = createContext('light')
             <div class="md:col-span-3 bg-bg border border-border rounded-zen p-6 text-center">
               <div class="flex items-center justify-center gap-3 mb-2">
                 <Icon icon="lucide:box" width="24" height="24" class="text-secondary" />
-                <span class="text-lg font-bold text-text">@zen/runtime</span>
+                <span class="text-lg font-bold text-text">@rapid/runtime</span>
                 <span class="px-2 py-0.5 bg-secondary/20 text-secondary text-sm rounded font-medium">
                   &lt;2 KB
                 </span>
@@ -245,7 +245,7 @@ const ThemeContext = createContext('light')
             <div class="bg-bg border border-dashed border-border rounded-zen p-6 text-center opacity-60">
               <div class="flex items-center justify-center gap-2 mb-2">
                 <Icon icon="lucide:smartphone" width="24" height="24" class="text-text-muted" />
-                <span class="text-lg font-bold text-text-muted">@zen/native</span>
+                <span class="text-lg font-bold text-text-muted">@rapid/native</span>
               </div>
               <span class="px-2 py-0.5 bg-bg-lighter text-text-muted text-sm rounded font-medium">
                 Coming Soon

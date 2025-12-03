@@ -1,10 +1,10 @@
-import { For } from '@zen/web';
+import { For } from '@rapid/web';
 import { Icon } from './Icon.tsx';
 
 export function StandalonePackages() {
   const packages = [
     {
-      name: '@zen/signal',
+      name: '@rapid/signal',
       size: '1.75 KB',
       description: 'Ultra-lightweight reactive primitives',
       features: [
@@ -15,14 +15,14 @@ export function StandalonePackages() {
         'Zero dependencies',
       ],
       integrations: [
-        { name: 'React', pkg: '@zen/signal-react', icon: 'lucide:atom' },
-        { name: 'Vue', pkg: '@zen/signal-vue', icon: 'lucide:triangle' },
-        { name: 'Svelte', pkg: '@zen/signal-svelte', icon: 'lucide:flame' },
-        { name: 'Solid', pkg: '@zen/signal-solid', icon: 'lucide:box' },
-        { name: 'Preact', pkg: '@zen/signal-preact', icon: 'lucide:zap' },
+        { name: 'React', pkg: '@rapid/signal-react', icon: 'lucide:atom' },
+        { name: 'Vue', pkg: '@rapid/signal-vue', icon: 'lucide:triangle' },
+        { name: 'Svelte', pkg: '@rapid/signal-svelte', icon: 'lucide:flame' },
+        { name: 'Solid', pkg: '@rapid/signal-solid', icon: 'lucide:box' },
+        { name: 'Preact', pkg: '@rapid/signal-preact', icon: 'lucide:zap' },
       ],
       example: `// Vanilla JS
-import { signal, computed, effect } from '@zen/signal'
+import { signal, computed, effect } from '@rapid/signal'
 
 const count = signal(0)
 const doubled = computed(() => count.value * 2)
@@ -34,7 +34,7 @@ effect(() => {
 count.value++ // Logs: "Count: 1"`,
     },
     {
-      name: '@zen/router',
+      name: '@rapid/router',
       size: '<3 KB',
       description: 'Lightweight routing solution',
       features: [
@@ -45,13 +45,13 @@ count.value++ // Logs: "Count: 1"`,
         'Simple and easy to use',
       ],
       integrations: [
-        { name: 'Zen', pkg: '@zen/web', icon: 'lucide:zap' },
+        { name: 'Rapid', pkg: '@rapid/web', icon: 'lucide:zap' },
         { name: 'React', pkg: 'react-router', icon: 'lucide:atom' },
         { name: 'Vue', pkg: 'vue-router', icon: 'lucide:triangle' },
-        { name: 'Vanilla', pkg: '@zen/router', icon: 'lucide:package' },
+        { name: 'Vanilla', pkg: '@rapid/router', icon: 'lucide:package' },
       ],
       example: `// Works in any project
-import { createRouter } from '@zen/router'
+import { createRouter } from '@rapid/router'
 
 const router = createRouter({
   '/': () => renderHome(),
@@ -63,7 +63,7 @@ const router = createRouter({
 router.navigate('/users/123')`,
     },
     {
-      name: '@zen/signal-patterns',
+      name: '@rapid/signal-patterns',
       size: '<2 KB',
       description: 'Common state management patterns',
       features: [
@@ -75,7 +75,7 @@ router.navigate('/users/123')`,
       ],
       integrations: [],
       example: `// Create a Store
-import { createStore } from '@zen/signal-patterns'
+import { createStore } from '@rapid/signal-patterns'
 
 const useStore = createStore({
   count: 0,
@@ -96,7 +96,7 @@ const store = useStore()
 store.increment()`,
     },
     {
-      name: '@zen/signal-persistent',
+      name: '@rapid/signal-persistent',
       size: '<1 KB',
       description: 'Persistent signals',
       features: [
@@ -108,7 +108,7 @@ store.increment()`,
       ],
       integrations: [],
       example: `// Auto-persistence
-import { persistentSignal } from '@zen/signal-persistent'
+import { persistentSignal } from '@rapid/signal-persistent'
 
 const theme = persistentSignal('theme', 'dark')
 const settings = persistentSignal('settings', {
@@ -121,7 +121,7 @@ theme.value = 'light'
 settings.value.language = 'en'`,
     },
     {
-      name: '@zen/tui',
+      name: '@rapid/tui',
       size: '<8 KB',
       description: 'Terminal UI with fine-grained reactivity',
       features: [
@@ -138,8 +138,8 @@ settings.value.language = 'en'`,
         { name: 'Spinner', pkg: 'feedback', icon: 'lucide:loader' },
       ],
       example: `// Terminal UI app
-import { signal } from '@zen/signal'
-import { render, Box, Text, TextInput } from '@zen/tui'
+import { signal } from '@rapid/signal'
+import { render, Box, Text, TextInput } from '@rapid/tui'
 
 function App() {
   const name = signal('')

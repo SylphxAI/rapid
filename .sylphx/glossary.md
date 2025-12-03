@@ -42,5 +42,5 @@
 
 ## Descriptor Pattern
 **Definition:** Two-phase JSX execution where jsx() returns lightweight descriptors for components, orchestrator executes in parent-first order
-**Usage:** All platform jsx-runtimes (`packages/zen-*/src/jsx-runtime.ts`), `@zen/runtime/src/descriptor.ts`
+**Usage:** All platform jsx-runtimes (`packages/zen-*/src/jsx-runtime.ts`), `@rapid/runtime/src/descriptor.ts`
 **Context:** Solves JSX eager evaluation problem that breaks Context propagation. Phase 1: Create descriptors `{ _jsx: true, type, props }`. Phase 2: Execute via lazy props getter when parent accesses children. Descriptors are transient (discarded after execution), preserving fine-grained reactivity without VDOM/diffing overhead. Enables zero-config Context usage like `<Provider><Child /></Provider>`. See ADR-011.

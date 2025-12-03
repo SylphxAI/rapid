@@ -1,5 +1,5 @@
-import { computed, effect, signal } from '@zen/signal';
-import { For } from '@zen/web';
+import { computed, effect, signal } from '@rapid/signal';
+import { For } from '@rapid/web';
 import { Icon } from '../components/Icon';
 import apiReferenceMd from '../docs/api-reference.md?raw';
 import coreConceptsMd from '../docs/core-concepts.md?raw';
@@ -55,9 +55,9 @@ export function NewDocs() {
       {/* Hero */}
       <section class="py-12 px-6 bg-gradient-hero border-b border-border">
         <div class="max-w-7xl mx-auto">
-          <span class="badge badge-primary mb-4">Learn Zen</span>
+          <span class="badge badge-primary mb-4">Learn Rapid</span>
           <h1 class="heading-2 text-text mb-2">Documentation</h1>
-          <p class="text-lg text-text-muted">Learn how to build reactive UIs with Zen</p>
+          <p class="text-lg text-text-muted">Learn how to build reactive UIs with Rapid</p>
         </div>
       </section>
 

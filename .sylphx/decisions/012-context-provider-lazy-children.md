@@ -31,7 +31,7 @@ jsx(Component, { children: props.children })  // 讀取!
 ### 1. 普通用戶：ContextProvider Helper（零配置）
 
 ```tsx
-import { ContextProvider } from '@zen/runtime';
+import { ContextProvider } from '@rapid/runtime';
 
 // 純 JSX，零配置！
 <ContextProvider context={MyContext} value={myValue}>
@@ -177,7 +177,7 @@ export function MyProvider(props: { children: unknown }) {
 直接使用 ContextProvider helper：
 
 ```tsx
-import { ContextProvider } from '@zen/runtime';
+import { ContextProvider } from '@rapid/runtime';
 
 // ✅ 純 JSX，零配置
 <ContextProvider context={ThemeContext} value={theme}>
@@ -263,7 +263,7 @@ Compiler 檢測 Context.Provider 並自動插入 getter。
 
 **ContextProvider Component**:
 ```typescript
-import { ContextProvider } from '@zen/runtime';
+import { ContextProvider } from '@rapid/runtime';
 
 <ContextProvider context={MyContext} value={myValue}>
   {children}

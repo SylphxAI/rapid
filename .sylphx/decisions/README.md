@@ -4,7 +4,7 @@
 
 - [ADR-001: Runtime-First Architecture](#001-runtime-first-architecture) ✅
 - [ADR-009: Cross-Platform Architecture](#009-cross-platform-architecture) ✅
-- [ADR-010: Remove @zen/zen Package](#010-remove-zen-package) ✅
+- [ADR-010: Remove @rapid/zen Package](#010-remove-zen-package) ✅
 - [ADR-011: Descriptor Pattern for JSX](#011-descriptor-pattern-jsx) ✅
 - [ADR-012: Context Provider Lazy Children](#012-context-provider-lazy-children) ✅
 - [ADR-013: Show/Switch Lazy Children Fix](#013-show-switch-lazy-children) ✅
@@ -23,7 +23,7 @@
 ### Active
 - [001-runtime-first-architecture.md](001-runtime-first-architecture.md) - Runtime-first with optional compiler for framework integrations
 - [009-cross-platform-architecture.md](009-cross-platform-architecture.md) - Cross-platform support (web, native, TUI) with layered architecture
-- [010-deprecate-zen-package.md](010-deprecate-zen-package.md) - Remove @zen/zen in favor of platform-specific packages (@zen/web, @zen/tui, @zen/native)
+- [010-deprecate-zen-package.md](010-deprecate-zen-package.md) - Remove @rapid/zen in favor of platform-specific packages (@rapid/web, @rapid/tui, @rapid/native)
 - [011-descriptor-pattern-jsx.md](011-descriptor-pattern-jsx.md) - Two-phase JSX execution with descriptors to fix Context propagation
 - [012-context-provider-lazy-children.md](012-context-provider-lazy-children.md) - Manual getter pattern for nested Providers with ContextProvider helper
 - [013-show-switch-lazy-children.md](013-show-switch-lazy-children.md) - Fix Show/Switch to use children() helper for true lazy execution
@@ -64,9 +64,9 @@
 
 **v4.0.0 (planned):** Cross-platform architecture (ADR-009)
 - Layered architecture: Signal → Runtime → Renderers
-- Platform-agnostic core (@zen/runtime)
-- Platform-specific renderers (@zen/web, @zen/native, @zen/tui)
-- Optional compiler for DX (@zen/compiler)
+- Platform-agnostic core (@rapid/runtime)
+- Platform-specific renderers (@rapid/web, @rapid/native, @rapid/tui)
+- Optional compiler for DX (@rapid/compiler)
 
 **v5.0.0 (current):** Descriptor Pattern for JSX (ADR-011)
 - Two-phase execution: descriptors → orchestrated execution

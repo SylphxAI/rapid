@@ -2,7 +2,7 @@
  * TaskBar component - Bottom bar showing open windows
  */
 
-import { Box, For, Text, computed, useTerminalSize } from '@zen/tui';
+import { Box, For, Text, computed, useTerminalSize } from '@rapid/tui';
 import {
   $focusedWindowId,
   $taskbarItems,

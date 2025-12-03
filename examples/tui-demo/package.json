@@ -11,7 +11,7 @@
     "static-full": "bun run src/static-full-demo.tsx"
   },
   "dependencies": {
-    "@zen/tui": "workspace:*"
+    "@rapid/tui": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest"

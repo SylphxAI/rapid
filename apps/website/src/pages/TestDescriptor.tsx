@@ -5,8 +5,8 @@
  * in parent-first order, fixing Context propagation.
  */
 
-import { createContext, onMount, useContext } from '@zen/runtime';
-import { signal } from '@zen/signal';
+import { createContext, onMount, useContext } from '@rapid/runtime';
+import { signal } from '@rapid/signal';
 
 // Create test context
 const TestContext = createContext<string>('default');

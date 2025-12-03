@@ -1,9 +1,9 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Simplified window test without emoji
  */
 
-import { Box, FullscreenLayout, Text, renderApp, useInput, useTerminalSize } from '@zen/tui';
+import { Box, FullscreenLayout, Text, renderApp, useInput, useTerminalSize } from '@rapid/tui';
 
 function App() {
   const { width, height } = useTerminalSize();

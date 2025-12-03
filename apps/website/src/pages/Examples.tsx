@@ -1,4 +1,4 @@
-import { For, computed, signal } from '@zen/web';
+import { For, computed, signal } from '@rapid/web';
 import { Icon } from '../components/Icon.tsx';
 import { categories, examples } from '../data/examples.ts';
 
@@ -20,7 +20,7 @@ export function Examples() {
           <span class="badge badge-primary mb-4">Learn by Example</span>
           <h1 class="heading-1 text-text mb-4">Examples</h1>
           <p class="text-xl text-text-muted max-w-2xl mx-auto">
-            Learn Zen through practical examples. Each example demonstrates core concepts with
+            Learn Rapid through practical examples. Each example demonstrates core concepts with
             working code you can run in the playground.
           </p>
         </div>

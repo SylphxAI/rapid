@@ -1,15 +1,15 @@
-import { For } from '@zen/web';
+import { For } from '@rapid/web';
 
 export function Packages() {
   const corePackages = [
     {
-      name: '@zen/signal',
+      name: '@rapid/signal',
       description: 'Ultra-fast reactive primitives with auto-tracking',
       size: '1.75 KB',
       features: ['signal()', 'computed()', 'effect()', 'Auto-tracking', 'Zero deps'],
     },
     {
-      name: '@zen/web',
+      name: '@rapid/web',
       description: 'Fine-grained framework with no virtual DOM',
       size: '<5 KB',
       features: ['JSX', 'Router', 'Components', 'No VDOM', 'Render once'],
@@ -17,18 +17,18 @@ export function Packages() {
   ];
 
   const integrations = [
-    { name: '@zen/signal-react', desc: 'React hooks integration' },
-    { name: '@zen/signal-vue', desc: 'Vue 3 Composition API' },
-    { name: '@zen/signal-svelte', desc: 'Svelte stores compatibility' },
-    { name: '@zen/signal-preact', desc: 'Preact signals integration' },
-    { name: '@zen/signal-solid', desc: 'SolidJS primitives' },
+    { name: '@rapid/signal-react', desc: 'React hooks integration' },
+    { name: '@rapid/signal-vue', desc: 'Vue 3 Composition API' },
+    { name: '@rapid/signal-svelte', desc: 'Svelte stores compatibility' },
+    { name: '@rapid/signal-preact', desc: 'Preact signals integration' },
+    { name: '@rapid/signal-solid', desc: 'SolidJS primitives' },
   ];
 
   const utilities = [
-    { name: '@zen/signal-patterns', desc: 'Useful patterns (store, async, map)' },
-    { name: '@zen/signal-persistent', desc: 'localStorage/sessionStorage sync' },
-    { name: '@zen/signal-craft', desc: 'Immutable state updates' },
-    { name: '@zen/router', desc: 'Type-safe routing' },
+    { name: '@rapid/signal-patterns', desc: 'Useful patterns (store, async, map)' },
+    { name: '@rapid/signal-persistent', desc: 'localStorage/sessionStorage sync' },
+    { name: '@rapid/signal-craft', desc: 'Immutable state updates' },
+    { name: '@rapid/router', desc: 'Type-safe routing' },
   ];
 
   return (

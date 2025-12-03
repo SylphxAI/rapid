@@ -1,13 +1,13 @@
 /**
  * Interactive Demo Component
  *
- * Showcases Zen's reactivity with live, editable examples
+ * Showcases Rapid's reactivity with live, editable examples
  * Users can modify values and see immediate updates
  */
 
-import { computed, signal } from '@zen/signal';
-import { Show, Switch, Match } from '@zen/web';
-import { createContext, useContext } from '@zen/runtime';
+import { computed, signal } from '@rapid/signal';
+import { Show, Switch, Match } from '@rapid/web';
+import { createContext, useContext } from '@rapid/runtime';
 
 export function InteractiveDemo() {
   return (
@@ -476,7 +476,7 @@ effect(() => {
  */
 function ComplexStateDemo() {
   const todos = signal([
-    { id: 1, text: 'Learn Zen', done: true },
+    { id: 1, text: 'Learn Rapid', done: true },
     { id: 2, text: 'Build an app', done: false },
     { id: 3, text: 'Ship to production', done: false },
   ]);

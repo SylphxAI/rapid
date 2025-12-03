@@ -1,9 +1,9 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Simple render test - non-interactive, just renders once
  */
 
-import { Box, Text, render } from '@zen/tui';
+import { Box, Text, render } from '@rapid/tui';
 
 const _output = render(
   <Box style={{ width: 60, height: 15, flexDirection: 'column' }}>

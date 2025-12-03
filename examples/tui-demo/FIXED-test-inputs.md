@@ -11,7 +11,7 @@
 FocusProvider 沒有使用 `children()` helper，導致 JSX eager evaluation 時 children 在 Context 設定前執行。
 
 **修復：**
-1. 導入 `children` from '@zen/runtime'
+1. 導入 `children` from '@rapid/runtime'
 2. 在 FocusProvider 中使用 `const c = children(() => props.children)`
 3. 傳遞 lazy children 給 Provider
 
@@ -61,7 +61,7 @@ bun examples/tui-demo/src/questionnaire.tsx
 
 **檔案：**
 - `packages/zen-tui/src/focus.tsx`:
-  - 導入 `children` from '@zen/runtime'
+  - 導入 `children` from '@rapid/runtime'
   - 返回 signal 而非 getter: `isFocused: isFocusedSignal`
   - 使用 lazy children: `const c = children(() => props.children)`
 - `packages/zen-tui/src/components/TextInput.tsx` - 使用 `isFocused.value`

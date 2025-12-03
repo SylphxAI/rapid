@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Component Test - WAI-ARIA Tabs Pattern
  *
@@ -19,8 +19,8 @@ import {
   renderApp,
   signal,
   useInput,
-} from '@zen/tui';
-import { List, MenuBar, Pane, Splitter, TextArea } from '@zen/tui-advanced';
+} from '@rapid/tui';
+import { List, MenuBar, Pane, Splitter, TextArea } from '@rapid/tui-advanced';
 
 // =============================================================================
 // Main Component
@@ -78,7 +78,7 @@ function ComponentTest() {
           {/* Header */}
           <Box style={{ backgroundColor: 'blue', height: 1, paddingLeft: 1 }}>
             <Text style={{ color: 'white', bold: true }}>
-              @zen/tui-advanced Component Test
+              @rapid/tui-advanced Component Test
             </Text>
           </Box>
 

@@ -15,14 +15,14 @@ export function Hero() {
         </div>
 
         <h1 class="text-7xl font-extrabold mb-6 bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
-          Zen Ecosystem
+          Rapid Ecosystem
         </h1>
 
         <p class="text-2xl text-text-muted mb-12 leading-relaxed">
-          <strong class="text-text font-semibold">@zen/signal</strong> - Ultra-fast reactive
+          <strong class="text-text font-semibold">@rapid/signal</strong> - Ultra-fast reactive
           primitives
           <br />
-          <strong class="text-text font-semibold">@zen/web</strong> - Fine-grained framework with no
+          <strong class="text-text font-semibold">@rapid/web</strong> - Fine-grained framework with no
           virtual DOM
         </p>
 

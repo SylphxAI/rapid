@@ -1,6 +1,6 @@
 # ZenOS - TUI Desktop Demo
 
-A macOS/Windows-like desktop environment built entirely with `@zen/tui` to demonstrate the framework's capabilities.
+A macOS/Windows-like desktop environment built entirely with `@rapid/tui` to demonstrate the framework's capabilities.
 
 ![ZenOS Demo](./screenshot.png)
 
@@ -78,10 +78,10 @@ This demo showcases:
 
 ## Tech Stack
 
-- `@zen/tui` - Terminal UI framework
-- `@zen/signal` - Reactive signals
+- `@rapid/tui` - Terminal UI framework
+- `@rapid/signal` - Reactive signals
 - Bun runtime
 
 ---
 
-Built with ❤️ to showcase `@zen/tui` capabilities.
+Built with ❤️ to showcase `@rapid/tui` capabilities.

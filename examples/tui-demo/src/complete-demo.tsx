@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Complete Interactive Demo - All Components
  *
@@ -23,7 +23,7 @@ import {
   signal,
   useFocusManager,
   useInput,
-} from '@zen/tui';
+} from '@rapid/tui';
 
 // State
 const name = signal('');

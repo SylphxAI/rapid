@@ -1,0 +1,45 @@
+{
+  "name": "@rapid/tui-advanced",
+  "version": "0.0.0",
+  "description": "Advanced components for professional TUI applications - Window management, splitters, text editors, charts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bunup src/index.ts --format esm --dts --target node --splitting=false --external @rapid/runtime --external @rapid/signal --external @rapid/tui --external chalk --external string-width --external strip-ansi",
+    "build:watch": "bunup src/index.ts --format esm --dts --target node --splitting=false --watch --external @rapid/runtime --external @rapid/signal --external @rapid/tui --external chalk --external string-width --external strip-ansi",
+    "dev": "bun run --watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["zen", "tui", "terminal", "cli", "advanced", "window", "splitter", "fullscreen"],
+  "author": "Zen Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SylphxAI/rapid.git",
+    "directory": "packages/zen-tui-advanced"
+  },
+  "dependencies": {
+    "@rapid/runtime": "workspace:*",
+    "@rapid/signal": "workspace:*",
+    "@rapid/tui": "workspace:*"
+  },
+  "devDependencies": {
+    "bunup": "^0.16.10",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

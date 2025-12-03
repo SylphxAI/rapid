@@ -1,20 +1,20 @@
 # Getting Started
 
-Get up and running with Zen in minutes.
+Get up and running with Rapid in minutes.
 
 ## Installation
 
-Install Zen using your favorite package manager:
+Install Rapid using your favorite package manager:
 
 ```bash
 # npm
-npm install @zen/zen
+npm install @rapid/zen
 
 # bun
-bun add @zen/zen
+bun add @rapid/zen
 
 # pnpm
-pnpm add @zen/zen
+pnpm add @rapid/zen
 ```
 
 ## Your First App
@@ -22,7 +22,7 @@ pnpm add @zen/zen
 Create a simple counter application:
 
 ```typescript
-import { render, signal } from '@zen/zen';
+import { render, signal } from '@rapid/zen';
 
 function Counter() {
   const count = signal(0);
@@ -51,7 +51,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
-    jsxImportSource: '@zen/zen'
+    jsxImportSource: '@rapid/zen'
   }
 });
 ```
@@ -61,9 +61,9 @@ export default defineConfig({
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/zen"
+    "jsxImportSource": "@rapid/zen"
   }
 }
 ```
 
-That's it! You're ready to build reactive UIs with Zen.
+That's it! You're ready to build reactive UIs with Rapid.

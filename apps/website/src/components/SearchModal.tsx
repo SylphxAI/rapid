@@ -1,5 +1,5 @@
-import { computed, signal } from '@zen/signal';
-import { For, Show } from '@zen/web';
+import { computed, signal } from '@rapid/signal';
+import { For, Show } from '@rapid/web';
 import { Icon } from './Icon';
 import { Modal } from './Modal';
 
@@ -14,7 +14,7 @@ const MOCK_DOCS = [
   {
     title: 'Getting Started',
     category: 'Installation',
-    description: 'Install Zen and set up your first project',
+    description: 'Install Rapid and set up your first project',
     path: '/docs#getting-started',
   },
   {
@@ -50,7 +50,7 @@ const MOCK_DOCS = [
   {
     title: 'Router',
     category: 'Routing',
-    description: 'Client-side routing with @zen/router',
+    description: 'Client-side routing with @rapid/router',
     path: '/docs#router',
   },
   {
@@ -62,7 +62,7 @@ const MOCK_DOCS = [
   {
     title: 'Performance Tips',
     category: 'Advanced',
-    description: 'Optimize your Zen applications',
+    description: 'Optimize your Rapid applications',
     path: '/docs#performance',
   },
   {

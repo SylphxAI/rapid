@@ -4,15 +4,15 @@
 Zen - Cross-platform reactive framework with fine-grained reactivity.
 
 **Core Packages:**
-- `@zen/signal` - Reactive primitives (signal, computed, effect)
-- `@zen/runtime` - Platform-agnostic components and utilities
-- `@zen/web` - Web renderer (DOM, SSR, hydration)
-- `@zen/native` - Native renderer (iOS, Android)
-- `@zen/tui` - Terminal UI renderer
-- `@zen/compiler` - Optional JSX transformer (auto-lazy, auto-unwrap)
-- `@zen/start` - Full-stack meta-framework
+- `@rapid/signal` - Reactive primitives (signal, computed, effect)
+- `@rapid/runtime` - Platform-agnostic components and utilities
+- `@rapid/web` - Web renderer (DOM, SSR, hydration)
+- `@rapid/native` - Native renderer (iOS, Android)
+- `@rapid/tui` - Terminal UI renderer
+- `@rapid/compiler` - Optional JSX transformer (auto-lazy, auto-unwrap)
+- `@rapid/start` - Full-stack meta-framework
 
-**Convenience Package:** `@zen/zen` - Re-exports runtime + web for easy migration
+**Convenience Package:** `@rapid/zen` - Re-exports runtime + web for easy migration
 
 ## Why
 Provide production-ready reactive framework with:
@@ -29,7 +29,7 @@ Provide production-ready reactive framework with:
 - Web applications (fine-grained reactivity, no vdom)
 - Native mobile apps (React Native-style with Zen)
 - CLI/TUI applications (Terminal UI with Zen)
-- Full-stack applications (@zen/start meta-framework)
+- Full-stack applications (@rapid/start meta-framework)
 - Cross-framework state management (React, Vue, Preact integrations)
 
 ## Status
@@ -52,7 +52,7 @@ Provide production-ready reactive framework with:
 - Framework integrations (React, Vue, Preact)
 - Signal extensions (patterns, persistence, craft)
 - Routing (core + framework adapters)
-- Full-stack meta-framework (@zen/start)
+- Full-stack meta-framework (@rapid/start)
 
 **Out of scope:**
 - Virtual DOM frameworks

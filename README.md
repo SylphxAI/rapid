@@ -1,8 +1,8 @@
 <div align="center">
 
-# Zen Ecosystem 🧘
+# Rapid Ecosystem 🧘
 
-**Ultra-fast reactive primitives (@zen/signal) and fine-grained framework (@zen/zen)**
+**Ultra-fast reactive primitives (@rapid/signal) and fine-grained framework (@rapid/zen)**
 
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://github.com/SylphxAI/zen/blob/main/LICENSE)
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff?style=flat-square&logo=pnpm)](https://pnpm.io/)
@@ -18,7 +18,7 @@
 
 ## 🚀 Overview
 
-Zen is a revolutionary reactive state management library that combines extreme minimalism with magical auto-tracking. Built for modern applications, Zen provides the smallest bundle size without sacrificing performance or developer experience.
+Rapid is a revolutionary reactive state management library that combines extreme minimalism with magical auto-tracking. Built for modern applications, Rapid provides the smallest bundle size without sacrificing performance or developer experience.
 
 **The Problem:**
 ```
@@ -31,7 +31,7 @@ Traditional state libraries:
 
 **The Solution:**
 ```
-Zen:
+Rapid:
 - 2.49 KB gzipped ✅
 - Automatic dependency tracking ✅
 - Clean, unified API ✅
@@ -66,80 +66,80 @@ Zen:
 
 ### 🎯 Core Packages
 
-**[@zen/signal](packages/zen-signal)**
+**[@rapid/signal](packages/zen-signal)**
 - Core reactive primitives (signal, computed, effect)
 - Auto-tracking dependency system
 - Ultra-tiny bundle (1.75 KB)
-- Foundation for Zen ecosystem
+- Foundation for Rapid ecosystem
 
-**[@zen/web](packages/zen-web)**
+**[@rapid/web](packages/zen-web)**
 - Web renderer with fine-grained reactivity
 - No virtual DOM - direct DOM updates
 - Component render once, signals auto-update
 - JSX with automatic signal unwrapping
 - SSR and hydration support
 
-**[@zen/tui](packages/zen-tui)**
+**[@rapid/tui](packages/zen-tui)**
 - Terminal UI renderer for CLI applications
 - Build beautiful terminal dashboards
 - Same reactive primitives as web
 - Box, Text components for layout
 
-**[@zen/native](packages/zen-native)** (Coming Soon)
+**[@rapid/native](packages/zen-native)** (Coming Soon)
 - Native renderer for iOS/Android
 - React Native-compatible components
 - Platform-specific optimizations
 
 ```bash
 # For web applications
-npm install @zen/web
+npm install @rapid/web
 
 # For terminal/CLI applications
-npm install @zen/tui
+npm install @rapid/tui
 
 # For core reactivity only
-npm install @zen/signal
+npm install @rapid/signal
 ```
 
 ---
 
 ### 🎨 Framework Integrations
 
-**[@zen/signal-react](packages/zen-signal-react)**
+**[@rapid/signal-react](packages/zen-signal-react)**
 - React hooks integration
 - Automatic re-renders
 - Concurrent mode compatible
 
-**[@zen/signal-vue](packages/zen-signal-vue)**
+**[@rapid/signal-vue](packages/zen-signal-vue)**
 - Vue 3 composition API
 - Seamless integration
 
-**[@zen/signal-svelte](packages/zen-signal-svelte)**
+**[@rapid/signal-svelte](packages/zen-signal-svelte)**
 - Svelte stores compatibility
 - Reactive bindings
 
-**[@zen/signal-preact](packages/zen-signal-preact)**
+**[@rapid/signal-preact](packages/zen-signal-preact)**
 - Preact signals integration
 - Lightweight alternative to React
 
-**[@zen/signal-solid](packages/zen-signal-solid)**
+**[@rapid/signal-solid](packages/zen-signal-solid)**
 - SolidJS primitives
 - Fine-grained reactivity
 
 ```bash
 # Install framework integration
-npm install @zen/signal-react
+npm install @rapid/signal-react
 # or
-npm install @zen/signal-vue
+npm install @rapid/signal-vue
 # or
-npm install @zen/signal-svelte
+npm install @rapid/signal-svelte
 ```
 
 ---
 
 ### 🛠️ Utilities
 
-**[@zen/signal-patterns](packages/zen-signal-patterns)** - **NEW v2.0** 🎉
+**[@rapid/signal-patterns](packages/zen-signal-patterns)** - **NEW v2.0** 🎉
 - Useful patterns built on zen core APIs
 - Store pattern (Zustand-style)
 - Async state management
@@ -147,27 +147,27 @@ npm install @zen/signal-svelte
 - DeepMap pattern (path-level reactivity)
 - Only **936 B gzipped**
 
-**[@zen/signal-craft](packages/zen-signal-craft)**
+**[@rapid/signal-craft](packages/zen-signal-craft)**
 - Immutable state updates
 - 1.4-35x faster than immer
 - Type-safe mutations
 
-**[@zen/signal-persistent](packages/zen-signal-persistent)**
+**[@rapid/signal-persistent](packages/zen-signal-persistent)**
 - LocalStorage/SessionStorage persistence
 - Automatic synchronization
 - Debounced writes
 
-**[@zen/router](packages/zen-router)** & **[@zen/router-react](packages/zen-router-react)** & **[@zen/router-preact](packages/zen-router-preact)**
+**[@rapid/router](packages/zen-router)** & **[@rapid/router-react](packages/zen-router-react)** & **[@rapid/router-preact](packages/zen-router-preact)**
 - Type-safe routing
 - Nested routes support
 - Framework-specific bindings
 
 ```bash
 # Install utilities
-npm install @zen/signal-patterns  # NEW! Useful patterns
-npm install @zen/signal-craft
-npm install @zen/signal-persistent
-npm install @zen/router-react
+npm install @rapid/signal-patterns  # NEW! Useful patterns
+npm install @rapid/signal-craft
+npm install @rapid/signal-persistent
+npm install @rapid/router-react
 ```
 
 ---
@@ -177,7 +177,7 @@ npm install @zen/router-react
 ### Basic Usage
 
 ```typescript
-import { signal, computed } from '@zen/signal';
+import { signal, computed } from '@rapid/signal';
 
 // Create reactive state
 const count = signal(0);
@@ -193,8 +193,8 @@ console.log(double.value); // 2
 ### With React
 
 ```tsx
-import { useZen } from '@zen/signal-react';
-import { signal } from '@zen/signal';
+import { useZen } from '@rapid/signal-react';
+import { signal } from '@rapid/signal';
 
 const counter = signal(0);
 
@@ -213,8 +213,8 @@ function Counter() {
 ### With Patterns
 
 ```typescript
-import { store, computedAsync, map } from '@zen/signal-patterns';
-import { signal } from '@zen/signal';
+import { store, computedAsync, map } from '@rapid/signal-patterns';
+import { signal } from '@rapid/signal';
 
 // Zustand-style store pattern
 const counter = store(() => {
@@ -243,7 +243,7 @@ const form = map({
 ### With Persistence
 
 ```typescript
-import { persistent } from '@zen/signal-persistent';
+import { persistent } from '@rapid/signal-persistent';
 
 // Automatically synced with localStorage
 const settings = persistent('user-settings', {
@@ -264,7 +264,7 @@ settings.value.theme = 'light';
 | Library | Size (gzipped) | Difference |
 |---------|----------------|------------|
 | Zustand | 1.2 KB | Baseline |
-| **Zen v3.8** | **2.49 KB** | +108% |
+| **Rapid v3.8** | **2.49 KB** | +108% |
 | Jotai | 3.0 KB | +150% |
 | Valtio | 5.5 KB | +358% |
 | Redux Toolkit | 12+ KB | +900% |
@@ -274,7 +274,7 @@ settings.value.theme = 'light';
 | Library | Performance | Auto-tracking | Computed |
 |---------|------------|---------------|----------|
 | Solid.js | 1x (baseline) | ✅ Yes | ✅ Yes |
-| **Zen v3.8** | **2.97x slower** | ✅ Yes | ✅ Yes |
+| **Rapid v3.8** | **2.97x slower** | ✅ Yes | ✅ Yes |
 | Zustand | Manual tracking | ❌ No | ❌ No |
 | Valtio | Auto (Proxy) | ✅ Proxy | ❌ No |
 | Redux | Manual tracking | ❌ No | ❌ No |
@@ -286,22 +286,22 @@ settings.value.theme = 'light';
 ```
 zen/
 ├── packages/
-│   ├── zen-signal/             # @zen/signal - Reactive primitives
-│   ├── zen-web/                # @zen/web - Web renderer
-│   ├── zen-tui/                # @zen/tui - Terminal UI renderer
-│   ├── zen-native/             # @zen/native - Native renderer (coming soon)
-│   ├── zen-runtime/            # @zen/runtime - Platform-agnostic components
-│   ├── zen-signal-react/       # @zen/signal-react - React integration
-│   ├── zen-signal-vue/         # @zen/signal-vue - Vue integration
-│   ├── zen-signal-svelte/      # @zen/signal-svelte - Svelte integration
-│   ├── zen-signal-preact/      # @zen/signal-preact - Preact integration
-│   ├── zen-signal-solid/       # @zen/signal-solid - SolidJS integration
-│   ├── zen-signal-craft/       # @zen/signal-craft - Immutable utilities
-│   ├── zen-signal-patterns/    # @zen/signal-patterns - Useful patterns
-│   ├── zen-signal-persistent/  # @zen/signal-persistent - Persistence
-│   ├── zen-router/             # @zen/router - Core routing
-│   ├── zen-router-react/       # @zen/router-react - React router
-│   └── zen-router-preact/      # @zen/router-preact - Preact router
+│   ├── zen-signal/             # @rapid/signal - Reactive primitives
+│   ├── zen-web/                # @rapid/web - Web renderer
+│   ├── zen-tui/                # @rapid/tui - Terminal UI renderer
+│   ├── zen-native/             # @rapid/native - Native renderer (coming soon)
+│   ├── zen-runtime/            # @rapid/runtime - Platform-agnostic components
+│   ├── zen-signal-react/       # @rapid/signal-react - React integration
+│   ├── zen-signal-vue/         # @rapid/signal-vue - Vue integration
+│   ├── zen-signal-svelte/      # @rapid/signal-svelte - Svelte integration
+│   ├── zen-signal-preact/      # @rapid/signal-preact - Preact integration
+│   ├── zen-signal-solid/       # @rapid/signal-solid - SolidJS integration
+│   ├── zen-signal-craft/       # @rapid/signal-craft - Immutable utilities
+│   ├── zen-signal-patterns/    # @rapid/signal-patterns - Useful patterns
+│   ├── zen-signal-persistent/  # @rapid/signal-persistent - Persistence
+│   ├── zen-router/             # @rapid/router - Core routing
+│   ├── zen-router-react/       # @rapid/router-react - React router
+│   └── zen-router-preact/      # @rapid/router-preact - Preact router
 ├── docs/                       # Documentation site
 ├── package.json
 └── README.md
@@ -335,10 +335,10 @@ bun run lint:fix
 
 ```bash
 # Build specific package
-bun run build --filter @zen/signal
+bun run build --filter @rapid/signal
 
 # Test specific package
-bun test --filter @zen/signal
+bun test --filter @rapid/signal
 
 # Dev mode for all packages
 bun run dev
@@ -372,7 +372,7 @@ See individual package READMEs for detailed documentation.
 ### Application State
 
 ```typescript
-import { state, computed } from '@zen/signal';
+import { state, computed } from '@rapid/signal';
 
 const user = state({ name: 'Alice', age: 30 });
 const isAdult = computed(() => user.value.age >= 18);

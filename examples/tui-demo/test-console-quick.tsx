@@ -1,7 +1,7 @@
-/** @jsxImportSource @zen/tui */
-import { signal } from '@zen/signal';
-import { Static, renderApp} from '@zen/tui';
-import { Box, Text } from '@zen/tui';
+/** @jsxImportSource @rapid/tui */
+import { signal } from '@rapid/signal';
+import { Static, renderApp} from '@rapid/tui';
+import { Box, Text } from '@rapid/tui';
 
 interface LogItem {
   id: number;

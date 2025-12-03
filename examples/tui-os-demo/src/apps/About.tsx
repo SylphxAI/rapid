@@ -2,7 +2,7 @@
  * About App - System information
  */
 
-import { Box, Spinner, Text } from '@zen/tui';
+import { Box, Spinner, Text } from '@rapid/tui';
 
 export function About() {
   return (
@@ -41,7 +41,7 @@ export function About() {
 
       <Box flexDirection="column" gap={0}>
         <Text color="white">
-          A terminal UI demo built with <Text color="cyan">@zen/tui</Text>
+          A terminal UI demo built with <Text color="cyan">@rapid/tui</Text>
         </Text>
         <Text color="gray">Powered by fine-grained reactivity</Text>
       </Box>

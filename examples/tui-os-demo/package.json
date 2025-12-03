@@ -8,6 +8,6 @@
     "dev": "bun --watch run src/main.tsx"
   },
   "dependencies": {
-    "@zen/tui": "workspace:*"
+    "@rapid/tui": "workspace:*"
   }
 }

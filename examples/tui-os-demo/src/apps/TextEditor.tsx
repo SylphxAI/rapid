@@ -1,12 +1,12 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Text Editor App
  *
  * Simple text editor with file operations
  */
 
-import { Box, Text, signal } from '@zen/tui';
-import { CodeEditor, MenuBar, type MenuItemConfig } from '@zen/tui-advanced';
+import { Box, Text, signal } from '@rapid/tui';
+import { CodeEditor, MenuBar, type MenuItemConfig } from '@rapid/tui-advanced';
 
 export function TextEditor() {
   const content = signal('# Untitled Document\n\nStart typing...\n');

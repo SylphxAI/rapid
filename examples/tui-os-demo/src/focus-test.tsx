@@ -1,5 +1,5 @@
-/** @jsxImportSource @zen/tui */
-import { Box, FocusProvider, Text, renderApp, signal, useFocus, useInput } from '@zen/tui';
+/** @jsxImportSource @rapid/tui */
+import { Box, FocusProvider, Text, renderApp, signal, useFocus, useInput } from '@rapid/tui';
 
 function TestList({ id, autoFocus = false }: { id: string; autoFocus?: boolean }) {
   const { isFocused } = useFocus({ id, autoFocus });

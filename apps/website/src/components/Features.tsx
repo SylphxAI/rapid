@@ -1,4 +1,4 @@
-import { For } from '@zen/web';
+import { For } from '@rapid/web';
 import { Icon } from './Icon.tsx';
 
 export function Features() {
@@ -38,7 +38,7 @@ export function Features() {
   return (
     <section class="py-16 px-0 bg-bg">
       <div class="max-w-screen-xl mx-auto px-6">
-        <h2 class="text-5xl font-bold text-center mb-16 text-text">Why Zen?</h2>
+        <h2 class="text-5xl font-bold text-center mb-16 text-text">Why Rapid?</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <For each={features}>
             {(feature) => (

@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Zen TUI Chatbot Demo
  *
@@ -6,7 +6,7 @@
  * Run with: bun run src/chatbot-demo.tsx
  */
 
-import { signal } from '@zen/signal';
+import { signal } from '@rapid/signal';
 import {
   Badge,
   Box,
@@ -23,7 +23,7 @@ import {
   render,
   toast,
   useInput,
-} from '@zen/tui';
+} from '@rapid/tui';
 
 // Sample data
 const COMMANDS = ['/help', '/clear', '/files', '/model'];

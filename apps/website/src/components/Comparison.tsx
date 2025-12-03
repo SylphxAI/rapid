@@ -1,7 +1,7 @@
 export function Comparison() {
   const frameworks = [
     {
-      name: 'Zen',
+      name: 'Rapid',
       size: '1.75 KB',
       perf: '150M+ ops/sec',
       vdom: 'No',
@@ -19,7 +19,7 @@ export function Comparison() {
       <div class="max-w-screen-xl mx-auto px-6">
         <h2 class="text-5xl font-bold text-center mb-4 text-text">Framework Comparison</h2>
         <p class="text-xl text-center text-text-muted mb-12">
-          See how Zen compares to other popular frameworks
+          See how Rapid compares to other popular frameworks
         </p>
         <div class="overflow-x-auto">
           <table class="w-full border-collapse bg-bg border border-border rounded-zen overflow-hidden">

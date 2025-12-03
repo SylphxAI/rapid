@@ -1,10 +1,10 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * Simple ASCII art test - run this and check if it renders correctly
  * Press ESC to exit
  */
 
-import { Box, Text, useInput, renderApp, FullscreenLayout} from '@zen/tui';
+import { Box, Text, useInput, renderApp, FullscreenLayout} from '@rapid/tui';
 
 function App() {
   useInput((_input, key) => {

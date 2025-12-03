@@ -1,4 +1,4 @@
-/** @jsxImportSource @zen/tui */
+/** @jsxImportSource @rapid/tui */
 /**
  * TUI Demo - Reactive Terminal UI
  *
@@ -8,8 +8,8 @@
  * - Real-time re-rendering
  */
 
-import { FullscreenLayout, render, signal, useInput } from '@zen/tui';
-import { Box, Text } from '@zen/tui';
+import { FullscreenLayout, render, signal, useInput } from '@rapid/tui';
+import { Box, Text } from '@rapid/tui';
 
 // Create reactive state
 const count = signal(0);

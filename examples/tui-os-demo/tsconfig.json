@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@zen/tui"
+    "jsxImportSource": "@rapid/tui"
   },
   "include": ["src/**/*"]
 }

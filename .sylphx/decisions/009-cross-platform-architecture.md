@@ -26,32 +26,32 @@ How do we architect packages to support multiple platforms without creating main
 Adopt a **layered architecture** with platform-agnostic core and platform-specific renderers:
 
 ### Layer 1: Core Reactivity (Platform-Agnostic)
-- `@zen/signal-core`: Pure signals, computed, effect
-- `@zen/signal`: + Lifecycle (onMount, onCleanup, Owner system)
+- `@rapid/signal-core`: Pure signals, computed, effect
+- `@rapid/signal`: + Lifecycle (onMount, onCleanup, Owner system)
 - **Constraint**: Zero platform dependencies
 
 ### Layer 2: Runtime Core (Platform-Agnostic)
-- `@zen/runtime`: Components (Show, For, Switch, Context, ErrorBoundary, Suspense, Dynamic)
+- `@rapid/runtime`: Components (Show, For, Switch, Context, ErrorBoundary, Suspense, Dynamic)
 - Utilities: lazy, mergeProps, splitProps, selector, runWithOwner
 - Server utilities: isServer, createUniqueId
 - **Constraint**: No `document`, `window`, or platform-specific APIs
 
 ### Layer 3: Platform Renderers
-- `@zen/web`: DOM operations, JSX runtime, SSR, hydration, Portal
-- `@zen/native`: Native elements (View, Text, Image, Pressable)
-- `@zen/tui`: Terminal rendering (Box, Text, Input)
+- `@rapid/web`: DOM operations, JSX runtime, SSR, hydration, Portal
+- `@rapid/native`: Native elements (View, Text, Image, Pressable)
+- `@rapid/tui`: Terminal rendering (Box, Text, Input)
 - **Pattern**: Each implements platform-specific `jsx()` runtime
 
 ### Layer 4: Optional Compiler (DX Enhancement)
-- `@zen/compiler`: JSX syntax transformer
+- `@rapid/compiler`: JSX syntax transformer
 - Auto-lazy children: `<Show><Child /></Show>` → `<Show>{() => <Child />}</Show>`
 - Signal auto-unwrap: `{signal}` → `{() => signal.value}`
 - **Key**: Platform-agnostic syntax transformation only (not code generation)
 - Plugins: Vite, Webpack, Metro (for React Native)
 
 ### Layer 5: Meta Packages
-- `@zen/zen`: Convenience package (re-exports @zen/runtime + @zen/web)
-- `@zen/start`: Full-stack meta-framework (file-based routing, server functions)
+- `@rapid/zen`: Convenience package (re-exports @rapid/runtime + @rapid/web)
+- `@rapid/start`: Full-stack meta-framework (file-based routing, server functions)
 
 ---
 
@@ -88,9 +88,9 @@ Adopt a **layered architecture** with platform-agnostic core and platform-specif
 
 **With runtime-first** (Zen):
 - Compiler outputs: `jsx("div", props)` ← Platform-agnostic!
-- `@zen/web` implements `jsx("div")` as DOM creation
-- `@zen/native` implements `jsx("div")` as View creation
-- `@zen/tui` implements `jsx("div")` as Box creation
+- `@rapid/web` implements `jsx("div")` as DOM creation
+- `@rapid/native` implements `jsx("div")` as View creation
+- `@rapid/tui` implements `jsx("div")` as Box creation
 
 ### 2. React's Success Pattern
 
@@ -134,7 +134,7 @@ With compiler (auto):
 └─────────────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────┐
-│  @zen/compiler (Optional DX Layer)              │
+│  @rapid/compiler (Optional DX Layer)              │
 │  Syntax Transformer                             │
 │  jsx(Show, {                                    │
 │    when: () => signal.value,                    │
@@ -143,7 +143,7 @@ With compiler (auto):
 └─────────────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────┐
-│  @zen/runtime (Platform-Agnostic Core)          │
+│  @rapid/runtime (Platform-Agnostic Core)          │
 │  Show, For, Switch, Context, etc.               │
 │  Components work same on all platforms          │
 └─────────────────────────────────────────────────┘
@@ -151,7 +151,7 @@ With compiler (auto):
     ┌────────────────┼────────────────┐
     ↓                ↓                ↓
 ┌────────┐      ┌─────────┐     ┌────────┐
-│@zen/web│      │@zen/    │     │@zen/tui│
+│@rapid/web│      │@rapid/    │     │@rapid/tui│
 │        │      │native   │     │        │
 │DOM     │      │iOS/     │     │Terminal│
 │SSR     │      │Android  │     │Render  │
@@ -164,33 +164,33 @@ With compiler (auto):
 
 ### Before (Web-Only)
 ```
-@zen/signal              - Reactivity
-@zen/zen                 - Framework (DOM-coupled)
+@rapid/signal              - Reactivity
+@rapid/zen                 - Framework (DOM-coupled)
 ```
 
 ### After (Cross-Platform)
 ```
 # Layer 1: Reactivity
-@zen/signal-core         - Pure signals
-@zen/signal              - + Lifecycle
+@rapid/signal-core         - Pure signals
+@rapid/signal              - + Lifecycle
 
 # Layer 2: Platform-Agnostic Runtime
-@zen/runtime             - Components, utilities (NO DOM!)
+@rapid/runtime             - Components, utilities (NO DOM!)
 
 # Layer 3: Platform Renderers
-@zen/web                 - Web renderer
-@zen/native              - Native renderer
-@zen/tui                 - Terminal renderer
+@rapid/web                 - Web renderer
+@rapid/native              - Native renderer
+@rapid/tui                 - Terminal renderer
 
 # Layer 4: Optional Compiler
-@zen/compiler            - JSX transformer
+@rapid/compiler            - JSX transformer
   ├── vite plugin
   ├── webpack plugin
   └── metro plugin       - For React Native
 
 # Layer 5: Meta Packages
-@zen/zen                 - Convenience (runtime + web)
-@zen/start               - Full-stack framework
+@rapid/zen                 - Convenience (runtime + web)
+@rapid/start               - Full-stack framework
 ```
 
 ---
@@ -198,32 +198,32 @@ With compiler (auto):
 ## Implementation Strategy
 
 ### Phase 1: Refactor Core (Week 1)
-1. Create `@zen/runtime` (from `@zen/zen` components)
-2. Create `@zen/web` (from `@zen/zen` jsx-runtime)
-3. Refactor `@zen/zen` to re-export runtime + web
+1. Create `@rapid/runtime` (from `@rapid/zen` components)
+2. Create `@rapid/web` (from `@rapid/zen` jsx-runtime)
+3. Refactor `@rapid/zen` to re-export runtime + web
 4. **Goal**: Zero breaking changes for existing users
 
 ### Phase 2: Compiler (Week 2)
-1. Create `@zen/compiler` package
+1. Create `@rapid/compiler` package
 2. Implement auto-lazy children transformation
 3. Implement signal auto-unwrap
 4. Vite plugin
 5. **Goal**: Improve DX, validate platform-agnostic design
 
 ### Phase 3: TUI (Week 3-4)
-1. Create `@zen/tui` package
+1. Create `@rapid/tui` package
 2. Implement terminal renderer
 3. Build sample CLI app
 4. **Goal**: Validate platform-agnostic architecture works
 
 ### Phase 4: Native (Month 2)
-1. Create `@zen/native` package
+1. Create `@rapid/native` package
 2. Implement native renderer
 3. Metro bundler integration
 4. **Goal**: Production-ready native support
 
 ### Phase 5: Full-Stack (Month 3+)
-1. Create `@zen/start` package
+1. Create `@rapid/start` package
 2. File-based routing
 3. Server functions
 4. **Goal**: Complete meta-framework
@@ -249,7 +249,7 @@ With compiler (auto):
 - **More packages**: Worth it for cross-platform capability
 - **Maintenance**: Offset by code sharing and clear boundaries
 - **Compiler complexity**: Only syntax transformation, not code generation
-- **Docs complexity**: Mitigated by `@zen/zen` meta-package for simple cases
+- **Docs complexity**: Mitigated by `@rapid/zen` meta-package for simple cases
 
 ---
 
@@ -257,11 +257,11 @@ With compiler (auto):
 
 ### Phase 1-2 (Core + Compiler)
 - ✅ Existing web apps work with zero changes
-- ✅ `@zen/runtime` has zero DOM/platform dependencies
+- ✅ `@rapid/runtime` has zero DOM/platform dependencies
 - ✅ Compiler improves DX without breaking runtime-first
 
 ### Phase 3 (TUI Validation)
-- ✅ Sample CLI app using `@zen/runtime` components
+- ✅ Sample CLI app using `@rapid/runtime` components
 - ✅ 80%+ component code shared between web and TUI
 - ✅ Platform-specific code isolated to renderers
 

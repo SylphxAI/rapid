@@ -1,4 +1,4 @@
-import { Show } from '@zen/web';
+import { Show } from '@rapid/web';
 import { theme, toggleTheme } from '../theme';
 import { Icon } from './Icon';
 

@@ -4,6 +4,10 @@
       "type": "http",
       "url": "https://mcp.context7.com/mcp"
     },
+    "grep": {
+      "type": "http",
+      "url": "https://mcp.grep.app"
+    },
     "coderag": {
       "type": "stdio",
       "command": "npx",
@@ -16,6 +20,13 @@
         "CODEBASE_ROOT": "",
         "INDEX_PATH": ".coderag"
       }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     }
   }
 }

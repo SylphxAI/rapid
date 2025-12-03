@@ -1,13 +1,13 @@
 # Core Concepts
 
-Understand the fundamentals of Zen's reactive system.
+Understand the fundamentals of Rapid's reactive system.
 
 ## Signals
 
-Signals are the building blocks of reactivity in Zen. They hold a value that can change over time.
+Signals are the building blocks of reactivity in Rapid. They hold a value that can change over time.
 
 ```typescript
-import { signal } from '@zen/signal';
+import { signal } from '@rapid/signal';
 
 const count = signal(0);
 
@@ -30,7 +30,7 @@ count.value++; // 2
 Computed values derive from other signals and update automatically:
 
 ```typescript
-import { signal, computed } from '@zen/signal';
+import { signal, computed } from '@rapid/signal';
 
 const firstName = signal('John');
 const lastName = signal('Doe');
@@ -67,7 +67,7 @@ console.log(expensive.value); // No log
 Effects run side effects when signals change:
 
 ```typescript
-import { signal, effect } from '@zen/signal';
+import { signal, effect } from '@rapid/signal';
 
 const count = signal(0);
 
@@ -117,4 +117,4 @@ function TodoItem({ todo }) {
 
 ### No Re-renders
 
-Unlike React, Zen components **never re-render**. When `completed` changes, only the affected DOM nodes update.
+Unlike React, Rapid components **never re-render**. When `completed` changes, only the affected DOM nodes update.

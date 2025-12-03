@@ -1,6 +1,6 @@
 import './index.css';
 import '@iconify/iconify';
-import { render } from '@zen/web';
+import { render } from '@rapid/web';
 import { App } from './App';
 import { initTheme } from './theme';
 
