@@ -9,12 +9,17 @@
  */
 
 import IconHeroiconsUser from '~icons/heroicons/user';
+import IconLucideArrowRight from '~icons/lucide/arrow-right';
+import IconLucideArrowRightLeft from '~icons/lucide/arrow-right-left';
 import IconLucideAtom from '~icons/lucide/atom';
 import IconLucideBarChart from '~icons/lucide/bar-chart';
 import IconLucideBell from '~icons/lucide/bell';
 import IconLucideBookOpen from '~icons/lucide/book-open';
 import IconLucideBox from '~icons/lucide/box';
+import IconLucideBoxes from '~icons/lucide/boxes';
 import IconLucideBrain from '~icons/lucide/brain';
+import IconLucideCheckCircle from '~icons/lucide/check-circle';
+import IconLucideCopy from '~icons/lucide/copy';
 import IconLucideCheck from '~icons/lucide/check';
 import IconLucideCheckSquare from '~icons/lucide/check-square';
 import IconLucideChevronDown from '~icons/lucide/chevron-down';
@@ -22,10 +27,14 @@ import IconLucideCircleDot from '~icons/lucide/circle-dot';
 import IconLucideCloud from '~icons/lucide/cloud';
 import IconLucideCode from '~icons/lucide/code';
 import IconLucideCode2 from '~icons/lucide/code-2';
+import IconLucideDownload from '~icons/lucide/download';
+import IconLucideEqual from '~icons/lucide/equal';
 import IconLucideComponent from '~icons/lucide/component';
 import IconLucideFeather from '~icons/lucide/feather';
+import IconLucideFileCode from '~icons/lucide/file-code';
 import IconLucideFileText from '~icons/lucide/file-text';
 import IconLucideFlame from '~icons/lucide/flame';
+import IconLucideGitBranch from '~icons/lucide/git-branch';
 import IconLucideFolder from '~icons/lucide/folder';
 import IconLucideFolderOpen from '~icons/lucide/folder-open';
 import IconLucideGauge from '~icons/lucide/gauge';
@@ -48,11 +57,13 @@ import IconLucidePalette from '~icons/lucide/palette';
 import IconLucidePlay from '~icons/lucide/play';
 import IconLucidePlayCircle from '~icons/lucide/play-circle';
 import IconLucidePlug from '~icons/lucide/plug';
+import IconLucidePuzzle from '~icons/lucide/puzzle';
 import IconLucideRepeat from '~icons/lucide/repeat';
 import IconLucideRocket from '~icons/lucide/rocket';
 import IconLucideRotateCcw from '~icons/lucide/rotate-ccw';
 import IconLucideScroll from '~icons/lucide/scroll';
 import IconLucideSearch from '~icons/lucide/search';
+import IconLucideSettings from '~icons/lucide/settings';
 import IconLucideShare from '~icons/lucide/share';
 import IconLucideShare2 from '~icons/lucide/share-2';
 import IconLucideSmartphone from '~icons/lucide/smartphone';
@@ -85,13 +96,17 @@ interface IconProps {
 // Map icon names to raw SVG strings
 const iconMap: Record<string, string> = {
   // Lucide icons
+  'lucide:arrow-right': IconLucideArrowRight,
+  'lucide:arrow-right-left': IconLucideArrowRightLeft,
   'lucide:atom': IconLucideAtom,
   'lucide:bar-chart': IconLucideBarChart,
   'lucide:bell': IconLucideBell,
   'lucide:book-open': IconLucideBookOpen,
   'lucide:box': IconLucideBox,
+  'lucide:boxes': IconLucideBoxes,
   'lucide:brain': IconLucideBrain,
   'lucide:check': IconLucideCheck,
+  'lucide:check-circle': IconLucideCheckCircle,
   'lucide:check-square': IconLucideCheckSquare,
   'lucide:chevron-down': IconLucideChevronDown,
   'lucide:circle-dot': IconLucideCircleDot,
@@ -99,13 +114,18 @@ const iconMap: Record<string, string> = {
   'lucide:code': IconLucideCode,
   'lucide:code-2': IconLucideCode2,
   'lucide:component': IconLucideComponent,
+  'lucide:copy': IconLucideCopy,
+  'lucide:download': IconLucideDownload,
+  'lucide:equal': IconLucideEqual,
   'lucide:feather': IconLucideFeather,
+  'lucide:file-code': IconLucideFileCode,
   'lucide:file-text': IconLucideFileText,
   'lucide:flame': IconLucideFlame,
   'lucide:folder': IconLucideFolder,
   'lucide:folder-open': IconLucideFolderOpen,
   'lucide:gauge': IconLucideGauge,
   'lucide:gem': IconLucideGem,
+  'lucide:git-branch': IconLucideGitBranch,
   'lucide:github': IconLucideGithub,
   'lucide:globe': IconLucideGlobe,
   'lucide:hash': IconLucideHash,
@@ -124,12 +144,14 @@ const iconMap: Record<string, string> = {
   'lucide:play': IconLucidePlay,
   'lucide:play-circle': IconLucidePlayCircle,
   'lucide:plug': IconLucidePlug,
+  'lucide:puzzle': IconLucidePuzzle,
   'lucide:repeat': IconLucideRepeat,
   'lucide:rocket': IconLucideRocket,
   'lucide:rotate-ccw': IconLucideRotateCcw,
   'lucide:scroll': IconLucideScroll,
   'lucide:search': IconLucideSearch,
   'lucide:search-x': IconLucideX,
+  'lucide:settings': IconLucideSettings,
   'lucide:share': IconLucideShare,
   'lucide:share-2': IconLucideShare2,
   'lucide:smartphone': IconLucideSmartphone,
