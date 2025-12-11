@@ -102,7 +102,7 @@ describe('createAnimatedSpinner', () => {
   it('should use custom color', () => {
     const result = createAnimatedSpinner({ color: 'yellow' });
 
-    expect(result.node.style?.color).toBe('yellow');
+    expect(resolveStyle(result.node.style?.color)).toBe('yellow');
 
     result.cleanup();
   });

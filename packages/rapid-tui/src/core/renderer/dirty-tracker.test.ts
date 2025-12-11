@@ -15,12 +15,12 @@ function createMockNode(id: string): TUINode {
 // Mock LayoutMap
 function createMockLayoutMap(
   entries: Array<{ node: TUINode; x: number; y: number; width: number; height: number }>
-): Map<TUINode, { left: number; top: number; width: number; height: number }> {
+): Map<TUINode, { x: number; y: number; width: number; height: number }> {
   const map = new Map();
   for (const entry of entries) {
     map.set(entry.node, {
-      left: entry.x,
-      top: entry.y,
+      x: entry.x,
+      y: entry.y,
       width: entry.width,
       height: entry.height,
     });
