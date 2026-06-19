@@ -504,7 +504,6 @@ Built with:
 
 ## Powered by Sylphx
 
-- [@sylphx/doctor](https://github.com/SylphxAI/doctor) - Monorepo health checker
 - [@sylphx/bump](https://github.com/SylphxAI/bump) - Semantic versioning tool
 - [@sylphx/biome-config](https://github.com/SylphxAI/biome-config) - Shared Biome configuration
 - [@sylphx/tsconfig](https://github.com/SylphxAI/tsconfig) - Shared TypeScript configuration

@@ -21,8 +21,7 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "format": "biome format --write .",
-    "typecheck": "turbo typecheck",
-    "prepublishOnly": "bunx @sylphx/doctor prepublish"
+    "typecheck": "turbo typecheck"
   },
   "author": "Sylphx",
   "license": "MIT",
@@ -53,7 +52,6 @@
     "@size-limit/preset-small-lib": "^11.2.0",
     "@sylphlab/biome-config": "^0.2.0",
     "@sylphx/bump": "^1.6.1",
-    "@sylphx/doctor": "^1.32.1",
     "@sylphx/tsconfig": "^0.3.1",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/preact": "^3.2.4",
