@@ -61,7 +61,6 @@ count.value++;
 
 ## Powered by Sylphx
 
-- [@sylphx/doctor](https://github.com/SylphxAI/doctor) - Monorepo health checker
 
 ---
 

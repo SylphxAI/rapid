@@ -41,7 +41,6 @@ npm install @rapid/babel-plugin-jsx --save-dev
 
 ## Powered by Sylphx
 
-- [@sylphx/doctor](https://github.com/SylphxAI/doctor) - Monorepo health checker
 
 ---
 
