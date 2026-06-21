@@ -9,6 +9,21 @@ on:
     types: [checks_requested]
 
 jobs:
+  risk-classification:
+    name: risk-classification/pass
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: ADR-29 risk classification
+        uses: SylphxAI/.github/.github/actions/adr29-admission@main
+        with:
+          mode: classify
+          policy-mode: observe
+
   ci:
     runs-on: [self-hosted, sylphx, linux, standard]
     steps:
@@ -32,3 +47,58 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  trunk-admission:
+    name: trunk-admission/pass
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - risk-classification
+      - ci
+    if: ${{ !cancelled() }}
+    steps:
+      - name: ADR-29 trunk admission
+        uses: SylphxAI/.github/.github/actions/adr29-admission@main
+        with:
+          mode: fan-in
+          policy-mode: observe
+          upstream-results-json: ${{ toJSON(needs) }}
+
+  postsubmit-proof:
+    name: postsubmit-proof/pass
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - risk-classification
+      - ci
+      - trunk-admission
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && !cancelled() }}
+    steps:
+      - name: ADR-29 postsubmit proof
+        uses: SylphxAI/.github/.github/actions/adr29-admission@main
+        with:
+          mode: postsubmit-proof
+          policy-mode: enforce
+          upstream-results-json: ${{ toJSON(needs) }}
+
+  recovery-decision:
+    name: recovery-decision/pass
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - risk-classification
+      - ci
+      - trunk-admission
+      - postsubmit-proof
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.postsubmit-proof.result != 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: ADR-29 recovery decision
+        uses: SylphxAI/.github/.github/actions/adr29-admission@main
+        with:
+          mode: recovery-decision
+          policy-mode: observe
+          upstream-results-json: ${{ toJSON(needs) }}
