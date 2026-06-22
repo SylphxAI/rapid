@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "repo": "SylphxAI/rapid",
+    "name": "Rapid",
+    "lifecycle": "production",
+    "layer": "foundation",
+    "summary": "Rapid is a TypeScript package monorepo for reactive primitives, renderers, routers, framework integrations, compiler plugins, examples, benchmarks, documentation, and npm package release.",
+    "goals": [
+      "Provide small, fast reactive primitives and framework adapters for modern TypeScript applications.",
+      "Own the @rapid package family, package boundaries, public exports, examples, benchmarks, docs, and release evidence.",
+      "Keep core reactive primitives independent from product-specific application behavior."
+    ],
+    "nonGoals": [
+      "Own downstream applications' business logic, persistence, auth, deployment, or pricing decisions.",
+      "Turn framework adapters into project-specific integration layers.",
+      "Publish package changes without CI, release workflow proof, and npm registry readback."
+    ]
+  },
+  "boundaries": {
+    "owns": [
+      {
+        "name": "rapid-package-ecosystem",
+        "description": "Reactive primitives, renderers, routers, framework adapters, compiler plugins, package exports, examples, benchmarks, and docs."
+      },
+      {
+        "name": "rapid-package-release",
+        "description": "CI and release workflow evidence for the Rapid npm package family."
+      }
+    ],
+    "doesNotOwn": [
+      "Downstream product applications' domain logic, persistence, auth, deployment, pricing, or customer-specific behavior.",
+      "Enterprise doctrine or organization-wide rulesets.",
+      "Sibling package ecosystems outside the public Rapid package boundary."
+    ],
+    "publicSurfaces": [
+      {
+        "type": "package-export",
+        "name": "Rapid package family",
+        "location": "packages/*/package.json"
+      },
+      {
+        "type": "documentation",
+        "name": "Rapid public README and package docs",
+        "location": "README.md, packages/*/README.md"
+      },
+      {
+        "type": "workflow",
+        "name": "CI and release workflows",
+        "location": ".github/workflows/ci.yml, .github/workflows/release.yml"
+      }
+    ],
+    "allowedDependencies": [
+      {
+        "repo": "SylphxAI/doctrine",
+        "surface": "enterprise engineering doctrine",
+        "direction": "downward"
+      },
+      {
+        "repo": "SylphxAI/.github",
+        "surface": "reusable release workflow",
+        "direction": "downward"
+      }
+    ],
+    "forbiddenCouplings": [
+      "Do not add product-specific behavior to Rapid core primitives, routers, renderers, or framework adapters.",
+      "Do not couple one framework adapter to another except through documented shared packages.",
+      "Do not publish package changes without workflow-owned proof and npm registry readback."
+    ]
+  },
+  "documentation": {
+    "adr": {
+      "path": "docs/adr/",
+      "status": "planned"
+    },
+    "specs": {
+      "path": "README.md, packages/*/README.md",
+      "status": "present"
+    },
+    "catalog": {
+      "path": "PROJECT.md",
+      "status": "present"
+    },
+    "runbooks": {
+      "path": "AGENTS.md",
+      "status": "present"
+    },
+    "generatedReferences": {
+      "path": "packages/*/dist/",
+      "status": "generated"
+    }
+  },
+  "delivery": {
+    "ciModel": "legacy-ci",
+    "requiredContexts": [
+      "ci"
+    ],
+    "deployPath": "Pull requests and merge groups run .github/workflows/ci.yml; main pushes run .github/workflows/release.yml, which delegates release behavior to SylphxAI/.github.",
+    "productionProof": "CI pass, release workflow completion for main package changes, npm package readback for changed packages, and package-level smoke evidence where public exports change.",
+    "recoveryClass": "forward-fix-only",
+    "packageRelease": {
+      "publishesPackages": true,
+      "ecosystems": [
+        "npm"
+      ],
+      "releaseIntent": "Rapid publishes public npm packages from the package monorepo through the central reusable release workflow.",
+      "versionPr": "Version/changelog ownership is delegated to the central reusable release workflow at adoption time.",
+      "publisher": ".github/workflows/release.yml via SylphxAI/.github reusable release workflow with inherited repository secrets.",
+      "requiredContexts": [
+        "ci"
+      ],
+      "publishProof": "npm registry readback for each changed @rapid package."
+    }
+  },
+  "adoption": {
+    "status": "baseline",
+    "gaps": [
+      {
+        "id": "stable-admission-fanin",
+        "description": "CI uses a repo-local legacy ci job rather than ADR-29 stable fan-in contexts.",
+        "owner": "SylphxAI/rapid",
+        "target": "before full doctrine adoption"
+      }
+    ]
+  }
+}
