@@ -3,6 +3,7 @@
  */
 
 import { batch, computed, signal } from '@rapid/tui';
+import type { Computed, Signal } from '@rapid/tui';
 
 export interface WindowState {
   id: string;
@@ -29,21 +30,33 @@ export interface DesktopIcon {
   y: number;
 }
 
-// Global window state
-export const $windows = signal<WindowState[]>([]);
-export const $focusedWindowId = signal<string | null>(null);
-export const $nextZIndex = signal(100);
-export const $dragState = signal<{
+export interface TaskbarItem {
+  id: string;
+  title: string;
+  icon: string;
+  isMinimized: boolean;
+  isFocused: boolean;
+}
+
+export type DragMode = 'move' | 'resize';
+
+export interface DragState {
   windowId: string;
   startX: number;
   startY: number;
   startWindowX: number;
   startWindowY: number;
-  mode: 'move' | 'resize';
-} | null>(null);
+  mode: DragMode;
+}
+
+// Global window state
+export const $windows: Signal<WindowState[]> = signal<WindowState[]>([]);
+export const $focusedWindowId: Signal<string | null> = signal<string | null>(null);
+export const $nextZIndex: Signal<number> = signal(100);
+export const $dragState: Signal<DragState | null> = signal<DragState | null>(null);
 
 // Desktop icons
-export const $desktopIcons = signal<DesktopIcon[]>([
+export const $desktopIcons: Signal<DesktopIcon[]> = signal<DesktopIcon[]>([
   { id: 'terminal', name: 'Terminal', icon: '🖥️', app: 'terminal', x: 2, y: 2 },
   { id: 'files', name: 'Files', icon: '📁', app: 'files', x: 2, y: 5 },
   { id: 'calculator', name: 'Calculator', icon: '🧮', app: 'calculator', x: 2, y: 8 },
@@ -53,18 +66,18 @@ export const $desktopIcons = signal<DesktopIcon[]>([
 ]);
 
 // Computed: sorted windows by z-index
-export const $sortedWindows = computed(() => {
+export const $sortedWindows: Computed<WindowState[]> = computed(() => {
   return [...$windows.value].sort((a, b) => a.zIndex - b.zIndex);
 });
 
 // Computed: focused window
-export const $focusedWindow = computed(() => {
+export const $focusedWindow: Computed<WindowState | null> = computed(() => {
   const id = $focusedWindowId.value;
   return $windows.value.find((w) => w.id === id) || null;
 });
 
 // Computed: taskbar items (non-minimized windows)
-export const $taskbarItems = computed(() => {
+export const $taskbarItems: Computed<TaskbarItem[]> = computed(() => {
   return $windows.value.map((w) => ({
     id: w.id,
     title: w.title,
@@ -75,7 +88,7 @@ export const $taskbarItems = computed(() => {
 });
 
 // Window manager actions
-export function openWindow(app: string, config?: Partial<WindowState>) {
+export function openWindow(app: string, config?: Partial<WindowState>): string {
   const id = `window-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const zIndex = $nextZIndex.value;
   $nextZIndex.value++;
@@ -120,7 +133,7 @@ export function openWindow(app: string, config?: Partial<WindowState>) {
   return id;
 }
 
-export function closeWindow(id: string) {
+export function closeWindow(id: string): void {
   batch(() => {
     $windows.value = $windows.value.filter((w) => w.id !== id);
     if ($focusedWindowId.value === id) {
@@ -136,7 +149,7 @@ export function closeWindow(id: string) {
   });
 }
 
-export function focusWindow(id: string) {
+export function focusWindow(id: string): void {
   const window = $windows.value.find((w) => w.id === id);
   if (!window) return;
 
@@ -145,16 +158,18 @@ export function focusWindow(id: string) {
     const zIndex = $nextZIndex.value;
     $nextZIndex.value++;
 
-    $windows.value = $windows.value.map((w) =>
-      w.id === id ? { ...w, zIndex, isMinimized: false } : w,
+    $windows.value = $windows.value.map(
+      (w): WindowState => (w.id === id ? { ...w, zIndex, isMinimized: false } : w),
     );
     $focusedWindowId.value = id;
   });
 }
 
-export function minimizeWindow(id: string) {
+export function minimizeWindow(id: string): void {
   batch(() => {
-    $windows.value = $windows.value.map((w) => (w.id === id ? { ...w, isMinimized: true } : w));
+    $windows.value = $windows.value.map(
+      (w): WindowState => (w.id === id ? { ...w, isMinimized: true } : w),
+    );
 
     if ($focusedWindowId.value === id) {
       // Focus next window
@@ -169,8 +184,8 @@ export function minimizeWindow(id: string) {
   });
 }
 
-export function toggleMaximize(id: string) {
-  $windows.value = $windows.value.map((w) => {
+export function toggleMaximize(id: string): void {
+  $windows.value = $windows.value.map((w): WindowState => {
     if (w.id !== id) return w;
 
     if (w.isMaximized) {
@@ -196,14 +211,15 @@ export function toggleMaximize(id: string) {
   });
 }
 
-export function moveWindow(id: string, x: number, y: number) {
-  $windows.value = $windows.value.map((w) =>
-    w.id === id ? { ...w, x: Math.max(0, x), y: Math.max(1, y), isMaximized: false } : w,
+export function moveWindow(id: string, x: number, y: number): void {
+  $windows.value = $windows.value.map(
+    (w): WindowState =>
+      w.id === id ? { ...w, x: Math.max(0, x), y: Math.max(1, y), isMaximized: false } : w,
   );
 }
 
-export function resizeWindow(id: string, width: number, height: number) {
-  $windows.value = $windows.value.map((w) => {
+export function resizeWindow(id: string, width: number, height: number): void {
+  $windows.value = $windows.value.map((w): WindowState => {
     if (w.id !== id) return w;
     return {
       ...w,
@@ -214,12 +230,7 @@ export function resizeWindow(id: string, width: number, height: number) {
   });
 }
 
-export function startDrag(
-  windowId: string,
-  mouseX: number,
-  mouseY: number,
-  mode: 'move' | 'resize',
-) {
+export function startDrag(windowId: string, mouseX: number, mouseY: number, mode: DragMode): void {
   const window = $windows.value.find((w) => w.id === windowId);
   if (!window) return;
 
@@ -235,7 +246,7 @@ export function startDrag(
   };
 }
 
-export function updateDrag(mouseX: number, mouseY: number) {
+export function updateDrag(mouseX: number, mouseY: number): void {
   const drag = $dragState.value;
   if (!drag) return;
 
@@ -252,6 +263,6 @@ export function updateDrag(mouseX: number, mouseY: number) {
   }
 }
 
-export function endDrag() {
+export function endDrag(): void {
   $dragState.value = null;
 }

@@ -69,6 +69,7 @@ import {
   signal,
   useContext,
 } from '@rapid/runtime';
+import type { Computed, Signal } from '@rapid/runtime';
 import { useInput } from '../hooks/useInput.js';
 
 // =============================================================================
@@ -99,9 +100,9 @@ export interface FocusableItem {
  */
 export interface FocusContextValue {
   /** Currently focused element ID (signal for reactivity) */
-  activeId: ReturnType<typeof signal<string | undefined>>;
+  activeId: Signal<string | undefined>;
   /** List of registered focusable items (signal for reactivity) */
-  focusables: ReturnType<typeof signal<FocusableItem[]>>;
+  focusables: Signal<FocusableItem[]>;
   /** Register a focusable element */
   add: (id: string, options: { autoFocus: boolean }) => void;
   /** Unregister a focusable element */
@@ -119,6 +120,26 @@ export interface FocusContextValue {
   /** Focus previous element (Shift+Tab behavior) */
   focusPrevious: () => void;
   /** Focus specific element by ID */
+  focus: (id: string) => void;
+}
+
+export interface FocusManager {
+  /** Enable focus management for all components */
+  enableFocus: () => void;
+  /** Disable focus management for all components */
+  disableFocus: () => void;
+  /** Switch focus to the next focusable component */
+  focusNext: () => void;
+  /** Switch focus to the previous focusable component */
+  focusPrevious: () => void;
+  /** Switch focus to the element with provided id */
+  focus: (id: string) => void;
+}
+
+export interface UseFocusResult {
+  /** Whether this component is currently focused (Computed for reactivity) */
+  isFocused: Computed<boolean>;
+  /** Focus a specific element by ID. */
   focus: (id: string) => void;
 }
 
@@ -351,7 +372,7 @@ export function FocusProvider(props: { children: unknown }): unknown {
  * }
  * ```
  */
-export function useFocusManager() {
+export function useFocusManager(): FocusManager {
   const ctx = useContext(FocusContext);
   if (!ctx) {
     throw new Error('useFocusManager must be used within FocusProvider');
@@ -453,7 +474,7 @@ export interface UseFocusOptions {
  * - isFocused: Computed<boolean> - reactive focus state
  * - focus: (id: string) => void - focus specific element by ID
  */
-export function useFocus(options: UseFocusOptions = {}) {
+export function useFocus(options: UseFocusOptions = {}): UseFocusResult {
   const { isActive = true, autoFocus = false, id: customId } = options;
 
   const ctx = useContext(FocusContext);
@@ -508,7 +529,7 @@ export function useFocus(options: UseFocusOptions = {}) {
   // isFocused is a Computed, not a boolean (signals difference from Ink).
   // This enables fine-grained reactivity - only expressions that read
   // isFocused.value will update when focus changes.
-  const isFocused = computed(() => ctx.activeId.value === id);
+  const isFocused: Computed<boolean> = computed(() => ctx.activeId.value === id);
 
   return {
     /** Whether this component is currently focused (Computed for reactivity) */

@@ -77,7 +77,7 @@ export interface PaneProps {
  * Individual pane within a Splitter. Must be direct child of Splitter.
  * Note: Pane is a marker component - its children are extracted by Splitter.
  */
-export function Pane(props: PaneProps) {
+export function Pane(props: PaneProps): unknown {
   // This function is actually never called directly in our pattern.
   // Splitter extracts pane.props.children and wraps them in its own Box.
   // We keep this for type safety and documentation purposes.
@@ -90,7 +90,7 @@ export function Pane(props: PaneProps) {
  *
  * Splits terminal into multiple resizable panes.
  */
-export function Splitter(props: SplitterProps) {
+export function Splitter(props: SplitterProps): unknown {
   const { children } = props;
 
   // Resolve reactive props

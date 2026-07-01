@@ -211,10 +211,10 @@ export const unplugin: UnpluginInstance<Options, boolean> = createUnplugin<Optio
 );
 
 // Export for different bundlers
-export const vitePlugin = unplugin.vite;
-export const rollupPlugin = unplugin.rollup;
-export const webpackPlugin = unplugin.webpack;
-export const esbuildPlugin = unplugin.esbuild;
+export const vitePlugin: typeof unplugin.vite = unplugin.vite;
+export const rollupPlugin: typeof unplugin.rollup = unplugin.rollup;
+export const webpackPlugin: typeof unplugin.webpack = unplugin.webpack;
+export const esbuildPlugin: typeof unplugin.esbuild = unplugin.esbuild;
 
 // Default export
 export default unplugin;

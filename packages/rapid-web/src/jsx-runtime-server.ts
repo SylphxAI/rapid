@@ -12,7 +12,7 @@
 import { executeComponent, isSignal } from '@rapid/runtime';
 
 // Symbol to mark safe HTML strings
-const SAFE_HTML = Symbol('SAFE_HTML');
+const SAFE_HTML: unique symbol = Symbol('SAFE_HTML');
 
 type SafeHtml = {
   [SAFE_HTML]: true;
@@ -201,8 +201,8 @@ export function jsx(type: any, props: any): SafeHtml {
 }
 
 // Aliases for different JSX modes
-export const jsxs = jsx;
-export const jsxDEV = jsx;
+export const jsxs: typeof jsx = jsx;
+export const jsxDEV: typeof jsx = jsx;
 
 /**
  * Fragment component

@@ -68,7 +68,7 @@ export interface MenuBarProps {
  *
  * Horizontal menu bar with keyboard navigation.
  */
-export function MenuBar(props: MenuBarProps) {
+export function MenuBar(props: MenuBarProps): unknown {
   const { onActiveChange } = props;
 
   // Resolve reactive props

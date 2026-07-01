@@ -20,7 +20,8 @@ import type { Options } from 'unplugin-rapid-signal';
  * };
  * ```
  */
-export const rapidSignal = (options: Omit<Options, 'framework'> = {}) =>
-  unplugin.rollup({ framework: 'react', ...options });
+export const rapidSignal = (
+  options: Omit<Options, 'framework'> = {},
+): ReturnType<typeof unplugin.rollup> => unplugin.rollup({ framework: 'react', ...options });
 
 export default rapidSignal;

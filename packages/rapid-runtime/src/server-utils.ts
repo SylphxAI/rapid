@@ -16,7 +16,7 @@
  * }
  * ```
  */
-export const isServer = typeof window === 'undefined';
+export const isServer: boolean = typeof window === 'undefined';
 
 // ID generation state
 let idCounter = 0;

@@ -27,7 +27,7 @@ interface MatchProps<T> {
 }
 
 // Symbol to identify Match config objects
-const MATCH_CONFIG = Symbol('match-config');
+const MATCH_CONFIG: unique symbol = Symbol('match-config');
 
 interface MatchConfig<T> {
   [MATCH_CONFIG]: true;

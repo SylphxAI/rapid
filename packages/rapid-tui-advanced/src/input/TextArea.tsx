@@ -95,7 +95,7 @@ export interface TextAreaProps {
  *
  * Multi-line text editor for TUI applications.
  */
-export function TextArea(props: TextAreaProps) {
+export function TextArea(props: TextAreaProps): unknown {
   // ==========================================================================
   // Reactive Props Resolution
   // Do NOT destructure props - resolve them reactively inside computed/effects

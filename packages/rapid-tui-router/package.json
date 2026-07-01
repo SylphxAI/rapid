@@ -12,14 +12,23 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bunup src/index.ts --format esm --dts --target node --splitting=false --external @rapid/router-core --external @rapid/tui --external @rapid/runtime --external @rapid/signal",
     "build:watch": "bunup src/index.ts --format esm --dts --target node --splitting=false --watch --external @rapid/router-core --external @rapid/tui --external @rapid/runtime --external @rapid/signal",
     "dev": "bun run --watch src/index.ts",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["rapid", "tui", "router", "terminal", "cli", "routing"],
+  "keywords": [
+    "rapid",
+    "tui",
+    "router",
+    "terminal",
+    "cli",
+    "routing"
+  ],
   "author": "Rapid Team",
   "license": "MIT",
   "repository": {
@@ -38,7 +47,10 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "bunup": "^0.16.10",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@rapid/tui": "workspace:*",
+    "@rapid/runtime": "workspace:*",
+    "@rapid/signal": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

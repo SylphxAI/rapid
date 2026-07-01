@@ -66,4 +66,4 @@ export function renderToString(fn: () => any): string {
  * Render component to static HTML
  * Alias for renderToString (for clarity)
  */
-export const renderToStaticMarkup = renderToString;
+export const renderToStaticMarkup: typeof renderToString = renderToString;

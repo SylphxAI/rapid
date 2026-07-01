@@ -9,6 +9,6 @@
 // TODO: Implement JSX runtime for React Native
 // TODO: Implement native components
 
-export function placeholder() {
+export function placeholder(): never {
   throw new Error('@rapid/native is not yet implemented. Coming in Phase 4.');
 }

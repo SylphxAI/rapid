@@ -10,7 +10,7 @@ import { parseQuery } from './utils';
  * Assumes browser environment.
  */
 function updateStateFromLocation(): void {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !window.location) {
     return;
   }
 
@@ -93,14 +93,14 @@ export function handleLinkClick(event: MouseEvent): void {
  * Should be called once in a browser environment.
  */
 export function startHistoryListener(): void {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.location && typeof window.addEventListener === 'function') {
     // Ensure initial state is set based on current URL
     updateStateFromLocation();
     // Listen for browser back/forward navigation
     window.addEventListener('popstate', updateStateFromLocation);
     // Listen for clicks globally to intercept navigation
     // Ensure body exists before adding listener
-    if (document.body) {
+    if (typeof document !== 'undefined' && document.body) {
       document.body.addEventListener('click', handleLinkClick);
     } else {
       // Optionally, retry with DOMContentLoaded or similar if needed in real app
@@ -114,10 +114,10 @@ export function startHistoryListener(): void {
  * Removes the router history listeners.
  */
 export function stopHistoryListener(): void {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
     window.removeEventListener('popstate', updateStateFromLocation);
     // Ensure body exists before trying to remove listener
-    if (document.body) {
+    if (typeof document !== 'undefined' && document.body) {
       document.body.removeEventListener('click', handleLinkClick);
     }
     // console.log('[rapid-router] History listeners stopped.'); // Optional debug log
@@ -132,10 +132,11 @@ export function stopHistoryListener(): void {
  * @param path The new path to navigate to (e.g., '/users/1').
  */
 export function open(path: string): void {
-  if (typeof window !== 'undefined') {
-    history.pushState(null, '', path);
+  if (typeof window !== 'undefined' && window.history && window.location) {
+    window.history.pushState(null, '', path);
     updateStateFromLocation();
   } else {
+    setKey($router, 'path', path);
   }
 }
 
@@ -144,10 +145,11 @@ export function open(path: string): void {
  * @param path The new path to navigate to (e.g., '/users/1').
  */
 export function redirect(path: string): void {
-  if (typeof window !== 'undefined') {
-    history.replaceState(null, '', path);
+  if (typeof window !== 'undefined' && window.history && window.location) {
+    window.history.replaceState(null, '', path);
     updateStateFromLocation();
   } else {
+    setKey($router, 'path', path);
   }
 }
 
@@ -155,14 +157,14 @@ export function redirect(path: string): void {
  * Alias for redirect - replaces current history entry
  * @param path The new path to navigate to
  */
-export const replace = redirect;
+export const replace: typeof redirect = redirect;
 
 /**
  * Navigate back in browser history
  */
 export function back(): void {
-  if (typeof window !== 'undefined') {
-    history.back();
+  if (typeof window !== 'undefined' && window.history) {
+    window.history.back();
   }
 }
 
@@ -170,8 +172,8 @@ export function back(): void {
  * Navigate forward in browser history
  */
 export function forward(): void {
-  if (typeof window !== 'undefined') {
-    history.forward();
+  if (typeof window !== 'undefined' && window.history) {
+    window.history.forward();
   }
 }
 

@@ -5,6 +5,6 @@
  * Will be implemented in future phases.
  */
 
-export function placeholder() {
+export function placeholder(): never {
   throw new Error('@rapid/start is not yet implemented.');
 }

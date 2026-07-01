@@ -53,7 +53,7 @@ export function useSearchParams(): Search {
 /**
  * Navigate function
  */
-export function useNavigate() {
+export function useNavigate(): typeof open {
   return open;
 }
 
