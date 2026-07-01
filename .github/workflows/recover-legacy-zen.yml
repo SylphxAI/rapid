@@ -1,0 +1,109 @@
+name: Recover legacy Zen packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-ref:
+        description: Legacy Zen source ref to publish from
+        required: true
+        default: '@sylphx/zen@3.49.2'
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  NPM_CONFIG_REGISTRY: https://registry.npmjs.org
+
+jobs:
+  recover:
+    runs-on: [self-hosted, sylphx, linux, standard]
+    steps:
+      - name: Checkout legacy Zen source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source-ref }}
+          fetch-depth: 0
+
+      - name: Configure recovery commit identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Patch legacy package versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const bumps = new Map(Object.entries({
+            '@sylphx/zen-craft': '5.0.36',
+            '@sylphx/zen-patterns': '12.0.36',
+            '@sylphx/zen-persistent': '15.0.36',
+            '@sylphx/zen-preact': '5.0.36',
+            '@sylphx/zen-react': '5.0.36',
+            '@sylphx/zen-router': '5.0.36',
+            '@sylphx/zen-router-preact': '5.0.36',
+            '@sylphx/zen-router-react': '5.0.36',
+            '@sylphx/zen-solid': '5.0.36',
+            '@sylphx/zen-svelte': '5.0.36',
+            '@sylphx/zen-vue': '5.0.36',
+          }));
+
+          for (const dir of fs.readdirSync('packages')) {
+            const file = path.join('packages', dir, 'package.json');
+            if (!fs.existsSync(file)) continue;
+            const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const next = bumps.get(manifest.name);
+            if (next) {
+              manifest.version = next;
+              fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+            }
+          }
+          NODE
+          git add packages/*/package.json
+          git commit -m "chore(release): recover legacy zen package metadata"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build legacy Zen packages
+        run: bun run build
+
+      - name: Setup Sylphx Changesets publisher
+        uses: SylphxAI/.github/.github/actions/setup-changesets-publisher@main
+
+      - name: Publish audited legacy Zen tarballs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: sylphx-changesets-publish
+
+      - name: Push recovery tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin \
+            refs/tags/@sylphx/zen-craft@5.0.36 \
+            refs/tags/@sylphx/zen-patterns@12.0.36 \
+            refs/tags/@sylphx/zen-persistent@15.0.36 \
+            refs/tags/@sylphx/zen-preact@5.0.36 \
+            refs/tags/@sylphx/zen-react@5.0.36 \
+            refs/tags/@sylphx/zen-router@5.0.36 \
+            refs/tags/@sylphx/zen-router-preact@5.0.36 \
+            refs/tags/@sylphx/zen-router-react@5.0.36 \
+            refs/tags/@sylphx/zen-solid@5.0.36 \
+            refs/tags/@sylphx/zen-svelte@5.0.36 \
+            refs/tags/@sylphx/zen-vue@5.0.36
