@@ -83,7 +83,7 @@ export interface ListProps<T = unknown> {
  * </FocusProvider>
  * ```
  */
-export function List<T = unknown>(props: ListProps<T>) {
+export function List<T = unknown>(props: ListProps<T>): unknown {
   const {
     items: itemsProp,
     initialIndex = 0,

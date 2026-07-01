@@ -18,7 +18,7 @@ export interface WindowProps {
   children?: any;
 }
 
-export function Window(props: WindowProps) {
+export function Window(props: WindowProps): unknown {
   const win: WindowState = props.window;
   const { children } = props;
 

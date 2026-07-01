@@ -159,7 +159,7 @@ export function handleMultiSelectInput<T>(
   selectedSignal: Signal<T[]>,
   scrollOffset: Signal<number>,
   items: MultiSelectOption<T>[],
-  limit = items.length,
+  limit: number = items.length,
   onSubmit?: (selected: T[]) => void,
 ): boolean {
   const currentIndex = highlightedIndex.value;

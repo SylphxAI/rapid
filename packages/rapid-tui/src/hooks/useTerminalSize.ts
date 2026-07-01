@@ -13,6 +13,7 @@
  */
 
 import { effect, onCleanup, signal } from '@rapid/signal';
+import type { Signal } from '@rapid/signal';
 
 export interface TerminalSize {
   /** Terminal width in columns */
@@ -32,8 +33,12 @@ export const DEFAULT_TERMINAL_HEIGHT = 24;
 
 // Global terminal size signals (shared across all hooks and render system)
 // These are the single source of truth for terminal dimensions
-export const terminalWidthSignal = signal(process.stdout.columns || DEFAULT_TERMINAL_WIDTH);
-export const terminalHeightSignal = signal(process.stdout.rows || DEFAULT_TERMINAL_HEIGHT);
+export const terminalWidthSignal: Signal<number> = signal(
+  process.stdout.columns || DEFAULT_TERMINAL_WIDTH,
+);
+export const terminalHeightSignal: Signal<number> = signal(
+  process.stdout.rows || DEFAULT_TERMINAL_HEIGHT,
+);
 
 // Legacy aliases for internal use
 const terminalWidth = terminalWidthSignal;

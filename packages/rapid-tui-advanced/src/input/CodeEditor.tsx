@@ -384,7 +384,7 @@ function tokenize(line: string, language: Language): Token[] {
 /**
  * CodeEditor Component
  */
-export function CodeEditor(props: CodeEditorProps) {
+export function CodeEditor(props: CodeEditorProps): unknown {
   // Do NOT destructure props - resolve them reactively inside computed/effects
   const { onChange } = props;
 

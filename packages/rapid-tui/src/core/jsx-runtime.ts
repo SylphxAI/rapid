@@ -120,8 +120,8 @@ export function jsx(
 }
 
 // Aliases for different JSX modes
-export const jsxs = jsx;
-export const jsxDEV = jsx;
+export const jsxs: typeof jsx = jsx;
+export const jsxDEV: typeof jsx = jsx;
 
 // ============================================================================
 // Type Guards
