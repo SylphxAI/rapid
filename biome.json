@@ -1,5 +1,7 @@
 {
-  "extends": ["@sylphlab/biome-config"],
+  "extends": [
+    "@sylphlab/biome-config"
+  ],
   "files": {
     "ignore": [
       "**/*.js",
@@ -14,7 +16,9 @@
     ]
   },
   "linter": {
-    "ignore": ["**/core.d.ts"]
+    "ignore": [
+      "**/core.d.ts"
+    ]
   },
   "overrides": [
     {
@@ -35,12 +39,14 @@
             "noAssignInExpressions": "off",
             "noPrototypeBuiltins": "off",
             "noSelfCompare": "off",
-            "noArrayIndexKey": "off"
+            "noArrayIndexKey": "off",
+            "noConfusingVoidType": "off"
           },
           "complexity": {
             "noExcessiveCognitiveComplexity": "off",
             "noBannedTypes": "off",
-            "noForEach": "off"
+            "noForEach": "off",
+            "useLiteralKeys": "off"
           },
           "correctness": {
             "noUnusedVariables": "off",

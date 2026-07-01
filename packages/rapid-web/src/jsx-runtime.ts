@@ -116,8 +116,8 @@ export function jsx(
   return element;
 }
 
-export const jsxs = jsx;
-export const jsxDEV = jsx;
+export const jsxs: typeof jsx = jsx;
+export const jsxDEV: typeof jsx = jsx;
 
 /**
  * Set attribute - optimized
