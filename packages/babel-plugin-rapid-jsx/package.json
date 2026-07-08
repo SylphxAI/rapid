@@ -11,14 +11,23 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bunup src/index.ts --format esm --dts --target node",
     "dev": "bunup src/index.ts --format esm --watch",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:fix": "biome check --write ."
   },
-  "keywords": ["rapid", "jsx", "babel", "transform", "reactive"],
+  "keywords": [
+    "rapid",
+    "jsx",
+    "babel",
+    "transform",
+    "reactive"
+  ],
   "author": "SylphxAI",
   "license": "MIT",
   "peerDependencies": {
@@ -29,6 +38,8 @@
     "@babel/types": "^7.28.5",
     "@types/babel__core": "^7.20.5",
     "bunup": "^0.16.10",
-    "typescript": "^5.8.3"
+    "typescript": "^7.0.2",
+    "@biomejs/biome": "^2.3.12",
+    "@sylphx/biome-config": "^0.4.1"
   }
 }

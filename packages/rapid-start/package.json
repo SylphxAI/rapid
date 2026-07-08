@@ -23,13 +23,23 @@
       "import": "./dist/api.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bunup",
     "dev": "bun run --watch src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:fix": "biome check --write ."
   },
-  "keywords": ["rapid", "fullstack", "meta-framework", "ssr", "routing", "server-functions"],
+  "keywords": [
+    "rapid",
+    "fullstack",
+    "meta-framework",
+    "ssr",
+    "routing",
+    "server-functions"
+  ],
   "author": "Rapid Team",
   "license": "MIT",
   "repository": {
@@ -44,8 +54,10 @@
   },
   "devDependencies": {
     "bunup": "^0.16.10",
-    "typescript": "^5.8.3",
-    "vite": "^7.2.2"
+    "typescript": "^7.0.2",
+    "vite": "^7.2.2",
+    "@biomejs/biome": "^2.3.12",
+    "@sylphx/biome-config": "^0.4.1"
   },
   "publishConfig": {
     "access": "public"

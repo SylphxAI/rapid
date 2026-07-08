@@ -1,6 +1,6 @@
 {
   "extends": [
-    "@sylphlab/biome-config"
+    "@sylphx/biome-config"
   ],
   "files": {
     "ignore": [

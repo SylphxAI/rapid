@@ -41,14 +41,24 @@
       "import": "./dist/hydrate.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bunup --entry 'src/{index,jsx-runtime,jsx-runtime-server,server,hydrate}.ts' --format esm --dts --target node --splitting=false",
     "dev": "bun run --watch src/index.ts",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:fix": "biome check --write ."
   },
-  "keywords": ["rapid", "web", "dom", "jsx", "ssr", "hydration"],
+  "keywords": [
+    "rapid",
+    "web",
+    "dom",
+    "jsx",
+    "ssr",
+    "hydration"
+  ],
   "author": "Rapid Team",
   "license": "MIT",
   "repository": {
@@ -63,7 +73,9 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "bunup": "^0.16.10",
-    "typescript": "^5.8.3"
+    "typescript": "^7.0.2",
+    "@biomejs/biome": "^2.3.12",
+    "@sylphx/biome-config": "^0.4.1"
   },
   "publishConfig": {
     "access": "public"

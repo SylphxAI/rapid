@@ -3,7 +3,9 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": true,
@@ -16,7 +18,10 @@
     "sourceMap": true,
     "composite": false,
     "noEmit": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "types": [
+      "bun"
+    ]
   },
   "exclude": [
     "apps/**/*",

@@ -12,13 +12,23 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bunup --format esm --dts --target node --minify",
     "clean": "bun rimraf dist .turbo",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:fix": "biome check --write ."
   },
-  "keywords": ["rapid", "router", "routing", "vue", "composable", "navigation"],
+  "keywords": [
+    "rapid",
+    "router",
+    "routing",
+    "vue",
+    "composable",
+    "navigation"
+  ],
   "author": "Sylphx <hi@sylphx.com>",
   "license": "MIT",
   "repository": {
@@ -40,8 +50,10 @@
     "@rapid/router-core": "workspace:*",
     "@rapid/signal-core": "workspace:*",
     "bunup": "^0.16.10",
-    "typescript": "^5.8.3",
-    "vue": "^3.5.13"
+    "typescript": "^7.0.2",
+    "vue": "^3.5.13",
+    "@biomejs/biome": "^2.3.12",
+    "@sylphx/biome-config": "^0.4.1"
   },
   "publishConfig": {
     "access": "public"

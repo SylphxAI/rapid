@@ -47,7 +47,12 @@
       "import": "./svelte-preprocessor/index.ts"
     }
   },
-  "files": ["dist", "jsx-runtime", "svelte-preprocessor", "README.md"],
+  "files": [
+    "dist",
+    "jsx-runtime",
+    "svelte-preprocessor",
+    "README.md"
+  ],
   "keywords": [
     "rapid",
     "signal",
@@ -64,7 +69,8 @@
     "build": "bunup --entry 'src/{index,vite,webpack,rollup,esbuild}.ts' --format esm --dts --target node --minify && bun scripts/fix-cjs.mjs",
     "dev": "bunup --entry 'src/{index,vite,webpack,rollup,esbuild}.ts' --format esm --dts --target node --watch",
     "clean": "bun rimraf dist .turbo",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:fix": "biome check --write ."
   },
   "dependencies": {
     "unplugin": "^1.16.0",
@@ -88,11 +94,13 @@
   "devDependencies": {
     "bunup": "^0.16.10",
     "@types/node": "^22.14.1",
-    "typescript": "^5.4.5",
+    "typescript": "^7.0.2",
     "vite": "^5.4.0",
     "webpack": "^5.95.0",
     "rollup": "^4.29.0",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "@biomejs/biome": "^2.3.12",
+    "@sylphx/biome-config": "^0.4.1"
   },
   "publishConfig": {
     "access": "public"
