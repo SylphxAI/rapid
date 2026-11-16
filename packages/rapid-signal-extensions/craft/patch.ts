@@ -2,10 +2,28 @@ import { produce } from './produce'; // Import produce
 import type { Patch } from './types';
 import { deepEqual, isDraftable, isMap, isSet } from './utils'; // Import deepEqual
 
+// Reject reserved properties before any lookup or mutation, including Map keys.
+function assertSafeSegment(segment: string | number): void {
+  if (
+    (typeof segment !== 'string' && typeof segment !== 'number') ||
+    segment === '__proto__' ||
+    segment === 'prototype' ||
+    segment === 'constructor'
+  ) {
+    throw new Error('Invalid patch path: reserved or non-property segment');
+  }
+}
+
+function assertSafePath(path: (string | number)[]): void {
+  if (!Array.isArray(path)) throw new Error('Invalid patch path: expected an array');
+  for (const segment of path) assertSafeSegment(segment);
+}
+
 // deepEqual function moved to utils.ts
 
 // Helper to safely get a value by path array from a draft
 const getValueByPath = (target: unknown, path: (string | number)[]): unknown => {
+  assertSafePath(path);
   let current: unknown = target;
   for (const segment of path) {
     if (current === null || typeof current !== 'object' || segment === undefined) {
@@ -34,6 +52,7 @@ function _traverseAndCreatePath<T>(
   path: (string | number)[],
   op: 'add' | 'replace' | 'remove',
 ): T | null {
+  assertSafePath(path);
   let current = draft;
   for (let i = 0; i < path.length - 1; i++) {
     const segment = path[i];
@@ -176,6 +195,8 @@ function _applyFinalOperation<T>(
   baseState: T, // Original base state for type checks
   path: (string | number)[], // Full path for context
 ): boolean {
+  assertSafePath(path);
+  assertSafeSegment(finalSegment);
   if (op === 'remove') {
     return _applyRemoveOperation(current, finalSegment);
   }
@@ -302,6 +323,12 @@ function _handleRootOperation(patch: Patch): void {
 export function applyPatches<T>(baseState: T, patches: Patch[]): T {
   if (!patches.length) {
     return baseState;
+  }
+
+  // Validate the entire batch before reading state or running a recipe.
+  for (const patch of patches) {
+    assertSafePath(patch.path);
+    if (patch.from !== undefined) assertSafePath(patch.from);
   }
 
   // 1. Perform all 'test' operations first

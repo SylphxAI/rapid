@@ -11,5 +11,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
-    uses: SylphxAI/.github/.github/workflows/release.yml@main
+    uses: SylphxAI/.github/.github/workflows/release.yml@b7d933996449f9bb2846882d543722185a2419bd # main
+    with:
+      working-directory: 'packages/zen-craft'
     secrets: inherit
