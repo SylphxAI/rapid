@@ -9,7 +9,7 @@ on:
     types: [checks_requested]
 
 jobs:
-  ci:
+  ci-ok:
     runs-on: [self-hosted, sylphx-linux-standard]
     steps:
       - uses: actions/checkout@v4
