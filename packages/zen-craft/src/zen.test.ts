@@ -19,7 +19,7 @@ describe('craftZen', () => {
     const listener = vi.fn();
     subscribe(myZen, listener);
 
-    craftZen(
+    craftZen<SimpleState>(
       myZen,
       (draft) => {
         draft.a = 10;
@@ -102,7 +102,7 @@ describe('craftZen', () => {
     const listener = vi.fn();
     subscribe(myZen, listener);
 
-    craftZen(
+    craftZen<NestedState>(
       myZen,
       (draft) => {
         draft.data.value = 20;
@@ -129,7 +129,7 @@ describe('craftZen', () => {
   it('should pass options correctly to the underlying produce function', () => {
     const baseState = { count: 0 };
     const myZen = atom(baseState);
-    craftZen(
+    craftZen<{ count: number }>(
       myZen,
       (draft) => {
         draft.count++;

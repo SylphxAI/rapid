@@ -127,7 +127,7 @@ describe('produce: Set Clear', () => {
 describe('craftZen: Simple Object Replace', () => {
   const myZen = zen({ value: 1 });
   bench('zen-craft + zen', () => {
-    craftZen(myZen, (draft) => {
+    craftZen<{ value: number }>(myZen, (draft) => {
       draft.value = draft.value === 1 ? 2 : 1;
     });
   });
@@ -136,7 +136,7 @@ describe('craftZen: Simple Object Replace', () => {
 describe('craftZen: Nested Object Replace', () => {
   const myZen = zen({ a: { b: { c: 1 } } });
   bench('zen-craft + zen', () => {
-    craftZen(myZen, (draft) => {
+    craftZen<{ a: { b: { c: number } } }>(myZen, (draft) => {
       draft.a.b.c = draft.a.b.c === 1 ? 2 : 1;
     });
   });
@@ -145,8 +145,8 @@ describe('craftZen: Nested Object Replace', () => {
 describe('craftZen: Array Update (Small)', () => {
   const myZen = zen({ items: [1, 2, 3] });
   bench('zen-craft + zen', () => {
-    craftZen(myZen, (draft) => {
-      draft.items[0] = draft.items[0] + 1;
+    craftZen<{ items: number[] }>(myZen, (draft) => {
+      draft.items[0] = (draft.items[0] ?? 0) + 1;
     });
   });
 });
@@ -154,8 +154,8 @@ describe('craftZen: Array Update (Small)', () => {
 describe('craftZen: Array Update (Large)', () => {
   const myZen = zen({ items: Array.from({ length: 1000 }, (_, i) => i) });
   bench('zen-craft + zen', () => {
-    craftZen(myZen, (draft) => {
-      draft.items[500] = draft.items[500] + 1;
+    craftZen<{ items: number[] }>(myZen, (draft) => {
+      draft.items[500] = (draft.items[500] ?? 0) + 1;
     });
   });
 });

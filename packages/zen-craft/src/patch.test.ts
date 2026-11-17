@@ -433,12 +433,11 @@ describe('applyPatches', () => {
       expect(nextState.map.get('nested')).toEqual({ deep: 123 });
     });
 
-    it('should handle undefined segment in path', () => {
+    it('should reject an undefined segment in path', () => {
       const baseState = { a: { b: 1 } };
       const patches: Patch[] = [{ op: 'remove', path: ['a', undefined as unknown as string] }];
-      const nextState = applyPatches(baseState, patches);
-      // Undefined segment should be handled gracefully
-      expect(nextState).toEqual({ a: { b: 1 } });
+      expect(() => applyPatches(baseState, patches)).toThrow(/Invalid patch path/);
+      expect(baseState).toEqual({ a: { b: 1 } });
     });
 
     it('should handle move operation with failed remove', () => {
@@ -479,24 +478,22 @@ describe('applyPatches', () => {
       expect(() => applyPatches(baseState, patches)).toThrow(/'test' operation failed/);
     });
 
-    it('should handle object segment type (converts to string)', () => {
+    it('should reject an object segment instead of converting it to a string', () => {
       const baseState = { a: { b: 1 } };
       const patches: Patch[] = [
         { op: 'replace', path: ['a', {} as unknown as string], value: 99 },
       ];
-      const nextState = applyPatches(baseState, patches);
-      // Object segment gets converted to "[object Object]" string
-      expect(nextState).toEqual({ a: { b: 1, '[object Object]': 99 } });
+      expect(() => applyPatches(baseState, patches)).toThrow(/Invalid patch path/);
+      expect(baseState).toEqual({ a: { b: 1 } });
     });
 
-    it('should handle path traversal with invalid intermediate segment', () => {
+    it('should reject a null intermediate segment', () => {
       const baseState = { a: { b: 1 } };
       const patches: Patch[] = [
         { op: 'remove', path: ['a', null as unknown as string, 'x'] },
       ];
-      const nextState = applyPatches(baseState, patches);
-      // Cannot traverse through null segment
-      expect(nextState).toEqual({ a: { b: 1 } });
+      expect(() => applyPatches(baseState, patches)).toThrow(/Invalid patch path/);
+      expect(baseState).toEqual({ a: { b: 1 } });
     });
 
     it('should handle adding to primitive value parent', () => {

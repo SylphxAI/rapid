@@ -1,6 +1,5 @@
-import { craft, craftWithPatches } from '@sylphx/craft';
-import type { Zen } from '@sylphx/zen';
-import type { CraftOptions, Patch } from './types';
+import { type Producer, craft, craftWithPatches } from '@sylphx/craft';
+import type { CraftOptions, Patch, ZenAtom } from './types';
 
 /**
  * Craft-powered immutable updates for Zen atoms.
@@ -12,16 +11,16 @@ import type { CraftOptions, Patch } from './types';
  * @param options Options to enable patch generation.
  * @returns When options.patches or options.inversePatches is true, returns [Patch[], Patch[]]. Otherwise returns void.
  */
-export function craftZen<T>(targetZen: Zen<T>, recipe: (draft: T) => undefined): void;
+export function craftZen<T>(targetZen: ZenAtom<T>, recipe: (draft: T) => undefined): void;
 
 export function craftZen<T>(
-  targetZen: Zen<T>,
+  targetZen: ZenAtom<T>,
   recipe: (draft: T) => undefined,
   options: CraftOptions,
 ): [Patch[], Patch[]];
 
 export function craftZen<T>(
-  targetZen: Zen<T>,
+  targetZen: ZenAtom<T>,
   recipe: (draft: T) => undefined,
   options?: CraftOptions,
 ): [Patch[], Patch[]] | undefined {
@@ -31,7 +30,7 @@ export function craftZen<T>(
   if (options?.patches || options?.inversePatches) {
     const [nextState, patches, inversePatches] = craftWithPatches(
       currentState,
-      recipe as (draft: T) => T | undefined,
+      recipe as unknown as Producer<T>,
     );
     if (nextState !== currentState) {
       targetZen.value = nextState;
@@ -40,7 +39,7 @@ export function craftZen<T>(
   }
 
   // Fast path: no patches needed
-  const nextState = craft(currentState, recipe as (draft: T) => T | undefined);
+  const nextState = craft(currentState, recipe as unknown as Producer<T>);
   if (nextState !== currentState) {
     targetZen.value = nextState;
   }

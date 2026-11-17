@@ -1,4 +1,4 @@
-import { craft, craftWithPatches } from '@sylphx/craft';
+import { type Producer, craft, craftWithPatches } from '@sylphx/craft';
 import type { CraftOptions, CraftResult } from './types';
 import { isDraftable } from './utils';
 
@@ -21,12 +21,12 @@ export function produce<T>(
   if (options?.patches || options?.inversePatches) {
     const [finalState, patches, inversePatches] = craftWithPatches(
       baseState,
-      recipe as (draft: T) => T | undefined,
+      recipe as unknown as Producer<T>,
     );
     return [finalState as T, patches, inversePatches];
   }
 
   // Otherwise use craft for basic immutable update (faster)
-  const finalState = craft(baseState, recipe as (draft: T) => T | undefined);
+  const finalState = craft(baseState, recipe as unknown as Producer<T>);
   return [finalState as T, EMPTY_PATCHES, EMPTY_INVERSE_PATCHES];
 }
